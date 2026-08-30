@@ -15,31 +15,36 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import AppShell from "../components/layout/AppShell";
-import { useTranslation } from "../lib/i18n/useTranslation";
+
+const categories = [
+    {
+        title: "Food",
+        description:
+            "Local food & hidden gems",
+        icon: Utensils,
+    },
+    {
+        title: "Cafés",
+        description:
+            "Coffee, pastries & chill",
+        icon: Coffee,
+    },
+    {
+        title: "Drinks",
+        description:
+            "Bars, lounges & more",
+        icon: Martini,
+    },
+    {
+        title: "Discover",
+        description:
+            "Something different",
+        icon: Sparkles,
+    },
+];
 
 export default function HomePage() {
-    const t = useTranslation();
     const router = useRouter();
-
-    // Dynamic categories based on translations
-    const categories = [
-        {
-            key: "food",
-            icon: Utensils,
-        },
-        {
-            key: "cafe",
-            icon: Coffee,
-        },
-        {
-            key: "drinks",
-            icon: Martini,
-        },
-        {
-            key: "discover",
-            icon: Sparkles,
-        },
-    ];
 
     function handleSearch(
         event: React.FormEvent<HTMLFormElement>
@@ -79,19 +84,25 @@ export default function HomePage() {
                         <div className="nt-hero-copy-column">
                             <div className="nt-eyebrow">
                                 <span className="nt-eyebrow-dot" />
-                                {t.home.eyebrow}
+
+                                Local discovery,
+                                reimagined
                             </div>
 
                             <h1>
-                                {t.home.title}
+                                Discover
                                 <br />
+                                something{" "}
                                 <span className="accent">
-                                    {t.home.titleAccent}
+                                    nice.
                                 </span>
                             </h1>
 
                             <p className="nt-hero-description">
-                                {t.home.description}
+                                Find beautiful places,
+                                great food, hidden gems
+                                and experiences around
+                                you — without the noise.
                             </p>
 
                             <form
@@ -109,15 +120,15 @@ export default function HomePage() {
                                     className="nt-search-input"
                                     name="query"
                                     type="search"
-                                    placeholder={t.home.searchPlaceholder}
+                                    placeholder="What are you looking for?"
                                     autoComplete="off"
-                                    aria-label={t.common.search}
+                                    aria-label="Search NiceThings"
                                 />
 
                                 <button
                                     className="nt-search-submit"
                                     type="submit"
-                                    aria-label={t.common.search}
+                                    aria-label="Search"
                                 >
                                     <ArrowRight
                                         size={20}
@@ -135,7 +146,8 @@ export default function HomePage() {
                                         size={15}
                                         strokeWidth={2.5}
                                     />
-                                    {t.home.exploreNearby}
+
+                                    Explore nearby
                                 </Link>
 
                                 <Link
@@ -143,7 +155,8 @@ export default function HomePage() {
                                     className="nt-pill-action"
                                 >
                                     <PlusIcon />
-                                    {t.home.knowAPlace}
+
+                                    I know a place
                                 </Link>
                             </div>
                         </div>
@@ -155,21 +168,21 @@ export default function HomePage() {
                         <div className="nt-hero-visual">
                             <div className="nt-floating-card one">
                                 <div className="nt-floating-label">
-                                    {t.home.aroundYou}
+                                    Around you
                                 </div>
 
                                 <div className="nt-floating-value">
-                                    {t.home.nicePlacesNearby}
+                                    Nice places nearby
                                 </div>
                             </div>
 
                             <div className="nt-floating-card two">
                                 <div className="nt-floating-label">
-                                    {t.home.community}
+                                    Community
                                 </div>
 
                                 <div className="nt-floating-value">
-                                    {t.home.realDiscoveries}
+                                    Real discoveries
                                 </div>
                             </div>
 
@@ -177,18 +190,18 @@ export default function HomePage() {
                                 <div className="nt-phone-screen">
                                     <div className="nt-phone-header">
                                         <span>
-                                            {t.common.appName}
+                                            NiceThings
                                         </span>
 
                                         <span>
-                                            {t.home.exampleCity}
+                                            Douala
                                         </span>
                                     </div>
 
                                     <div className="nt-phone-title">
-                                        {t.home.phoneTitle}
+                                        Find something
                                         <br />
-                                        <span>{t.home.titleAccent}</span>
+                                        <span>nice.</span>
                                     </div>
 
                                     <div className="nt-phone-search">
@@ -198,7 +211,8 @@ export default function HomePage() {
                                                 marginRight: 7,
                                             }}
                                         />
-                                        {t.home.searchNearby}
+
+                                        Search nearby
                                     </div>
 
                                     <div className="nt-phone-map">
@@ -220,12 +234,13 @@ export default function HomePage() {
 
                                         <div className="nt-phone-place">
                                             <div className="nt-phone-place-name">
-                                                {t.home.placeWorthDiscovering}
+                                                A place worth
+                                                discovering
                                             </div>
 
                                             <div className="nt-phone-place-meta">
                                                 <span>
-                                                    {t.home.localFavorite}
+                                                    Local favorite
                                                 </span>
 
                                                 <span>
@@ -238,16 +253,16 @@ export default function HomePage() {
                                     <div className="nt-phone-bottom">
                                         <span>
                                             <strong>
-                                                {t.common.discover}
+                                                Discover
                                             </strong>
                                         </span>
 
                                         <span>
-                                            {t.navigation.explore}
+                                            Map
                                         </span>
 
                                         <span>
-                                            {t.navigation.saved}
+                                            Saved
                                         </span>
                                     </div>
                                 </div>
@@ -265,50 +280,47 @@ export default function HomePage() {
                         <div className="nt-section-header">
                             <div>
                                 <h2>
-                                    {t.home.startExploring}
+                                    Start exploring.
                                 </h2>
                             </div>
 
                             <p>
-                                {t.home.startExploringDescription}
+                                From everyday favorites to
+                                places you would never have
+                                found on your own.
                             </p>
                         </div>
 
                         <div className="nt-category-grid">
                             {categories.map(
                                 ({
-                                    key,
+                                    title,
+                                    description,
                                     icon: Icon,
-                                }) => {
-                                    const categoryKey = key as keyof typeof t.home.categoryTitles;
-                                    const title = t.home.categoryTitles[categoryKey];
-                                    const description = t.home.categoryDescriptions[categoryKey];
+                                }) => (
+                                    <Link
+                                        key={title}
+                                        href={`/search?category=${encodeURIComponent(
+                                            title
+                                        )}`}
+                                        className="nt-category-card"
+                                    >
+                                        <span className="nt-category-icon">
+                                            <Icon
+                                                size={22}
+                                                strokeWidth={2}
+                                            />
+                                        </span>
 
-                                    return (
-                                        <Link
-                                            key={key}
-                                            href={`/search?category=${encodeURIComponent(
-                                                title
-                                            )}`}
-                                            className="nt-category-card"
-                                        >
-                                            <span className="nt-category-icon">
-                                                <Icon
-                                                    size={22}
-                                                    strokeWidth={2}
-                                                />
-                                            </span>
+                                        <h3>
+                                            {title}
+                                        </h3>
 
-                                            <h3>
-                                                {title}
-                                            </h3>
-
-                                            <p>
-                                                {description}
-                                            </p>
-                                        </Link>
-                                    );
-                                }
+                                        <p>
+                                            {description}
+                                        </p>
+                                    </Link>
+                                )
                             )}
                         </div>
                     </div>
@@ -322,18 +334,23 @@ export default function HomePage() {
                     <div className="nt-container nt-community-grid">
                         <div>
                             <h2>
-                                {t.home.communityTitle}
+                                Know somewhere
+                                <br />
+                                special?
                             </h2>
 
                             <p className="nt-community-copy">
-                                {t.home.communityDescription}
+                                NiceThings grows through
+                                people. Share a place worth
+                                discovering and help someone
+                                else find it.
                             </p>
 
                             <Link
                                 href="/submit"
                                 className="nt-button nt-button-orange"
                             >
-                                {t.home.knowAPlace}
+                                I know a place
 
                                 <ArrowRight
                                     size={17}
@@ -347,7 +364,8 @@ export default function HomePage() {
                             </div>
 
                             <div className="nt-community-stat-label">
-                                {t.home.placesWaitingDiscovery}
+                                Places waiting to be
+                                discovered.
                             </div>
                         </div>
                     </div>
@@ -362,11 +380,17 @@ export default function HomePage() {
                         <div className="nt-final-card">
                             <div className="nt-final-content">
                                 <h2>
-                                    {t.home.finalCTATitle}
+                                    There is always
+                                    <br />
+                                    something nice
+                                    <br />
+                                    nearby.
                                 </h2>
 
                                 <p>
-                                    {t.home.finalCTADescription}
+                                    Search. Discover. Go.
+                                    <br />
+                                    That's the whole point.
                                 </p>
 
                                 <Link
@@ -377,7 +401,7 @@ export default function HomePage() {
                                         size={17}
                                     />
 
-                                    {t.home.exploreNearby}
+                                    Explore nearby
 
                                     <ArrowRight
                                         size={17}
@@ -397,11 +421,11 @@ export default function HomePage() {
                         <span>
                             ©{" "}
                             {new Date().getFullYear()}{" "}
-                            {t.common.appName}
+                            NiceThings
                         </span>
 
                         <span>
-                            {t.home.tagline}
+                            Discover something nice.
                         </span>
                     </div>
                 </footer>

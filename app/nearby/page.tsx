@@ -34,8 +34,8 @@ const NearbyMap = dynamic(
         ssr: false,
         loading: () => (
             <div className="nt-map-loading" aria-label="Loading map">
-                <div className="nt-map-loading-spinner" />
-                <span>Loading map...</span>
+                <span className="nt-map-loading-dot" />
+                <span>Loading map…</span>
             </div>
         ),
     }
@@ -63,7 +63,6 @@ import {
     grantLocationConsent,
     hasLocationConsent,
 } from "../../lib/consent";
-import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Spot = {
     id: string;
@@ -122,7 +121,6 @@ const RADIUS_OPTIONS = [
 ];
 
 export default function NearbyPage() {
-    const t = useTranslation();
     const supabase = useMemo(
         () =>
             getSupabaseBrowserClient() as any,
@@ -915,20 +913,24 @@ export default function NearbyPage() {
                                 }
                             />
 
-                            {t.common.nearby.toUpperCase()}
+                            AROUND YOU
                         </div>
 
                         <h1>
-                            {t.home.title}
+                            Nice things,
                             <br />
 
                             <em>
-                                {t.common.nearby}
+                                right nearby.
                             </em>
                         </h1>
 
                         <p>
-                            {t.nearby?.subtitle ?? "Discover places worth exploring around your current location."}
+                            Discover places
+                            worth exploring
+                            around your
+                            current
+                            location.
                         </p>
                     </div>
 
@@ -996,11 +998,11 @@ export default function NearbyPage() {
                             <strong>
                                 {locationState ===
                                     "success"
-                                    ? t.home.aroundYou
+                                    ? "Your location"
                                     : locationState ===
                                         "loading"
-                                        ? t.common.loading
-                                        : t.nearby?.title ?? "Location unavailable"}
+                                        ? "Finding you"
+                                        : "Location unavailable"}
                             </strong>
 
                             <span>

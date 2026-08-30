@@ -33,7 +33,6 @@ import { useRouter } from "next/navigation";
 import {
     getSupabaseBrowserClient,
 } from "../../lib/supabase/client";
-import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type FormState = {
     name: string;
@@ -91,7 +90,6 @@ const CITIES = [
 ];
 
 export default function SubmitPage() {
-    const t = useTranslation();
     const router =
         useRouter();
 
@@ -583,24 +581,26 @@ export default function SubmitPage() {
                             }
                         />
 
-                        {t.common.back}
+                        Back
                     </Link>
 
                     <div className="nt-submit-title">
                         <span>
-                            {t.common.submit.toUpperCase()}
+                            CONTRIBUTE
                         </span>
 
                         <h1>
-                            {t.submit?.subtitle ?? "Know a nice"}
+                            Know a nice
                             <br />
                             <em>
-                                {t.submit?.title ? " place?" : "place?"}
+                                place?
                             </em>
                         </h1>
 
                         <p>
-                            {t.submit?.description ?? "Help other people discover somewhere worth knowing."}
+                            Help other people
+                            discover somewhere
+                            worth knowing.
                         </p>
                     </div>
 

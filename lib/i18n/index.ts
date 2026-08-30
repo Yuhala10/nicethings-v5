@@ -77,7 +77,7 @@ export function t(
     const dictionary =
         translations[language] as Record<
             string,
-            any
+            Record<string, string>
         >;
 
     return (

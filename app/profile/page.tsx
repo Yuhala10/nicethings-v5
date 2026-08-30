@@ -38,7 +38,6 @@ import { useRouter } from "next/navigation";
 import {
     getSupabaseBrowserClient,
 } from "../../lib/supabase/client";
-import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Language =
     | "en"
@@ -78,7 +77,6 @@ const CITIES = [
 ];
 
 export default function ProfilePage() {
-    const t = useTranslation();
     const router =
         useRouter();
     const supabase =

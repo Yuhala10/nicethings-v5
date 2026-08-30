@@ -18,37 +18,14 @@ function getOrCreateVisitorId() {
 
 async function ensureVisitor() {
     if (!getStoredConsent().privacy) return;
-
     const id = getOrCreateVisitorId();
-
     try {
         const supabase = getSupabaseBrowserClient();
-
-        const {
-            data: { user },
-            error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-            return;
-        }
-
-        const { error } = await supabase
-            .from("nt_visitors")
-            .upsert(
-                {
-                    id: user.id,
-                    preferred_language: getInitialLanguage(),
-                },
-                { onConflict: "id" }
-            );
-
-        if (error) {
-            if (error.code !== "42501") {
-                console.warn("NiceThings visitor bootstrap:", error);
-            }
-            return;
-        }
+        const { error } = await supabase.from("nt_visitors").upsert(
+            { id, preferred_language: getInitialLanguage() },
+            { onConflict: "id" }
+        );
+        if (error) console.warn("NiceThings visitor bootstrap:", error);
     } catch (error) {
         console.warn("NiceThings visitor bootstrap failed:", error);
     }

@@ -21,31 +21,29 @@ import {
 
 import Logo from "../branding/Logo";
 import LanguageSwitcher from "../i18n/LanguageSwitcher";
-import { useTranslation } from "../../lib/i18n/useTranslation";
+
+const navigation = [
+    {
+        href: "/",
+        label: "Home",
+    },
+    {
+        href: "/search",
+        label: "Discover",
+    },
+    {
+        href: "/nearby",
+        label: "Nearby",
+    },
+    {
+        href: "/saved",
+        label: "Saved",
+    },
+];
 
 export default function Header() {
-    const t = useTranslation();
     const pathname =
         usePathname();
-
-    const navigation = [
-        {
-            href: "/",
-            label: t.navigation.home,
-        },
-        {
-            href: "/search",
-            label: t.navigation.discover,
-        },
-        {
-            href: "/nearby",
-            label: t.navigation.nearby,
-        },
-        {
-            href: "/saved",
-            label: t.navigation.saved,
-        },
-    ];
 
     const [
         open,
@@ -186,11 +184,11 @@ export default function Header() {
 
                     <div className="nt-header-actions">
                         <LanguageSwitcher />
-                        <Link href="/admin-login" className="nt-admin-entry" aria-label={t.common.admin}><LockKeyhole size={15} /><span>{t.common.admin}</span></Link>
+                        <Link href="/admin-login" className="nt-admin-entry" aria-label="Admin login"><LockKeyhole size={15} /><span>Admin</span></Link>
                         <Link
                             href="/search"
                             className="nt-header-icon"
-                            aria-label={t.header.search}
+                            aria-label="Search NiceThings"
                         >
                             <Search
                                 size={

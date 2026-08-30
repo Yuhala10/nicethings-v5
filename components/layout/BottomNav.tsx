@@ -12,45 +12,42 @@ import {
     type LucideIcon,
 } from "lucide-react";
 
-import { useTranslation } from "../../lib/i18n/useTranslation";
-
 type NavigationItem = {
     href: string;
     label: string;
     icon: LucideIcon;
 };
 
+const navigationItems: NavigationItem[] = [
+    {
+        href: "/",
+        label: "Home",
+        icon: Home,
+    },
+    {
+        href: "/saved",
+        label: "Saved",
+        icon: Heart,
+    },
+    {
+        href: "/search",
+        label: "Search",
+        icon: Search,
+    },
+    {
+        href: "/submit",
+        label: "Contribute",
+        icon: Plus,
+    },
+    {
+        href: "/profile",
+        label: "Profile",
+        icon: UserRound,
+    },
+];
+
 export default function BottomNav() {
     const pathname = usePathname();
-    const t = useTranslation();
-
-    const navigationItems: NavigationItem[] = [
-        {
-            href: "/",
-            label: t.navigation.home,
-            icon: Home,
-        },
-        {
-            href: "/saved",
-            label: t.navigation.saved,
-            icon: Heart,
-        },
-        {
-            href: "/search",
-            label: t.navigation.search,
-            icon: Search,
-        },
-        {
-            href: "/submit",
-            label: t.navigation.contribute,
-            icon: Plus,
-        },
-        {
-            href: "/profile",
-            label: t.navigation.profile,
-            icon: UserRound,
-        },
-    ];
 
     return (
         <nav

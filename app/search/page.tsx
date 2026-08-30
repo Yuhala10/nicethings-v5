@@ -64,7 +64,6 @@ import {
     grantLocationConsent,
     hasLocationConsent,
 } from "../../lib/consent";
-import { useTranslation } from "../../lib/i18n/useTranslation";
 
 const NearbyMap = dynamic(
     () => import("../../components/maps/NearbyMap"),
@@ -72,8 +71,8 @@ const NearbyMap = dynamic(
         ssr: false,
         loading: () => (
             <div className="nt-map-loading" aria-label="Loading map">
-                <div className="nt-map-loading-spinner" />
-                <span>Loading map...</span>
+                <span className="nt-map-loading-dot" />
+                <span>Loading map…</span>
             </div>
         ),
     }
@@ -166,7 +165,6 @@ function SearchPageContent() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const t = useTranslation();
 
     const supabase = useMemo(
         () => getSupabaseBrowserClient() as any,
@@ -820,25 +818,29 @@ function SearchPageContent() {
                 <div className="nt-page-container">
                     <div className="nt-search-back">
                         <Link href="/">
-                            ← {t.common.back} {t.common.home}
+                            ← Back home
                         </Link>
                     </div>
 
                     <div className="nt-search-heading">
                         <span className="nt-search-eyebrow">
                             <Search size={13} />
-                            {t.navigation.discover}
+                            Discover
                         </span>
 
                         <h1>
-                            {t.search.title === "Search" ? "Find somewhere" : t.search.title}
+                            Find somewhere
                             <span>
-                                {t.search.title === "Search" ? " worth going." : ""}
+                                worth going.
                             </span>
                         </h1>
 
                         <p>
-                            {t.home.startExploringDescription}
+                            Search beautiful
+                            places, discover
+                            what's nearby, or
+                            explore somewhere
+                            completely new.
                         </p>
                     </div>
 
@@ -874,9 +876,9 @@ function SearchPageContent() {
                                             .value
                                     )
                                 }
-                                placeholder={t.search.searchPlaceholder}
+                                placeholder="Restaurants, cafés, places, towns..."
                                 className="nt-search-input"
-                                aria-label={t.header.search}
+                                aria-label="Search places"
                             />
 
                             {searchInput && (
@@ -895,7 +897,7 @@ function SearchPageContent() {
                             <button
                                 type="submit"
                                 className="nt-search-submit"
-                                aria-label={t.common.search}
+                                aria-label="Search"
                             >
                                 <Search size={18} />
                             </button>
@@ -916,7 +918,7 @@ function SearchPageContent() {
                             }
                         >
                             <Search size={15} />
-                            <span>{t.common.search}</span>
+                            <span>Search</span>
                         </button>
 
                         <button
@@ -937,8 +939,8 @@ function SearchPageContent() {
                             <Crosshair size={15} />
                             <span>
                                 {locationLoading
-                                    ? t.common.loading
-                                    : t.common.nearby}
+                                    ? "Finding..."
+                                    : "Around me"}
                             </span>
                         </button>
 
@@ -956,7 +958,7 @@ function SearchPageContent() {
                         >
                             <MapPin size={15} />
                             <span>
-                                {t.nearby?.subtitle ?? "Explore an area"}
+                                Explore an area
                             </span>
                         </button>
                     </div>
@@ -1028,7 +1030,8 @@ function SearchPageContent() {
 
                                         <div>
                                             <span>
-                                                {t.nearby?.subtitle ?? "Around your current location"}
+                                                Around your
+                                                current location
                                             </span>
 
                                             <strong>

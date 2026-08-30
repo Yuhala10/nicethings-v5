@@ -26,7 +26,6 @@ import Link from "next/link";
 import {
     getSupabaseBrowserClient,
 } from "../../lib/supabase/client";
-import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Spot = {
     id: string;
@@ -64,11 +63,10 @@ type SavedSpot = Spot & {
 };
 
 export default function SavedPage() {
-    const t = useTranslation();
-    const supabase = useMemo(
-        () => getSupabaseBrowserClient() as any,
-        []
-    );
+   const supabase = useMemo(
+    () => getSupabaseBrowserClient() as any,
+    []
+);
 
     const [
         spots,
@@ -438,19 +436,21 @@ export default function SavedPage() {
                 <section className="nt-saved-hero">
                     <div>
                         <span className="nt-saved-eyebrow">
-                            {t.saved?.title?.toUpperCase() ?? "YOUR COLLECTION"}
+                            YOUR COLLECTION
                         </span>
 
                         <h1>
-                            {t.saved?.subtitle ? t.saved.subtitle.split(" ")[0] : "Places you"}
+                            Places you
                             <br />
                             <em>
-                                {t.saved?.subtitle ? "want to remember." : "want to remember."}
+                                want to remember.
                             </em>
                         </h1>
 
                         <p>
-                            {t.saved?.subtitle ?? "Keep the places that caught your eye close at hand."}
+                            Keep the places
+                            that caught your
+                            eye close at hand.
                         </p>
                     </div>
 
