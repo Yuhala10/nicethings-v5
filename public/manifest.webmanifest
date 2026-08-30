@@ -1,0 +1,17 @@
+{
+  "name": "NiceThings — Discover something nice",
+  "short_name": "NiceThings",
+  "description": "Discover beautiful places, great food, hidden gems and experiences around you.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F7",
+  "theme_color": "#F97316",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "categories": ["lifestyle", "travel", "food"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
