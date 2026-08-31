@@ -624,7 +624,16 @@ export default function AdminReportsPage() {
                     />
                 </section>
 
-                <section className="nt-admin-toolbar">
+                <section className="nt-admin-toolbar nt-admin-reports-toolbar">
+                    <div className="nt-admin-toolbar-copy">
+                        <span>REPORT QUEUE</span>
+                        <strong>
+                            {counts.pending > 0
+                                ? `${counts.pending} report${counts.pending === 1 ? "" : "s"} need attention`
+                                : "No reports need attention"}
+                        </strong>
+                    </div>
+
                     <div className="nt-admin-search">
                         <Search
                             size={
@@ -785,6 +794,12 @@ export default function AdminReportsPage() {
                                                         : report.description ||
                                                         "No place information available"}
                                                 </p>
+
+                                                <span className="nt-admin-report-context">
+                                                    {spot
+                                                        ? "Reported place"
+                                                        : "General report"}
+                                                </span>
 
                                                 <div className="nt-admin-spot-meta">
                                                     <span>
@@ -1108,6 +1123,25 @@ function ReportModal({
                                 report.id
                             }
                         />
+
+                        <Detail
+                            label="Last updated"
+                            value={formatDate(
+                                report.updated_at
+                            )}
+                        />
+                    </div>
+
+                    <div className="nt-admin-report-decision">
+                        <div>
+                            <span>DECISION</span>
+                            <strong>
+                                Choose what should happen to this report.
+                            </strong>
+                        </div>
+                        <StatusBadge
+                            status={report.status}
+                        />
                     </div>
 
                     <div className="nt-admin-modal-actions">
@@ -1210,6 +1244,15 @@ function ReportModal({
                             />
                         </Link>
                     )}
+
+                    <button
+                        type="button"
+                        className="nt-admin-modal-close-action"
+                        onClick={close}
+                        disabled={loading}
+                    >
+                        Close review
+                    </button>
                 </div>
             </section>
         </div>

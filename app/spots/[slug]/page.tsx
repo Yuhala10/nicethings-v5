@@ -5,7 +5,6 @@ import {
     useEffect,
     useMemo,
     useState,
-    type ReactNode,
 } from "react";
 
 import {
@@ -36,17 +35,19 @@ import { useParams } from "next/navigation";
 import {
     getSupabaseBrowserClient,
 } from "../../../lib/supabase/client";
+import { resolveSpotLocation } from "../../../lib/location/resolver";
+
 
 type Spot = {
     id: string;
     name: string;
     slug: string | null;
     description: string | null;
-    category: string | null;
+    category: string;
     cuisine: string | null;
     address: string | null;
     neighborhood: string | null;
-    city: string | null;
+    city: string;
     latitude: number | null;
     longitude: number | null;
     phone: string | null;
@@ -55,21 +56,21 @@ type Spot = {
     average_price: number | null;
     minimum_price: number | null;
     maximum_price: number | null;
-    currency: string | null;
+    currency: string;
     opening_time: string | null;
     closing_time: string | null;
-    monday_open: boolean | null;
-    tuesday_open: boolean | null;
-    wednesday_open: boolean | null;
-    thursday_open: boolean | null;
-    friday_open: boolean | null;
-    saturday_open: boolean | null;
-    sunday_open: boolean | null;
-    rating: number | null;
-    review_count: number | null;
-    verified: boolean | null;
-    featured: boolean | null;
-    status: string | null;
+    monday_open: boolean;
+    tuesday_open: boolean;
+    wednesday_open: boolean;
+    thursday_open: boolean;
+    friday_open: boolean;
+    saturday_open: boolean;
+    sunday_open: boolean;
+    rating: number;
+    review_count: number;
+    verified: boolean;
+    featured: boolean;
+    status: string;
 };
 
 type Photo = {
@@ -77,7 +78,7 @@ type Photo = {
     spot_id: string;
     image_url: string;
     alt_text: string | null;
-    sort_order: number | null;
+    sort_order: number;
 };
 
 type MenuItem = {
@@ -86,9 +87,9 @@ type MenuItem = {
     name: string;
     description: string | null;
     price: number;
-    currency: string | null;
-    popular: boolean | null;
-    available: boolean | null;
+    currency: string;
+    popular: boolean;
+    available: boolean;
 };
 
 type Review = {
@@ -129,19 +130,12 @@ export default function SpotDetailsPage() {
 
     const rawSlug = params?.slug;
 
-    const slug =
-        Array.isArray(rawSlug)
-            ? rawSlug[0]
-            : rawSlug;
+    const slug = Array.isArray(rawSlug)
+        ? rawSlug[0]
+        : rawSlug;
 
-    /*
-     * Your existing Database type intentionally keeps
-     * several tables generic. We are NOT changing the
-     * database. We simply keep this page flexible.
-     */
     const supabase = useMemo(
-        () =>
-            getSupabaseBrowserClient() as any,
+        () => getSupabaseBrowserClient(),
         []
     );
 
@@ -167,6 +161,9 @@ export default function SpotDetailsPage() {
         useState(false);
 
     const [saveLoading, setSaveLoading] =
+        useState(false);
+
+    const [directionsLoading, setDirectionsLoading] =
         useState(false);
 
     const [activePhoto, setActivePhoto] =
@@ -236,7 +233,7 @@ export default function SpotDetailsPage() {
                 }
 
                 const currentSpot =
-                    spotData as Spot;
+                    spotData as unknown as Spot;
 
                 setSpot(currentSpot);
 
@@ -257,8 +254,7 @@ export default function SpotDetailsPage() {
                         .order(
                             "sort_order",
                             {
-                                ascending:
-                                    true,
+                                ascending: true,
                             }
                         ),
 
@@ -278,8 +274,7 @@ export default function SpotDetailsPage() {
                         .order(
                             "popular",
                             {
-                                ascending:
-                                    false,
+                                ascending: false,
                             }
                         ),
 
@@ -295,26 +290,46 @@ export default function SpotDetailsPage() {
                         .order(
                             "created_at",
                             {
-                                ascending:
-                                    false,
+                                ascending: false,
                             }
                         )
                         .limit(20),
                 ]);
 
+                if (photosResult.error) {
+                    console.warn(
+                        "Could not load photos:",
+                        photosResult.error
+                    );
+                }
+
+                if (menuResult.error) {
+                    console.warn(
+                        "Could not load menu:",
+                        menuResult.error
+                    );
+                }
+
+                if (reviewsResult.error) {
+                    console.warn(
+                        "Could not load reviews:",
+                        reviewsResult.error
+                    );
+                }
+
                 setPhotos(
                     (photosResult.data ??
-                        []) as Photo[]
+                        []) as unknown as Photo[]
                 );
 
                 setMenu(
                     (menuResult.data ??
-                        []) as MenuItem[]
+                        []) as unknown as MenuItem[]
                 );
 
                 setReviews(
                     (reviewsResult.data ??
-                        []) as Review[]
+                        []) as unknown as Review[]
                 );
             } catch (err) {
                 console.error(
@@ -350,17 +365,12 @@ export default function SpotDetailsPage() {
         }
 
         const timer =
-            window.setTimeout(
-                () => {
-                    setToast(null);
-                },
-                3000
-            );
+            window.setTimeout(() => {
+                setToast(null);
+            }, 3000);
 
         return () =>
-            window.clearTimeout(
-                timer
-            );
+            window.clearTimeout(timer);
     }, [toast]);
 
     async function checkSaved(
@@ -395,9 +405,7 @@ export default function SpotDetailsPage() {
                 .maybeSingle();
 
             if (!savedError) {
-                setSaved(
-                    Boolean(data)
-                );
+                setSaved(Boolean(data));
             }
         } catch (err) {
             console.warn(
@@ -406,11 +414,9 @@ export default function SpotDetailsPage() {
             );
         }
     }
+
     async function toggleSave() {
-        if (
-            !spot ||
-            saveLoading
-        ) {
+        if (!spot || saveLoading) {
             return;
         }
 
@@ -494,35 +500,49 @@ export default function SpotDetailsPage() {
         }
     }
 
-    function openDirections() {
+    async function openDirections() {
         if (!spot) {
             return;
         }
 
-        if (
-            typeof spot.latitude !==
-            "number" ||
-            typeof spot.longitude !==
-            "number"
-        ) {
-            setToast(
-                "Directions aren't available for this place yet."
+        try {
+            /*
+             * The resolver first uses existing GPS.
+             * If GPS is missing, it searches using:
+             * name + neighborhood + address + city.
+             */
+            const location =
+                await resolveSpotLocation(spot);
+
+            if (!location) {
+                setToast(
+                    "We couldn't locate this place on the map yet. Please try again."
+                );
+
+                return;
+            }
+
+            const url =
+                "https://www.google.com/maps/dir/?api=1" +
+                `&destination=${encodeURIComponent(
+                    `${location.latitude},${location.longitude}`
+                )}`;
+
+            window.open(
+                url,
+                "_blank",
+                "noopener,noreferrer"
+            );
+        } catch (error) {
+            console.error(
+                "NiceThings place location error:",
+                error
             );
 
-            return;
+            setToast(
+                "We couldn't find this place on the map right now."
+            );
         }
-
-        const url =
-            "https://www.google.com/maps/dir/?api=1" +
-            `&destination=${encodeURIComponent(
-                `${spot.latitude},${spot.longitude}`
-            )}`;
-
-        window.open(
-            url,
-            "_blank",
-            "noopener,noreferrer"
-        );
     }
 
     function openPhone() {
@@ -565,10 +585,6 @@ export default function SpotDetailsPage() {
 
     function openWebsite() {
         if (!spot?.website) {
-            setToast(
-                "This place hasn't provided a website."
-            );
-
             return;
         }
 
@@ -591,17 +607,13 @@ export default function SpotDetailsPage() {
                         href="/search"
                         className="nt-back-link"
                     >
-                        <ArrowLeft
-                            size={15}
-                        />
+                        <ArrowLeft size={15} />
                         Back to discovery
                     </Link>
 
                     <div className="nt-spot-error-card">
                         <div className="nt-spot-error-icon">
-                            <MapPin
-                                size={22}
-                            />
+                            <MapPin size={22} />
                         </div>
 
                         <h1>
@@ -617,8 +629,7 @@ export default function SpotDetailsPage() {
                             href="/search"
                             className="nt-primary-action"
                         >
-                            Discover other
-                            places
+                            Discover other places
                         </Link>
                     </div>
                 </div>
@@ -629,10 +640,7 @@ export default function SpotDetailsPage() {
     const visibleReviews =
         showAllReviews
             ? reviews
-            : reviews.slice(
-                0,
-                5
-            );
+            : reviews.slice(0, 5);
 
     return (
         <main className="nt-spot-page">
@@ -642,18 +650,20 @@ export default function SpotDetailsPage() {
                         href="/search"
                         className="nt-back-link"
                     >
-                        <ArrowLeft
-                            size={15}
-                        />
+                        <ArrowLeft size={15} />
                         Discovery
                     </Link>
 
                     <button
                         type="button"
-                        className={`nt-save-button ${saved
-                            ? "saved"
-                            : ""
-                            }`}
+                        className={[
+                            "nt-save-button",
+                            saved
+                                ? "saved"
+                                : "",
+                        ]
+                            .filter(Boolean)
+                            .join(" ")}
                         onClick={
                             toggleSave
                         }
@@ -679,12 +689,8 @@ export default function SpotDetailsPage() {
                 </div>
 
                 <SpotGallery
-                    photos={
-                        photos
-                    }
-                    spotName={
-                        spot.name
-                    }
+                    photos={photos}
+                    spotName={spot.name}
                     activePhoto={
                         activePhoto
                     }
@@ -710,9 +716,7 @@ export default function SpotDetailsPage() {
                             {spot.verified && (
                                 <span className="nt-verified-badge">
                                     <Check
-                                        size={
-                                            11
-                                        }
+                                        size={11}
                                     />
                                     Verified
                                 </span>
@@ -732,9 +736,7 @@ export default function SpotDetailsPage() {
                         <div className="nt-spot-meta">
                             <span className="nt-rating">
                                 <Star
-                                    size={
-                                        14
-                                    }
+                                    size={14}
                                     fill="currentColor"
                                 />
 
@@ -758,7 +760,6 @@ export default function SpotDetailsPage() {
                             {spot.cuisine && (
                                 <>
                                     <i />
-
                                     <span>
                                         {
                                             spot.cuisine
@@ -769,11 +770,7 @@ export default function SpotDetailsPage() {
                         </div>
 
                         <div className="nt-spot-location">
-                            <MapPin
-                                size={
-                                    15
-                                }
-                            />
+                            <MapPin size={15} />
 
                             <span>
                                 {[
@@ -782,12 +779,7 @@ export default function SpotDetailsPage() {
                                     spot.city,
                                 ]
                                     .filter(
-                                        (
-                                            value
-                                        ): value is string =>
-                                            Boolean(
-                                                value
-                                            )
+                                        Boolean
                                     )
                                     .join(
                                         ", "
@@ -803,21 +795,20 @@ export default function SpotDetailsPage() {
                                 openDirections
                             }
                             className="nt-find-place-button"
+                            disabled={directionsLoading}
                         >
                             <Navigation
-                                size={
-                                    16
-                                }
+                                size={16}
                             />
 
                             <span>
-                                Find this place
+                                {directionsLoading
+                                    ? "Finding place…"
+                                    : "Find this place"}
                             </span>
 
                             <ArrowLeft
-                                size={
-                                    14
-                                }
+                                size={14}
                                 className="nt-action-arrow"
                             />
                         </button>
@@ -830,12 +821,9 @@ export default function SpotDetailsPage() {
                                         openPhone
                                     }
                                     title="Call"
-                                    aria-label="Call"
                                 >
                                     <Phone
-                                        size={
-                                            16
-                                        }
+                                        size={16}
                                     />
                                 </button>
                             )}
@@ -847,12 +835,9 @@ export default function SpotDetailsPage() {
                                         openWhatsApp
                                     }
                                     title="WhatsApp"
-                                    aria-label="WhatsApp"
                                 >
                                     <MessageCircle
-                                        size={
-                                            16
-                                        }
+                                        size={16}
                                     />
                                 </button>
                             )}
@@ -864,12 +849,9 @@ export default function SpotDetailsPage() {
                                         openWebsite
                                     }
                                     title="Website"
-                                    aria-label="Website"
                                 >
                                     <ExternalLink
-                                        size={
-                                            16
-                                        }
+                                        size={16}
                                     />
                                 </button>
                             )}
@@ -884,8 +866,7 @@ export default function SpotDetailsPage() {
                         {spot.description && (
                             <section className="nt-spot-section">
                                 <SectionTitle>
-                                    About this
-                                    place
+                                    About this place
                                 </SectionTitle>
 
                                 <p className="nt-spot-description">
@@ -900,9 +881,7 @@ export default function SpotDetailsPage() {
                             <SectionTitle
                                 icon={
                                     <Clock3
-                                        size={
-                                            17
-                                        }
+                                        size={17}
                                     />
                                 }
                                 action={
@@ -910,10 +889,7 @@ export default function SpotDetailsPage() {
                                         type="button"
                                         onClick={() =>
                                             setShowHours(
-                                                (
-                                                    current
-                                                ) =>
-                                                    !current
+                                                !showHours
                                             )
                                         }
                                     >
@@ -930,7 +906,9 @@ export default function SpotDetailsPage() {
                                 <div className="nt-hours-today">
                                     <div>
                                         <strong>
-                                            {getTodayName()}
+                                            {
+                                                getTodayName()
+                                            }
                                         </strong>
 
                                         <span>
@@ -958,8 +936,7 @@ export default function SpotDetailsPage() {
                                                 opacity: 0,
                                             }}
                                             animate={{
-                                                height:
-                                                    "auto",
+                                                height: "auto",
                                                 opacity: 1,
                                             }}
                                             exit={{
@@ -1006,6 +983,7 @@ export default function SpotDetailsPage() {
                                 </AnimatePresence>
                             </div>
                         </section>
+
                         {menu.length > 0 && (
                             <section className="nt-spot-section">
                                 <SectionTitle
@@ -1015,7 +993,7 @@ export default function SpotDetailsPage() {
                                         />
                                     }
                                 >
-                                    What they offer
+                                    Menu
                                 </SectionTitle>
 
                                 <div className="nt-menu-list">
@@ -1023,18 +1001,14 @@ export default function SpotDetailsPage() {
                                         (
                                             item
                                         ) => (
-                                            <div
-                                                className={
-                                                    item.popular
-                                                        ? "nt-menu-item popular"
-                                                        : "nt-menu-item"
-                                                }
+                                            <article
                                                 key={
                                                     item.id
                                                 }
+                                                className="nt-menu-item"
                                             >
-                                                <div className="nt-menu-item-copy">
-                                                    <div className="nt-menu-item-title">
+                                                <div>
+                                                    <div className="nt-menu-name-row">
                                                         <h3>
                                                             {
                                                                 item.name
@@ -1058,12 +1032,12 @@ export default function SpotDetailsPage() {
                                                 </div>
 
                                                 <strong>
-                                                    {formatPrice(
+                                                    {formatMoney(
                                                         item.price,
                                                         item.currency
                                                     )}
                                                 </strong>
-                                            </div>
+                                            </article>
                                         )
                                     )}
                                 </div>
@@ -1072,14 +1046,9 @@ export default function SpotDetailsPage() {
 
                         <section className="nt-spot-section">
                             <SectionTitle
-                                icon={
-                                    <Star
-                                        size={17}
-                                    />
-                                }
                                 action={
                                     reviews.length >
-                                        5 ? (
+                                    5 && (
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -1092,49 +1061,112 @@ export default function SpotDetailsPage() {
                                                 ? "Show less"
                                                 : "See all reviews"}
                                         </button>
-                                    ) : undefined
+                                    )
                                 }
                             >
-                                What people say
+                                Visitor reviews
                             </SectionTitle>
 
                             {reviews.length ===
                                 0 ? (
                                 <div className="nt-no-reviews">
-                                    <div>
-                                        <Star
-                                            size={20}
-                                        />
-                                    </div>
+                                    <Star
+                                        size={20}
+                                    />
 
-                                    <h3>
-                                        Be the first
-                                        to share
-                                        your
-                                        experience
-                                    </h3>
+                                    <strong>
+                                        No reviews yet
+                                    </strong>
 
-                                    <p>
-                                        There are
-                                        no reviews
-                                        for this
-                                        place yet.
-                                    </p>
+                                    <span>
+                                        Be among the
+                                        first visitors
+                                        to share your
+                                        experience.
+                                    </span>
                                 </div>
                             ) : (
-                                <div className="nt-reviews-list">
+                                <div className="nt-reviews">
                                     {visibleReviews.map(
                                         (
                                             review
                                         ) => (
-                                            <ReviewCard
+                                            <article
                                                 key={
                                                     review.id
                                                 }
-                                                review={
-                                                    review
-                                                }
-                                            />
+                                                className="nt-review"
+                                            >
+                                                <div className="nt-review-top">
+                                                    <div className="nt-review-stars">
+                                                        {Array.from(
+                                                            {
+                                                                length: 5,
+                                                            }
+                                                        ).map(
+                                                            (
+                                                                _,
+                                                                index
+                                                            ) => (
+                                                                <Star
+                                                                    key={
+                                                                        index
+                                                                    }
+                                                                    size={
+                                                                        12
+                                                                    }
+                                                                    fill={
+                                                                        index <
+                                                                            review.rating
+                                                                            ? "currentColor"
+                                                                            : "none"
+                                                                    }
+                                                                />
+                                                            )
+                                                        )}
+                                                    </div>
+
+                                                    <time>
+                                                        {formatReviewDate(
+                                                            review.created_at
+                                                        )}
+                                                    </time>
+                                                </div>
+
+                                                {review.comment && (
+                                                    <p>
+                                                        {
+                                                            review.comment
+                                                        }
+                                                    </p>
+                                                )}
+
+                                                <div className="nt-review-trust">
+                                                    {review.price_accurate ===
+                                                        true && (
+                                                            <span>
+                                                                <Check
+                                                                    size={
+                                                                        10
+                                                                    }
+                                                                />
+                                                                Price accurate
+                                                            </span>
+                                                        )}
+
+                                                    {review.location_accurate ===
+                                                        true && (
+                                                            <span>
+                                                                <Check
+                                                                    size={
+                                                                        10
+                                                                    }
+                                                                />
+                                                                Location accurate
+                                                            </span>
+                                                        )}
+                                                </div>
+                                            </article>
                                         )
                                     )}
                                 </div>
@@ -1142,146 +1174,291 @@ export default function SpotDetailsPage() {
                         </section>
                     </div>
 
-                    <aside className="nt-spot-sidebar">
-                        <div className="nt-sidebar-card">
-                            <div className="nt-sidebar-card-label">
-                                GOOD TO KNOW
+                    <aside className="nt-spot-side-column">
+                        {/* =================================================
+                            GOOD TO KNOW
+                            Keep every piece of place information in a
+                            predictable label/value row so the label and
+                            value can never run into each other.
+                        ================================================== */}
+                        <div className="nt-info-card">
+                            <div className="nt-info-card-header">
+                                <div className="nt-info-card-icon">
+                                    <MapPin
+                                        size={17}
+                                    />
+                                </div>
+
+                                <div>
+                                    <span className="nt-info-card-eyebrow">
+                                        Good to know
+                                    </span>
+
+                                    <strong className="nt-info-card-heading">
+                                        Place information
+                                    </strong>
+                                </div>
                             </div>
 
-                            <div className="nt-sidebar-items">
-                                <InfoItem
-                                    icon={
-                                        <MapPin
-                                            size={17}
-                                        />
-                                    }
-                                    title="Location"
-                                    value={
-                                        [
+                            <div className="nt-info-row">
+                                <div className="nt-info-row-icon">
+                                    <MapPin
+                                        size={15}
+                                    />
+                                </div>
+
+                                <div className="nt-info-row-content">
+                                    <span className="nt-info-row-label">
+                                        Location
+                                    </span>
+
+                                    <strong className="nt-info-row-value">
+                                        {[
                                             spot.neighborhood,
                                             spot.city,
                                         ]
-                                            .filter(
-                                                (
-                                                    value
-                                                ): value is string =>
-                                                    Boolean(
-                                                        value
-                                                    )
-                                            )
-                                            .join(
-                                                ", "
-                                            ) ||
-                                        "Location not provided"
-                                    }
-                                />
+                                            .filter(Boolean)
+                                            .join(", ") ||
+                                            "Location not listed"}
+                                    </strong>
 
-                                {(spot.minimum_price !==
-                                    null ||
-                                    spot.maximum_price !==
-                                    null ||
-                                    spot.average_price !==
-                                    null) && (
-                                        <InfoItem
-                                            icon={
-                                                <span className="nt-price-symbol">
-                                                    ₣
-                                                </span>
-                                            }
-                                            title="Price range"
-                                            value={formatPriceRange(
-                                                spot
-                                            )}
-                                        />
+                                    {spot.address && (
+                                        <p className="nt-info-row-secondary">
+                                            {spot.address}
+                                        </p>
                                     )}
-
-                                {spot.cuisine && (
-                                    <InfoItem
-                                        icon={
-                                            <Utensils
-                                                size={17}
-                                            />
-                                        }
-                                        title="Style"
-                                        value={
-                                            spot.cuisine
-                                        }
-                                    />
-                                )}
-
-                                {spot.phone && (
-                                    <InfoItem
-                                        icon={
-                                            <Phone
-                                                size={17}
-                                            />
-                                        }
-                                        title="Phone"
-                                        value={
-                                            spot.phone
-                                        }
-                                    />
-                                )}
+                                </div>
                             </div>
+
+                            <div className="nt-info-row">
+                                <div className="nt-info-row-icon">
+                                    <Utensils
+                                        size={15}
+                                    />
+                                </div>
+
+                                <div className="nt-info-row-content">
+                                    <span className="nt-info-row-label">
+                                        Price range
+                                    </span>
+
+                                    <strong className="nt-info-row-value">
+                                        {formatPriceRange(
+                                            spot
+                                        )}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            {spot.phone && (
+                                <div className="nt-info-row">
+                                    <div className="nt-info-row-icon">
+                                        <Phone
+                                            size={15}
+                                        />
+                                    </div>
+
+                                    <div className="nt-info-row-content">
+                                        <span className="nt-info-row-label">
+                                            Phone
+                                        </span>
+
+                                        <a
+                                            href={`tel:${spot.phone}`}
+                                            className="nt-info-row-value nt-info-row-link"
+                                        >
+                                            {spot.phone}
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
+                            {spot.website && (
+                                <div className="nt-info-row">
+                                    <div className="nt-info-row-icon">
+                                        <ExternalLink
+                                            size={15}
+                                        />
+                                    </div>
+
+                                    <div className="nt-info-row-content">
+                                        <span className="nt-info-row-label">
+                                            Website
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            className="nt-info-row-action"
+                                            onClick={
+                                                openWebsite
+                                            }
+                                        >
+                                            Visit website
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             <button
                                 type="button"
-                                className="nt-sidebar-direction"
+                                className="nt-info-card-direction-button"
                                 onClick={
                                     openDirections
                                 }
+                                disabled={directionsLoading}
                             >
                                 <Navigation
-                                    size={15}
-                                />
-
-                                Get directions
-
-                                <ArrowLeft
                                     size={14}
-                                    className="nt-sidebar-arrow"
                                 />
+                                <span>
+                                    {directionsLoading
+                                        ? "Finding place…"
+                                        : "Get directions"}
+                                </span>
                             </button>
                         </div>
 
-                        <div className="nt-sidebar-note">
-                            <div>
-                                <SparklesIcon />
+                        <div className="nt-info-card nt-trust-card">
+                            <div className="nt-trust-heading">
+                                <Check
+                                    size={15}
+                                />
+
+                                <strong>
+                                    NiceThings verified
+                                </strong>
                             </div>
 
                             <p>
-                                Love this place?
-                                Save it so you
-                                can find it again
-                                later.
+                                {spot.verified
+                                    ? "This place has been verified by the NiceThings team."
+                                    : "Information about this place has been submitted to NiceThings."}
                             </p>
+
+                            <div className="nt-trust-items">
+                                <span>
+                                    <Check size={11} />
+                                    Place information
+                                </span>
+
+                                <span>
+                                    <Check size={11} />
+                                    Location information
+                                </span>
+
+                                <span>
+                                    <Check size={11} />
+                                    Community reviews
+                                </span>
+                            </div>
                         </div>
                     </aside>
                 </section>
             </div>
 
             <AnimatePresence>
-                {showGallery && (
-                    <GalleryModal
-                        photos={
-                            photos
-                        }
-                        spotName={
-                            spot.name
-                        }
-                        activePhoto={
-                            activePhoto
-                        }
-                        setActivePhoto={
-                            setActivePhoto
-                        }
-                        close={() =>
-                            setShowGallery(
-                                false
-                            )
-                        }
-                    />
-                )}
+                {showGallery &&
+                    photos.length > 0 && (
+                        <motion.div
+                            className="nt-gallery-modal"
+                            initial={{
+                                opacity: 0,
+                            }}
+                            animate={{
+                                opacity: 1,
+                            }}
+                            exit={{
+                                opacity: 0,
+                            }}
+                        >
+                            <button
+                                type="button"
+                                className="nt-gallery-close"
+                                onClick={() =>
+                                    setShowGallery(
+                                        false
+                                    )
+                                }
+                                aria-label="Close gallery"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <button
+                                type="button"
+                                className="nt-gallery-prev"
+                                onClick={() =>
+                                    setActivePhoto(
+                                        activePhoto === 0
+                                            ? photos.length - 1
+                                            : activePhoto - 1
+                                    )
+                                }
+                                aria-label="Previous photo"
+                            >
+                                <ChevronLeft
+                                    size={22}
+                                />
+                            </button>
+
+                            <motion.img
+                                key={
+                                    photos[
+                                        activePhoto
+                                    ]?.id
+                                }
+                                src={
+                                    photos[
+                                        activePhoto
+                                    ]?.image_url
+                                }
+                                alt={
+                                    photos[
+                                        activePhoto
+                                    ]?.alt_text ??
+                                    spot.name
+                                }
+                                initial={{
+                                    opacity: 0,
+                                    scale: 0.97,
+                                }}
+                                animate={{
+                                    opacity: 1,
+                                    scale: 1,
+                                }}
+                                transition={{
+                                    duration: 0.25,
+                                }}
+                            />
+
+                            <button
+                                type="button"
+                                className="nt-gallery-next"
+                                onClick={() =>
+                                    setActivePhoto(
+                                        activePhoto ===
+                                            photos.length - 1
+                                            ? 0
+                                            : activePhoto + 1
+                                    )
+                                }
+                                aria-label="Next photo"
+                            >
+                                <ChevronRight
+                                    size={22}
+                                />
+                            </button>
+
+                            <div className="nt-gallery-counter">
+                                {activePhoto +
+                                    1}{" "}
+                                /{" "}
+                                {
+                                    photos.length
+                                }
+                            </div>
+                        </motion.div>
+                    )}
             </AnimatePresence>
 
             <AnimatePresence>
@@ -1301,10 +1478,6 @@ export default function SpotDetailsPage() {
                             y: 15,
                         }}
                     >
-                        <Check
-                            size={15}
-                        />
-
                         {toast}
                     </motion.div>
                 )}
@@ -1330,307 +1503,120 @@ function SpotGallery({
 }) {
     if (photos.length === 0) {
         return (
-            <section className="nt-spot-gallery nt-spot-gallery-empty">
-                <div className="nt-gallery-empty-art">
-                    <MapPin
-                        size={32}
-                    />
+            <section className="nt-spot-gallery nt-no-photo-gallery">
+                <div className="nt-gallery-empty">
+                    <MapPin size={28} />
+                    <span>
+                        Photos coming soon
+                    </span>
                 </div>
-
-                <span>
-                    Photos coming soon
-                </span>
             </section>
         );
     }
 
-    const current =
-        photos[
-        Math.min(
-            activePhoto,
-            photos.length - 1
-        )
-        ];
-
     return (
         <section className="nt-spot-gallery">
-            <button
-                type="button"
-                className="nt-gallery-main"
-                onClick={
-                    openGallery
-                }
-            >
-                <img
-                    src={
-                        current.image_url
-                    }
-                    alt={
-                        current.alt_text ??
-                        spotName
-                    }
-                />
-
-                <div className="nt-gallery-overlay" />
-
-                <span className="nt-gallery-expand">
-                    View gallery
-                </span>
-            </button>
-
-            {photos.length > 1 && (
-                <>
-                    <button
-                        type="button"
-                        className="nt-gallery-arrow left"
-                        onClick={() =>
-                            setActivePhoto(
-                                activePhoto ===
-                                    0
-                                    ? photos.length -
-                                    1
-                                    : activePhoto -
-                                    1
-                            )
+            <div className="nt-gallery-main">
+                <button
+                    type="button"
+                    className="nt-gallery-image-button"
+                    onClick={openGallery}
+                >
+                    <img
+                        src={
+                            photos[0]
+                                .image_url
                         }
-                        aria-label="Previous photo"
-                    >
-                        <ChevronLeft
-                            size={20}
-                        />
-                    </button>
-
-                    <button
-                        type="button"
-                        className="nt-gallery-arrow right"
-                        onClick={() =>
-                            setActivePhoto(
-                                activePhoto ===
-                                    photos.length -
-                                    1
-                                    ? 0
-                                    : activePhoto +
-                                    1
-                            )
+                        alt={
+                            photos[0]
+                                .alt_text ??
+                            spotName
                         }
-                        aria-label="Next photo"
-                    >
-                        <ChevronRight
-                            size={20}
+                    />
+
+                    <div className="nt-gallery-gradient" />
+
+                    <div className="nt-gallery-open">
+                        <ExternalLink
+                            size={14}
                         />
-                    </button>
-
-                    <div className="nt-gallery-thumbnails">
-                        {photos
-                            .slice(
-                                0,
-                                5
-                            )
-                            .map(
-                                (
-                                    photo,
-                                    index
-                                ) => (
-                                    <button
-                                        type="button"
-                                        key={
-                                            photo.id
-                                        }
-                                        className={
-                                            index ===
-                                                activePhoto
-                                                ? "active"
-                                                : ""
-                                        }
-                                        onClick={() =>
-                                            setActivePhoto(
-                                                index
-                                            )
-                                        }
-                                    >
-                                        <img
-                                            src={
-                                                photo.image_url
-                                            }
-                                            alt=""
-                                        />
-                                    </button>
-                                )
-                            )}
-
-                        {photos.length >
-                            5 && (
-                                <button
-                                    type="button"
-                                    className="nt-gallery-more"
-                                    onClick={
-                                        openGallery
-                                    }
-                                >
-                                    +
-                                    {photos.length -
-                                        5}
-                                </button>
-                            )}
+                        View gallery
                     </div>
-                </>
-            )}
+                </button>
+            </div>
+
+            <div className="nt-gallery-side">
+                {photos
+                    .slice(1, 3)
+                    .map(
+                        (
+                            photo,
+                            index
+                        ) => (
+                            <button
+                                key={
+                                    photo.id
+                                }
+                                type="button"
+                                className="nt-gallery-side-image"
+                                onClick={() => {
+                                    setActivePhoto(
+                                        index +
+                                        1
+                                    );
+
+                                    openGallery();
+                                }}
+                            >
+                                <img
+                                    src={
+                                        photo.image_url
+                                    }
+                                    alt={
+                                        photo.alt_text ??
+                                        spotName
+                                    }
+                                />
+
+                                {index ===
+                                    1 &&
+                                    photos.length >
+                                    3 && (
+                                        <span>
+                                            +
+                                            {photos.length -
+                                                3}
+                                        </span>
+                                    )}
+                            </button>
+                        )
+                    )}
+
+                {photos.length === 1 && (
+                    <>
+                        <div className="nt-gallery-placeholder" />
+                        <div className="nt-gallery-placeholder" />
+                    </>
+                )}
+            </div>
         </section>
     );
 }
 
-function GalleryModal({
-    photos,
-    spotName,
-    activePhoto,
-    setActivePhoto,
-    close,
-}: {
-    photos: Photo[];
-    spotName: string;
-    activePhoto: number;
-    setActivePhoto: (
-        value: number
-    ) => void;
-    close: () => void;
-}) {
-    const current =
-        photos[
-        Math.min(
-            activePhoto,
-            photos.length - 1
-        )
-        ];
-
-    if (!current) {
-        return null;
-    }
-
-    function previous() {
-        setActivePhoto(
-            activePhoto === 0
-                ? photos.length - 1
-                : activePhoto - 1
-        );
-    }
-
-    function next() {
-        setActivePhoto(
-            activePhoto ===
-                photos.length - 1
-                ? 0
-                : activePhoto + 1
-        );
-    }
-
-    return (
-        <motion.div
-            className="nt-gallery-modal"
-            initial={{
-                opacity: 0,
-            }}
-            animate={{
-                opacity: 1,
-            }}
-            exit={{
-                opacity: 0,
-            }}
-            onClick={
-                close
-            }
-        >
-            <button
-                type="button"
-                className="nt-gallery-close"
-                onClick={
-                    close
-                }
-                aria-label="Close gallery"
-            >
-                <X
-                    size={21}
-                />
-            </button>
-
-            <div
-                className="nt-gallery-viewer"
-                onClick={(event) =>
-                    event.stopPropagation()
-                }
-            >
-                <img
-                    src={
-                        current.image_url
-                    }
-                    alt={
-                        current.alt_text ??
-                        spotName
-                    }
-                />
-
-                {photos.length > 1 && (
-                    <>
-                        <button
-                            type="button"
-                            className="nt-gallery-modal-arrow left"
-                            onClick={
-                                previous
-                            }
-                            aria-label="Previous photo"
-                        >
-                            <ChevronLeft
-                                size={24}
-                            />
-                        </button>
-
-                        <button
-                            type="button"
-                            className="nt-gallery-modal-arrow right"
-                            onClick={
-                                next
-                            }
-                            aria-label="Next photo"
-                        >
-                            <ChevronRight
-                                size={24}
-                            />
-                        </button>
-                    </>
-                )}
-
-                <div className="nt-gallery-counter">
-                    {activePhoto + 1} /{" "}
-                    {photos.length}
-                </div>
-            </div>
-
-            <div className="nt-gallery-caption">
-                {spotName}
-            </div>
-        </motion.div>
-    );
-}
 function SectionTitle({
     children,
     icon,
     action,
 }: {
-    children: ReactNode;
-    icon?: ReactNode;
-    action?: ReactNode;
+    children: React.ReactNode;
+    icon?: React.ReactNode;
+    action?: React.ReactNode;
 }) {
     return (
         <div className="nt-section-title">
             <div>
-                {icon && (
-                    <span className="nt-section-title-icon">
-                        {icon}
-                    </span>
-                )}
-
-                <h2>
-                    {children}
-                </h2>
+                {icon}
+                <h2>{children}</h2>
             </div>
 
             {action}
@@ -1638,228 +1624,59 @@ function SectionTitle({
     );
 }
 
-function InfoItem({
-    icon,
-    title,
-    value,
-}: {
-    icon: ReactNode;
-    title: string;
-    value: string;
-}) {
-    return (
-        <div className="nt-info-item">
-            <div className="nt-info-icon">
-                {icon}
-            </div>
-
-            <div>
-                <span>
-                    {title}
-                </span>
-
-                <strong>
-                    {value}
-                </strong>
-            </div>
-        </div>
-    );
-}
-
-function ReviewCard({
-    review,
-}: {
-    review: Review;
-}) {
-    return (
-        <article className="nt-review-card">
-            <div className="nt-review-top">
-                <div className="nt-review-avatar">
-                    {getReviewInitial(
-                        review.visitor_id
-                    )}
-                </div>
-
-                <div className="nt-review-heading">
-                    <strong>
-                        NiceThings visitor
-                    </strong>
-
-                    <span>
-                        {formatReviewDate(
-                            review.created_at
-                        )}
-                    </span>
-                </div>
-
-                <div className="nt-review-rating">
-                    {Array.from({
-                        length: 5,
-                    }).map(
-                        (
-                            _,
-                            index
-                        ) => (
-                            <Star
-                                key={
-                                    index
-                                }
-                                size={
-                                    12
-                                }
-                                fill={
-                                    index <
-                                        review.rating
-                                        ? "currentColor"
-                                        : "none"
-                                }
-                            />
-                        )
-                    )}
-                </div>
-            </div>
-
-            {review.comment && (
-                <p>
-                    {review.comment}
-                </p>
-            )}
-
-            {(review.price_accurate ||
-                review.location_accurate) && (
-                    <div className="nt-review-confirmations">
-                        {review.price_accurate && (
-                            <span>
-                                <Check
-                                    size={
-                                        11
-                                    }
-                                />
-                                Price accurate
-                            </span>
-                        )}
-
-                        {review.location_accurate && (
-                            <span>
-                                <Check
-                                    size={
-                                        11
-                                    }
-                                />
-                                Location accurate
-                            </span>
-                        )}
-                    </div>
-                )}
-        </article>
-    );
-}
-
 function SpotLoading() {
     return (
-        <main className="nt-spot-page">
+        <main className="nt-spot-loading-page">
             <div className="nt-page-container">
-                <div className="nt-spot-loading-top">
-                    <span />
-                    <span />
+                <div className="nt-loading-gallery">
+                    <div />
+                    <div />
                 </div>
 
-                <div className="nt-spot-loading-gallery" />
+                <div className="nt-loading-intro">
+                    <div />
+                    <div />
+                    <div />
+                </div>
 
-                <section className="nt-spot-loading-intro">
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                </section>
-
-                <div className="nt-spot-loading-divider" />
-
-                <section className="nt-spot-loading-grid">
+                <div className="nt-loading-body">
                     <div>
-                        <span />
-                        <span />
-                        <span />
-                        <span />
+                        <div />
+                        <div />
+                        <div />
                     </div>
 
-                    <aside>
-                        <span />
-                        <span />
-                        <span />
-                    </aside>
-                </section>
+                    <div />
+                </div>
             </div>
         </main>
     );
 }
 
-function SparklesIcon() {
-    return (
-        <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-        >
-            <path
-                d="M12 3L13.4 8.6L19 10L13.4 11.4L12 17L10.6 11.4L5 10L10.6 8.6L12 3Z"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinejoin="round"
-            />
-
-            <path
-                d="M19 16L19.7 18.3L22 19L19.7 19.7L19 22L18.3 19.7L16 19L18.3 18.3L19 16Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
-}
-
 function formatCategory(
-    value: string | null
+    category: string
 ) {
-    if (!value) {
-        return "Place";
-    }
-
-    return value
-        .replaceAll(
-            "_",
-            " "
-        )
+    return category
+        .replaceAll("_", " ")
         .replace(
             /\b\w/g,
-            (
-                letter
-            ) =>
+            (letter) =>
                 letter.toUpperCase()
         );
 }
 
-function formatPrice(
-    value: number,
-    currency: string | null
+function formatMoney(
+    amount: number,
+    currency: string
 ) {
     return `${new Intl.NumberFormat(
         "fr-FR"
-    ).format(
-        value
-    )} ${currency || "XAF"}`;
+    ).format(amount)} ${currency}`;
 }
 
 function formatPriceRange(
     spot: Spot
 ) {
-    const currency =
-        spot.currency ||
-        "XAF";
-
     if (
         spot.minimum_price !==
         null &&
@@ -1870,54 +1687,32 @@ function formatPriceRange(
             spot.minimum_price ===
             spot.maximum_price
         ) {
-            return formatPrice(
+            return formatMoney(
                 spot.minimum_price,
-                currency
+                spot.currency
             );
         }
 
-        return `${new Intl.NumberFormat(
-            "fr-FR"
-        ).format(
-            spot.minimum_price
-        )} – ${new Intl.NumberFormat(
-            "fr-FR"
-        ).format(
-            spot.maximum_price
-        )} ${currency}`;
+        return `${formatMoney(
+            spot.minimum_price,
+            spot.currency
+        )} – ${formatMoney(
+            spot.maximum_price,
+            spot.currency
+        )}`;
     }
 
     if (
         spot.average_price !==
         null
     ) {
-        return formatPrice(
+        return formatMoney(
             spot.average_price,
-            currency
+            spot.currency
         );
     }
 
-    if (
-        spot.minimum_price !==
-        null
-    ) {
-        return `From ${formatPrice(
-            spot.minimum_price,
-            currency
-        )}`;
-    }
-
-    if (
-        spot.maximum_price !==
-        null
-    ) {
-        return `Up to ${formatPrice(
-            spot.maximum_price,
-            currency
-        )}`;
-    }
-
-    return "Price varies";
+    return "Price not listed";
 }
 
 function formatHours(
@@ -1927,7 +1722,7 @@ function formatHours(
         !spot.opening_time ||
         !spot.closing_time
     ) {
-        return "Hours not provided";
+        return "Hours not listed";
     }
 
     return `${formatTime(
@@ -1943,9 +1738,7 @@ function formatTime(
     const parts =
         value.split(":");
 
-    if (
-        parts.length < 2
-    ) {
+    if (parts.length < 2) {
         return value;
     }
 
@@ -1953,15 +1746,10 @@ function formatTime(
         Number(parts[0]);
 
     const minute =
-        Number(parts[1]);
+        parts[1];
 
     if (
-        Number.isNaN(
-            hour
-        ) ||
-        Number.isNaN(
-            minute
-        )
+        Number.isNaN(hour)
     ) {
         return value;
     }
@@ -1971,32 +1759,19 @@ function formatTime(
             ? "PM"
             : "AM";
 
-    const twelveHour =
+    const displayHour =
         hour % 12 || 12;
 
-    return `${twelveHour}:${String(
-        minute
-    ).padStart(
-        2,
-        "0"
-    )} ${suffix}`;
+    return `${displayHour}:${minute} ${suffix}`;
 }
 
 function getTodayName() {
-    const day =
-        new Date().getDay();
-
-    const names = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-    ];
-
-    return names[day];
+    return new Intl.DateTimeFormat(
+        "en-US",
+        {
+            weekday: "long",
+        }
+    ).format(new Date());
 }
 
 function isOpenToday(
@@ -2005,35 +1780,19 @@ function isOpenToday(
     const today =
         getTodayName();
 
-    const keyMap:
-        Record<
-            string,
-            DayKey
-        > = {
-        Monday:
-            "monday_open",
-        Tuesday:
-            "tuesday_open",
-        Wednesday:
-            "wednesday_open",
-        Thursday:
-            "thursday_open",
-        Friday:
-            "friday_open",
-        Saturday:
-            "saturday_open",
-        Sunday:
-            "sunday_open",
-    };
+    const field =
+        DAYS.find(
+            ([name]) =>
+                name === today
+        )?.[1];
 
-    const key =
-        keyMap[today];
+    if (!field) {
+        return false;
+    }
 
-    return key
-        ? Boolean(
-            spot[key]
-        )
-        : false;
+    return Boolean(
+        spot[field]
+    );
 }
 
 function formatReviewDate(
@@ -2051,28 +1810,11 @@ function formatReviewDate(
     }
 
     return new Intl.DateTimeFormat(
-        "en",
+        "en-US",
         {
             day: "numeric",
             month: "short",
             year: "numeric",
         }
     ).format(date);
-}
-
-function getReviewInitial(
-    visitorId: string
-) {
-    if (
-        !visitorId
-    ) {
-        return "N";
-    }
-
-    return visitorId
-        .slice(
-            0,
-            1
-        )
-        .toUpperCase();
 }

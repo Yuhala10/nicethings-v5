@@ -65,6 +65,11 @@ import {
     hasLocationConsent,
 } from "../../lib/consent";
 
+import {
+    resolveSpotLocation,
+    type ResolvedSpotLocation,
+} from "../../lib/location/resolver";
+
 const NearbyMap = dynamic(
     () => import("../../components/maps/NearbyMap"),
     {
@@ -73,6 +78,19 @@ const NearbyMap = dynamic(
             <div className="nt-map-loading" aria-label="Loading map">
                 <span className="nt-map-loading-dot" />
                 <span>Loading map…</span>
+            </div>
+        ),
+    }
+);
+
+const SpotMap = dynamic(
+    () => import("../../components/maps/SpotMap"),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="nt-map-loading" aria-label="Loading place map">
+                <span className="nt-map-loading-dot" />
+                <span>Preparing place map…</span>
             </div>
         ),
     }
@@ -190,6 +208,19 @@ function SearchPageContent() {
         useState(false);
 
     const [selectedSpotId, setSelectedSpotId] =
+        useState<string | null>(null);
+
+    const [mapSpot, setMapSpot] =
+        useState<{
+            spot: SpotWithPhoto;
+            location: ResolvedSpotLocation;
+            userLocation: UserLocation | null;
+        } | null>(null);
+
+    const [mapSpotLoading, setMapSpotLoading] =
+        useState(false);
+
+    const [mapSpotError, setMapSpotError] =
         useState<string | null>(null);
 
     const initialQuery =
@@ -727,6 +758,106 @@ function SearchPageContent() {
         }
 
         setDiscoveryMode("nearby");
+        setSelectedSpotId(null);
+    }
+
+    async function viewSpotOnMap(
+        spot: SpotWithPhoto
+    ) {
+        if (mapSpotLoading) {
+            return;
+        }
+
+        setMapSpotLoading(true);
+        setMapSpotError(null);
+        setSelectedSpotId(spot.id);
+
+        try {
+            let locationForMap =
+                userLocation;
+
+            if (!locationForMap) {
+                try {
+                    if (!hasLocationConsent()) {
+                        grantLocationConsent();
+                    }
+
+                    const current =
+                        await getCurrentLocation({
+                            enableHighAccuracy: true,
+                            maximumAge: 30_000,
+                            timeout: 12_000,
+                        });
+
+                    if (
+                        isUsableLocation(
+                            current,
+                            500
+                        )
+                    ) {
+                        locationForMap =
+                            current;
+
+                        setUserLocation(
+                            current
+                        );
+                    }
+                } catch (locationFailure) {
+                    console.info(
+                        "NiceThings map visitor location unavailable:",
+                        locationFailure
+                    );
+                }
+            }
+
+            const resolved =
+                await resolveSpotLocation(
+                    spot,
+                    locationForMap
+                        ? {
+                            latitude:
+                                locationForMap.latitude,
+                            longitude:
+                                locationForMap.longitude,
+                        }
+                        : null
+                );
+
+            if (!resolved) {
+                setMapSpot(null);
+                setMapSpotError(
+                    "We couldn't locate this place yet. Try again, or check the place details for more location information."
+                );
+                return;
+            }
+
+            setMapSpot({
+                spot,
+                location: resolved,
+                userLocation:
+                    locationForMap,
+            });
+
+            setShowMap(true);
+        } catch (mapError) {
+            console.error(
+                "NiceThings place map error:",
+                mapError
+            );
+
+            setMapSpot(null);
+            setMapSpotError(
+                "We couldn't prepare the map for this place right now. Please try again."
+            );
+        } finally {
+            setMapSpotLoading(false);
+        }
+    }
+
+    function closeSpotMap() {
+        setShowMap(false);
+        setMapSpot(null);
+        setMapSpotError(null);
         setSelectedSpotId(null);
     }
 
@@ -1570,61 +1701,171 @@ function SearchPageContent() {
                         </aside>
 
                         <div className="nt-search-results">
-                            {showMap &&
-                                userLocation && (
-                                    <div className="nt-search-map-wrap">
-                                        <NearbyMap
-                                            latitude={
-                                                userLocation.latitude
+                            {showMap && mapSpot ? (
+                                <div className="nt-search-map-wrap nt-search-spot-map-wrap">
+                                    <div className="nt-search-map-toolbar">
+                                        <button
+                                            type="button"
+                                            className="nt-search-map-back"
+                                            onClick={
+                                                closeSpotMap
                                             }
-                                            longitude={
-                                                userLocation.longitude
-                                            }
-                                            spots={spots
-                                                .filter(
-                                                    (
-                                                        spot
-                                                    ) =>
-                                                        typeof spot.latitude ===
-                                                        "number" &&
-                                                        typeof spot.longitude ===
-                                                        "number"
-                                                )
-                                                .map(
-                                                    (
-                                                        spot
-                                                    ) => ({
-                                                        id:
-                                                            spot.id,
-                                                        name:
-                                                            spot.name,
-                                                        slug:
-                                                            spot.slug,
-                                                        latitude:
-                                                            spot.latitude as number,
-                                                        longitude:
-                                                            spot.longitude as number,
-                                                        category:
-                                                            spot.category,
-                                                        rating:
-                                                            spot.rating,
-                                                        distanceKm:
-                                                            spot.distanceKm,
-                                                    })
-                                                )}
-                                            selectedSpotId={
-                                                selectedSpotId
-                                            }
-                                            onSelectSpot={(
-                                                spot
-                                            ) =>
-                                                handleSelectSpot(
-                                                    spot.id
-                                                )
-                                            }
-                                        />
+                                        >
+                                            ← Back to places
+                                        </button>
+
+                                        <div className="nt-search-map-place">
+                                            <span>
+                                                {mapSpot.location.confidence ===
+                                                    "exact"
+                                                    ? "Exact location"
+                                                    : "Approximate location"}
+                                            </span>
+
+                                            <strong>
+                                                {
+                                                    mapSpot
+                                                        .spot
+                                                        .name
+                                                }
+                                            </strong>
+
+                                            <small>
+                                                {[
+                                                    mapSpot
+                                                        .spot
+                                                        .neighborhood,
+                                                    mapSpot
+                                                        .spot
+                                                        .city,
+                                                ]
+                                                    .filter(
+                                                        Boolean
+                                                    )
+                                                    .join(
+                                                        ", "
+                                                    )}
+                                            </small>
+                                        </div>
                                     </div>
-                                )}
+
+                                    <SpotMap
+                                        latitude={
+                                            mapSpot
+                                                .location
+                                                .latitude
+                                        }
+                                        longitude={
+                                            mapSpot
+                                                .location
+                                                .longitude
+                                        }
+                                        spotName={
+                                            mapSpot.spot
+                                                .name
+                                        }
+                                        userLatitude={
+                                            mapSpot
+                                                .userLocation
+                                                ?.latitude ??
+                                            null
+                                        }
+                                        userLongitude={
+                                            mapSpot
+                                                .userLocation
+                                                ?.longitude ??
+                                            null
+                                        }
+                                    />
+                                </div>
+                            ) : showMap &&
+                                userLocation ? (
+                                <div className="nt-search-map-wrap">
+                                    <NearbyMap
+                                        latitude={
+                                            userLocation.latitude
+                                        }
+                                        longitude={
+                                            userLocation.longitude
+                                        }
+                                        spots={spots
+                                            .filter(
+                                                (
+                                                    spot
+                                                ) =>
+                                                    typeof spot.latitude ===
+                                                    "number" &&
+                                                    typeof spot.longitude ===
+                                                    "number"
+                                            )
+                                            .map(
+                                                (
+                                                    spot
+                                                ) => ({
+                                                    id:
+                                                        spot.id,
+                                                    name:
+                                                        spot.name,
+                                                    slug:
+                                                        spot.slug,
+                                                    latitude:
+                                                        spot.latitude as number,
+                                                    longitude:
+                                                        spot.longitude as number,
+                                                    category:
+                                                        spot.category,
+                                                    rating:
+                                                        spot.rating,
+                                                    distanceKm:
+                                                        spot.distanceKm,
+                                                })
+                                            )}
+                                        selectedSpotId={
+                                            selectedSpotId
+                                        }
+                                        onSelectSpot={(
+                                            spot
+                                        ) =>
+                                            handleSelectSpot(
+                                                spot.id
+                                            )
+                                        }
+                                    />
+                                </div>
+                            ) : null}
+
+                            {mapSpotError && (
+                                <motion.div
+                                    className="nt-search-map-error"
+                                    initial={{
+                                        opacity: 0,
+                                        y: 8,
+                                    }}
+                                    animate={{
+                                        opacity: 1,
+                                        y: 0,
+                                    }}
+                                >
+                                    <div>
+                                        <MapPin size={17} />
+                                    </div>
+
+                                    <span>
+                                        {mapSpotError}
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setMapSpotError(
+                                                null
+                                            )
+                                        }
+                                    >
+                                        Dismiss
+                                    </button>
+                                </motion.div>
+                            )}
 
                             {loading ? (
                                 <SearchLoadingState />
@@ -1685,6 +1926,16 @@ function SearchPageContent() {
                                                         handleSelectSpot(
                                                             spot.id
                                                         )
+                                                    }
+                                                    onViewMap={() =>
+                                                        void viewSpotOnMap(
+                                                            spot
+                                                        )
+                                                    }
+                                                    mapLoading={
+                                                        mapSpotLoading &&
+                                                        selectedSpotId ===
+                                                        spot.id
                                                     }
                                                 />
                                             )
@@ -1966,12 +2217,16 @@ function SearchSpotCard({
     selected,
     onSave,
     onSelect,
+    onViewMap,
+    mapLoading,
 }: {
     spot: SpotWithPhoto;
     saved: boolean;
     selected: boolean;
     onSave: () => void;
     onSelect: () => void;
+    onViewMap: () => void;
+    mapLoading: boolean;
 }) {
     const href =
         `/spots/${encodeURIComponent(
@@ -2141,6 +2396,21 @@ function SearchSpotCard({
                                 </span>
                             )}
                     </div>
+
+                    <button
+                        type="button"
+                        className="nt-search-card-map-button"
+                        onClick={onViewMap}
+                        disabled={mapLoading}
+                        aria-label={`View ${spot.name} on map`}
+                    >
+                        <MapPin size={13} />
+                        <span>
+                            {mapLoading
+                                ? "Locating…"
+                                : "View on map"}
+                        </span>
+                    </button>
 
                     <Link
                         href={href}

@@ -26,16 +26,25 @@ import {
 } from "lucide-react";
 
 import Link from "next/link";
+
 import dynamic from "next/dynamic";
 
 const NearbyMap = dynamic(
-    () => import("../../components/maps/NearbyMap"),
+    () =>
+        import(
+            "../../components/maps/NearbyMap"
+        ),
     {
         ssr: false,
         loading: () => (
-            <div className="nt-map-loading" aria-label="Loading map">
+            <div
+                className="nt-map-loading"
+                aria-label="Loading map"
+            >
                 <span className="nt-map-loading-dot" />
-                <span>Loading map…</span>
+                <span>
+                    Loading map…
+                </span>
             </div>
         ),
     }
@@ -61,7 +70,6 @@ import {
 
 import {
     grantLocationConsent,
-    hasLocationConsent,
 } from "../../lib/consent";
 
 type Spot = {
@@ -194,6 +202,11 @@ export default function NearbyPage() {
     );
 
     const [
+        discoveryStarted,
+        setDiscoveryStarted,
+    ] = useState(false);
+
+    const [
         error,
         setError,
     ] = useState<string | null>(
@@ -251,6 +264,8 @@ export default function NearbyPage() {
                         : "Your approximate location was found."
                 );
 
+                setDiscoveryStarted(false);
+                setSelectedSpotId(null);
                 grantLocationConsent();
             } catch (
             err
@@ -303,28 +318,6 @@ export default function NearbyPage() {
             }
         }, []);
 
-    /*
-     * If the visitor has already granted
-     * NiceThings location consent, restore
-     * the nearby experience automatically.
-     */
-    useEffect(() => {
-        if (
-            hasLocationConsent()
-        ) {
-            void requestLocation();
-        } else {
-            setLocationState(
-                "idle"
-            );
-
-            setLocationMessage(
-                "Allow location access to discover places near you."
-            );
-        }
-    }, [
-        requestLocation,
-    ]);
 
     /*
      * ------------------------------------------------
@@ -899,653 +892,1171 @@ export default function NearbyPage() {
      */
 
     return (
-        <main className="nt-nearby-page">
-            <div className="nt-nearby-container">
+        <>
+            <style jsx global>{`
+                .nt-nearby-page {
+                    min-height: 100vh;
+                    padding: 34px 18px 110px;
+                    background:
+                        radial-gradient(circle at 82% 8%, rgba(249,115,22,.10), transparent 280px),
+                        linear-gradient(180deg, #fbfaf7 0%, #f5f2ec 100%);
+                    color: var(--nt-text, #171717);
+                }
 
-                {/* HERO */}
+                .nt-nearby-container {
+                    width: min(1120px, 100%);
+                    margin: 0 auto;
+                }
 
-                <section className="nt-nearby-hero">
-                    <div className="nt-nearby-hero-copy">
-                        <div className="nt-nearby-eyebrow">
-                            <Compass
-                                size={
-                                    13
-                                }
-                            />
+                .nt-nearby-hero {
+                    position: relative;
+                    min-height: 285px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 40px;
+                    padding: 54px 58px;
+                    overflow: hidden;
+                    border: 1px solid rgba(17,17,17,.07);
+                    border-radius: 34px;
+                    background: linear-gradient(135deg, #ffffff 0%, #f7f3eb 100%);
+                    box-shadow: 0 24px 80px rgba(17,17,17,.07);
+                }
 
-                            AROUND YOU
+                .nt-nearby-hero::after {
+                    content: "";
+                    position: absolute;
+                    width: 280px;
+                    height: 280px;
+                    right: 120px;
+                    top: -170px;
+                    border-radius: 50%;
+                    background: rgba(249,115,22,.09);
+                    filter: blur(8px);
+                }
+
+                .nt-nearby-hero-copy {
+                    position: relative;
+                    z-index: 2;
+                    max-width: 620px;
+                }
+
+                .nt-nearby-eyebrow,
+                .nt-nearby-gate-eyebrow {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    margin-bottom: 14px;
+                    color: var(--nt-orange, #f97316);
+                    font-size: 9px;
+                    font-weight: 900;
+                    letter-spacing: .16em;
+                }
+
+                .nt-nearby-hero h1 {
+                    margin: 0;
+                    font-family: Manrope, sans-serif;
+                    font-size: clamp(42px, 6vw, 72px);
+                    line-height: .92;
+                    letter-spacing: -.07em;
+                    font-weight: 900;
+                }
+
+                .nt-nearby-hero h1 em,
+                .nt-nearby-search-stage h2 em,
+                .nt-nearby-gate-copy h2 em {
+                    color: var(--nt-orange, #f97316);
+                    font-style: normal;
+                }
+
+                .nt-nearby-hero p {
+                    max-width: 450px;
+                    margin: 18px 0 0;
+                    color: var(--nt-muted, #707070);
+                    font-size: 12px;
+                    line-height: 1.7;
+                }
+
+                .nt-nearby-radar {
+                    position: relative;
+                    z-index: 2;
+                    width: 190px;
+                    height: 190px;
+                    flex: 0 0 auto;
+                    display: grid;
+                    place-items: center;
+                }
+
+                .nt-radar-ring {
+                    position: absolute;
+                    border: 1px solid rgba(249,115,22,.20);
+                    border-radius: 50%;
+                }
+
+                .nt-radar-ring.ring-one { width: 70px; height: 70px; }
+                .nt-radar-ring.ring-two { width: 125px; height: 125px; }
+                .nt-radar-ring.ring-three { width: 180px; height: 180px; }
+
+                .nt-radar-center {
+                    width: 54px;
+                    height: 54px;
+                    display: grid;
+                    place-items: center;
+                    border-radius: 18px;
+                    background: var(--nt-black, #111);
+                    color: #fff;
+                    box-shadow: 0 18px 35px rgba(17,17,17,.20);
+                }
+
+                .nt-nearby-location-gate,
+                .nt-nearby-search-stage {
+                    position: relative;
+                    display: grid;
+                    grid-template-columns: 230px minmax(0, 1fr);
+                    align-items: center;
+                    gap: 42px;
+                    margin-top: 22px;
+                    padding: 38px 42px;
+                    border: 1px solid rgba(17,17,17,.07);
+                    border-radius: 28px;
+                    background: rgba(255,255,255,.91);
+                    box-shadow: 0 20px 65px rgba(17,17,17,.065);
+                    backdrop-filter: blur(18px);
+                }
+
+                .nt-nearby-location-gate {
+                    grid-template-columns: 190px minmax(0, 1fr);
+                }
+
+                .nt-nearby-gate-orbit {
+                    position: relative;
+                    width: 175px;
+                    height: 175px;
+                    display: grid;
+                    place-items: center;
+                    margin: auto;
+                }
+
+                .nt-nearby-gate-orbit > span {
+                    position: absolute;
+                    border: 1px solid rgba(249,115,22,.17);
+                    border-radius: 50%;
+                }
+
+                .nt-nearby-gate-orbit > span:nth-child(1) { width: 72px; height: 72px; }
+                .nt-nearby-gate-orbit > span:nth-child(2) { width: 120px; height: 120px; }
+                .nt-nearby-gate-orbit > span:nth-child(3) { width: 170px; height: 170px; }
+
+                .nt-nearby-gate-orbit::before {
+                    content: "";
+                    position: absolute;
+                    width: 9px;
+                    height: 9px;
+                    top: 19px;
+                    right: 28px;
+                    border-radius: 50%;
+                    background: var(--nt-orange, #f97316);
+                    box-shadow: 0 0 0 8px rgba(249,115,22,.08);
+                }
+
+                .nt-nearby-gate-orbit > div {
+                    position: relative;
+                    z-index: 2;
+                    width: 62px;
+                    height: 62px;
+                    display: grid;
+                    place-items: center;
+                    border-radius: 21px;
+                    background: #111;
+                    color: #fff;
+                    box-shadow: 0 18px 38px rgba(17,17,17,.20);
+                }
+
+                .nt-nearby-gate-copy { max-width: 670px; }
+
+                .nt-nearby-gate-copy h2,
+                .nt-nearby-search-stage h2 {
+                    margin: 0;
+                    font-family: Manrope, sans-serif;
+                    font-size: clamp(28px, 4vw, 44px);
+                    line-height: 1;
+                    letter-spacing: -.055em;
+                    font-weight: 900;
+                }
+
+                .nt-nearby-gate-copy p,
+                .nt-nearby-search-stage-top p {
+                    max-width: 590px;
+                    margin: 13px 0 0;
+                    color: var(--nt-muted, #707070);
+                    font-size: 11px;
+                    line-height: 1.7;
+                }
+
+                .nt-nearby-gate-button {
+                    min-height: 51px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 9px;
+                    margin-top: 22px;
+                    padding: 0 18px;
+                    border: 0;
+                    border-radius: 15px;
+                    background: #111;
+                    color: #fff;
+                    font-family: Manrope, sans-serif;
+                    font-size: 10px;
+                    font-weight: 850;
+                    cursor: pointer;
+                    box-shadow: 0 14px 30px rgba(17,17,17,.14);
+                    transition: .22s ease;
+                }
+
+                .nt-nearby-gate-button:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    background: var(--nt-orange, #f97316);
+                    box-shadow: 0 15px 32px rgba(249,115,22,.18);
+                }
+
+                .nt-nearby-gate-button:disabled { opacity: .65; cursor: wait; }
+
+                .nt-nearby-gate-secondary,
+                .nt-nearby-see-all,
+                .nt-nearby-back-to-search {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    color: #111;
+                    font-size: 9px;
+                    font-weight: 850;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+
+                .nt-nearby-gate-secondary { margin: 15px 0 0 5px; color: var(--nt-muted, #707070); }
+                .nt-nearby-gate-secondary:hover, .nt-nearby-see-all:hover { color: var(--nt-orange, #f97316); }
+
+                .nt-nearby-gate-error {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 15px;
+                    padding: 11px 13px;
+                    border: 1px solid rgba(249,115,22,.16);
+                    border-radius: 13px;
+                    background: rgba(249,115,22,.06);
+                    color: var(--nt-orange, #f97316);
+                    font-size: 9px;
+                    line-height: 1.5;
+                }
+
+                .nt-nearby-search-stage {
+                    display: block;
+                    padding: 34px 38px 30px;
+                }
+
+                .nt-nearby-search-stage-top {
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    gap: 25px;
+                }
+
+                .nt-nearby-location-confirmed {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    padding: 9px 11px;
+                    border: 1px solid rgba(25,135,84,.12);
+                    border-radius: 999px;
+                    background: #f1fbf5;
+                    color: #198754;
+                    font-size: 8px;
+                    font-weight: 850;
+                    white-space: nowrap;
+                }
+
+                .nt-nearby-live-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: #198754;
+                    box-shadow: 0 0 0 5px rgba(25,135,84,.08);
+                }
+
+                .nt-nearby-search-form {
+                    display: flex;
+                    align-items: center;
+                    gap: 11px;
+                    min-height: 61px;
+                    margin-top: 25px;
+                    padding: 6px 7px 6px 18px;
+                    border: 1px solid rgba(17,17,17,.09);
+                    border-radius: 17px;
+                    background: #faf9f6;
+                    transition: border-color .2s ease, box-shadow .2s ease;
+                }
+
+                .nt-nearby-search-form:focus-within {
+                    border-color: rgba(249,115,22,.35);
+                    box-shadow: 0 0 0 4px rgba(249,115,22,.06);
+                }
+
+                .nt-nearby-search-form > svg { color: var(--nt-orange, #f97316); flex: 0 0 auto; }
+
+                .nt-nearby-search-form input {
+                    min-width: 0;
+                    flex: 1;
+                    border: 0;
+                    outline: 0;
+                    background: transparent;
+                    color: #111;
+                    font-size: 11px;
+                }
+
+                .nt-nearby-search-form input::placeholder { color: #9b9b9b; }
+
+                .nt-nearby-search-form button {
+                    min-height: 47px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    padding: 0 16px;
+                    border: 0;
+                    border-radius: 13px;
+                    background: var(--nt-orange, #f97316);
+                    color: #fff;
+                    font-size: 9px;
+                    font-weight: 900;
+                    cursor: pointer;
+                    white-space: nowrap;
+                }
+
+                .nt-nearby-search-suggestions { margin-top: 17px; }
+                .nt-nearby-search-suggestions > span {
+                    display: block;
+                    margin-bottom: 9px;
+                    color: #969696;
+                    font-size: 8px;
+                    font-weight: 850;
+                    text-transform: uppercase;
+                    letter-spacing: .12em;
+                }
+
+                .nt-nearby-search-suggestions > div {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 7px;
+                }
+
+                .nt-nearby-search-suggestions button {
+                    min-height: 33px;
+                    padding: 0 12px;
+                    border: 1px solid rgba(17,17,17,.08);
+                    border-radius: 999px;
+                    background: #fff;
+                    color: #555;
+                    font-size: 8px;
+                    font-weight: 800;
+                    cursor: pointer;
+                    transition: .18s ease;
+                }
+
+                .nt-nearby-search-suggestions button:hover {
+                    border-color: rgba(249,115,22,.25);
+                    color: var(--nt-orange, #f97316);
+                    transform: translateY(-1px);
+                }
+
+                .nt-nearby-see-all {
+                    margin-top: 18px;
+                    padding: 0;
+                    border: 0;
+                    background: none;
+                }
+
+                .nt-nearby-back-to-search {
+                    margin: 22px 0 0;
+                    padding: 0;
+                    border: 0;
+                    background: none;
+                    color: var(--nt-muted, #707070);
+                }
+
+                .nt-nearby-back-to-search:hover { color: var(--nt-orange, #f97316); }
+
+                @media (max-width: 760px) {
+                    .nt-nearby-page { padding: 20px 12px 100px; }
+                    .nt-nearby-hero { min-height: 300px; padding: 30px 24px; border-radius: 25px; }
+                    .nt-nearby-hero h1 { font-size: clamp(39px, 12vw, 57px); }
+                    .nt-nearby-hero p { font-size: 10px; }
+                    .nt-nearby-radar { position: absolute; right: -38px; bottom: -42px; transform: scale(.72); opacity: .75; }
+                    .nt-nearby-location-gate, .nt-nearby-search-stage { display: block; padding: 26px 20px; border-radius: 22px; }
+                    .nt-nearby-gate-orbit { margin: 0 auto 24px; transform: scale(.78); }
+                    .nt-nearby-gate-copy h2, .nt-nearby-search-stage h2 { font-size: 29px; }
+                    .nt-nearby-search-stage-top { display: block; }
+                    .nt-nearby-location-confirmed { margin-top: 15px; }
+                    .nt-nearby-search-form { min-height: 55px; padding-left: 13px; }
+                    .nt-nearby-search-form button { min-height: 43px; padding: 0 12px; }
+                    .nt-nearby-search-form input { font-size: 10px; }
+                }
+            `}</style>
+            <main className="nt-nearby-page">
+                <div className="nt-nearby-container">
+
+                    {/* HERO */}
+
+                    <section className="nt-nearby-hero">
+                        <div className="nt-nearby-hero-copy">
+                            <div className="nt-nearby-eyebrow">
+                                <Compass
+                                    size={
+                                        13
+                                    }
+                                />
+
+                                AROUND YOU
+                            </div>
+
+                            <h1>
+                                Nice things,
+                                <br />
+
+                                <em>
+                                    right nearby.
+                                </em>
+                            </h1>
+
+                            <p>
+                                Discover places
+                                worth exploring
+                                around your
+                                current
+                                location.
+                            </p>
                         </div>
 
-                        <h1>
-                            Nice things,
-                            <br />
-
-                            <em>
-                                right nearby.
-                            </em>
-                        </h1>
-
-                        <p>
-                            Discover places
-                            worth exploring
-                            around your
-                            current
-                            location.
-                        </p>
-                    </div>
-
-                    <motion.div
-                        className="nt-nearby-radar"
-                        animate={{
-                            scale: [
-                                1,
-                                1.035,
-                                1,
-                            ],
-                        }}
-                        transition={{
-                            duration: 3,
-                            repeat:
-                                Infinity,
-                            ease:
-                                "easeInOut",
-                        }}
-                    >
-                        <div className="nt-radar-ring ring-one" />
-                        <div className="nt-radar-ring ring-two" />
-                        <div className="nt-radar-ring ring-three" />
-
-                        <div className="nt-radar-center">
-                            <Navigation
-                                size={
-                                    20
-                                }
-                            />
-                        </div>
-                    </motion.div>
-                </section>
-
-                {/* LOCATION PANEL */}
-
-                <section className="nt-location-panel">
-                    <div className="nt-location-status">
-                        <div
-                            className={[
-                                "nt-location-icon",
-                                locationState,
-                            ].join(
-                                " "
-                            )}
+                        <motion.div
+                            className="nt-nearby-radar"
+                            animate={{
+                                scale: [
+                                    1,
+                                    1.035,
+                                    1,
+                                ],
+                            }}
+                            transition={{
+                                duration: 3,
+                                repeat:
+                                    Infinity,
+                                ease:
+                                    "easeInOut",
+                            }}
                         >
-                            {locationState ===
-                                "loading" ? (
-                                <RefreshCw
+                            <div className="nt-radar-ring ring-one" />
+                            <div className="nt-radar-ring ring-two" />
+                            <div className="nt-radar-ring ring-three" />
+
+                            <div className="nt-radar-center">
+                                <Navigation
                                     size={
-                                        17
-                                    }
-                                    className="nt-spin"
-                                />
-                            ) : (
-                                <Crosshair
-                                    size={
-                                        18
+                                        20
                                     }
                                 />
-                            )}
-                        </div>
+                            </div>
+                        </motion.div>
+                    </section>
 
-                        <div>
-                            <strong>
-                                {locationState ===
-                                    "success"
-                                    ? "Your location"
-                                    : locationState ===
-                                        "loading"
-                                        ? "Finding you"
-                                        : "Location unavailable"}
-                            </strong>
+                    {/* LOCATION PANEL */}
 
-                            <span>
-                                {locationMessage ||
-                                    "Allow location access to discover places near you."}
-                            </span>
-                        </div>
-                    </div>
-
-                    {locationState !==
-                        "success" && (
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    void requestLocation()
-                                }
-                                disabled={
-                                    locationState ===
-                                    "loading"
-                                }
-                                className="nt-location-action"
+                    <section className="nt-location-panel">
+                        <div className="nt-location-status">
+                            <div
+                                className={[
+                                    "nt-location-icon",
+                                    locationState,
+                                ].join(
+                                    " "
+                                )}
                             >
                                 {locationState ===
-                                    "loading"
-                                    ? "Locating..."
-                                    : "Use my location"}
-                            </button>
-                        )}
-
-                    {locationState ===
-                        "success" && (
-                            <div className="nt-radius-wrapper">
-                                <button
-                                    type="button"
-                                    className="nt-radius-button"
-                                    onClick={() =>
-                                        setShowRadius(
-                                            (
-                                                current
-                                            ) =>
-                                                !current
-                                        )
-                                    }
-                                >
-                                    Within{" "}
-                                    <strong>
-                                        {radius}{" "}
-                                        km
-                                    </strong>
-
-                                    <ArrowRight
-                                        size={
-                                            14
-                                        }
-                                    />
-                                </button>
-
-                                <AnimatePresence>
-                                    {showRadius && (
-                                        <motion.div
-                                            className="nt-radius-menu"
-                                            initial={{
-                                                opacity: 0,
-                                                y: -5,
-                                            }}
-                                            animate={{
-                                                opacity: 1,
-                                                y: 0,
-                                            }}
-                                            exit={{
-                                                opacity: 0,
-                                                y: -5,
-                                            }}
-                                        >
-                                            {RADIUS_OPTIONS.map(
-                                                (
-                                                    option
-                                                ) => (
-                                                    <button
-                                                        key={
-                                                            option.value
-                                                        }
-                                                        type="button"
-                                                        className={
-                                                            radius ===
-                                                                option.value
-                                                                ? "selected"
-                                                                : ""
-                                                        }
-                                                        onClick={() => {
-                                                            setRadius(
-                                                                option.value
-                                                            );
-
-                                                            setShowRadius(
-                                                                false
-                                                            );
-                                                        }}
-                                                    >
-                                                        {
-                                                            option.label
-                                                        }
-
-                                                        {radius ===
-                                                            option.value && (
-                                                                <Check
-                                                                    size={
-                                                                        14
-                                                                    }
-                                                                />
-                                                            )}
-                                                    </button>
-                                                )
-                                            )}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        )}
-                </section>
-
-                {/* LOCATION SUCCESS EXPERIENCE */}
-
-                {locationState ===
-                    "success" && (
-                        <>
-                            {/* SEARCH TOOLS */}
-
-                            <section className="nt-nearby-tools">
-                                <div className="nt-nearby-search">
-                                    <Search
+                                    "loading" ? (
+                                    <RefreshCw
                                         size={
                                             17
                                         }
+                                        className="nt-spin"
                                     />
-
-                                    <input
-                                        value={
-                                            search
+                                ) : (
+                                    <Crosshair
+                                        size={
+                                            18
                                         }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            setSearch(
-                                                event
-                                                    .target
-                                                    .value
+                                    />
+                                )}
+                            </div>
+
+                            <div>
+                                <strong>
+                                    {locationState ===
+                                        "success"
+                                        ? "Your location"
+                                        : locationState ===
+                                            "loading"
+                                            ? "Finding you"
+                                            : "Location unavailable"}
+                                </strong>
+
+                                <span>
+                                    {locationMessage ||
+                                        "Allow location access to discover places near you."}
+                                </span>
+                            </div>
+                        </div>
+
+                        {locationState !==
+                            "success" && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        void requestLocation()
+                                    }
+                                    disabled={
+                                        locationState ===
+                                        "loading"
+                                    }
+                                    className="nt-location-action"
+                                >
+                                    {locationState ===
+                                        "loading"
+                                        ? "Locating..."
+                                        : "Use my location"}
+                                </button>
+                            )}
+
+                        {locationState ===
+                            "success" && (
+                                <div className="nt-radius-wrapper">
+                                    <button
+                                        type="button"
+                                        className="nt-radius-button"
+                                        onClick={() =>
+                                            setShowRadius(
+                                                (
+                                                    current
+                                                ) =>
+                                                    !current
                                             )
                                         }
-                                        placeholder="Search nearby places..."
-                                        aria-label="Search nearby places"
-                                    />
-                                </div>
+                                    >
+                                        Within{" "}
+                                        <strong>
+                                            {radius}{" "}
+                                            km
+                                        </strong>
 
-                                <div className="nt-nearby-categories">
-                                    {categories.map(
-                                        (
-                                            item
-                                        ) => (
-                                            <button
-                                                key={
-                                                    item
-                                                }
-                                                type="button"
-                                                className={
-                                                    selectedCategory.toLowerCase() ===
-                                                        item.toLowerCase()
-                                                        ? "active"
-                                                        : ""
-                                                }
-                                                onClick={() => {
-                                                    setSelectedCategory(
-                                                        item
-                                                    );
+                                        <ArrowRight
+                                            size={
+                                                14
+                                            }
+                                        />
+                                    </button>
 
-                                                    setSelectedSpotId(
-                                                        null
-                                                    );
+                                    <AnimatePresence>
+                                        {showRadius && (
+                                            <motion.div
+                                                className="nt-radius-menu"
+                                                initial={{
+                                                    opacity: 0,
+                                                    y: -5,
+                                                }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    y: 0,
+                                                }}
+                                                exit={{
+                                                    opacity: 0,
+                                                    y: -5,
                                                 }}
                                             >
-                                                {item ===
-                                                    "all"
-                                                    ? "All"
-                                                    : formatCategory(
-                                                        item
-                                                    )}
-                                            </button>
-                                        )
-                                    )}
-                                </div>
-                            </section>
+                                                {RADIUS_OPTIONS.map(
+                                                    (
+                                                        option
+                                                    ) => (
+                                                        <button
+                                                            key={
+                                                                option.value
+                                                            }
+                                                            type="button"
+                                                            className={
+                                                                radius ===
+                                                                    option.value
+                                                                    ? "selected"
+                                                                    : ""
+                                                            }
+                                                            onClick={() => {
+                                                                setRadius(
+                                                                    option.value
+                                                                );
 
-                            {/* MAP */}
+                                                                setShowRadius(
+                                                                    false
+                                                                );
+                                                            }}
+                                                        >
+                                                            {
+                                                                option.label
+                                                            }
 
-                            <section className="nt-nearby-map-section">
-                                <div className="nt-nearby-map-heading">
-                                    <div>
-                                        <span>
-                                            EXPLORE THE MAP
-                                        </span>
-
-                                        <h2>
-                                            Discover around
-                                            you
-                                        </h2>
-                                    </div>
-
-                                    <p>
-                                        Tap a place to
-                                        explore it.
-                                    </p>
-                                </div>
-
-                                <NearbyMap
-                                    latitude={
-                                        location.latitude
-                                    }
-                                    longitude={
-                                        location.longitude
-                                    }
-                                    accuracy={
-                                        location.accuracy
-                                    }
-                                    radiusKm={
-                                        radius
-                                    }
-                                    spots={filteredSpots
-                                        .filter(
-                                            (
-                                                spot
-                                            ) =>
-                                                typeof spot.latitude ===
-                                                "number" &&
-                                                typeof spot.longitude ===
-                                                "number"
-                                        )
-                                        .map(
-                                            (
-                                                spot
-                                            ) => ({
-                                                id:
-                                                    spot.id,
-
-                                                name:
-                                                    spot.name,
-
-                                                slug:
-                                                    spot.slug,
-
-                                                latitude:
-                                                    spot.latitude as number,
-
-                                                longitude:
-                                                    spot.longitude as number,
-
-                                                category:
-                                                    spot.category,
-
-                                                rating:
-                                                    spot.rating,
-
-                                                review_count:
-                                                    spot.review_count,
-
-                                                distanceKm:
-                                                    spot.distanceKm,
-                                            })
+                                                            {radius ===
+                                                                option.value && (
+                                                                    <Check
+                                                                        size={
+                                                                            14
+                                                                        }
+                                                                    />
+                                                                )}
+                                                        </button>
+                                                    )
+                                                )}
+                                            </motion.div>
                                         )}
-                                    selectedSpotId={
-                                        selectedSpotId
-                                    }
-                                    onSelectSpot={(
-                                        spot
-                                    ) => {
-                                        setSelectedSpotId(
-                                            spot.id
-                                        );
-                                    }}
-                                />
-
-                                {/* SELECTED PLACE */}
-
-                                <AnimatePresence>
-                                    {selectedSpot && (
-                                        <motion.div
-                                            className="nt-nearby-selected-place"
-                                            initial={{
-                                                opacity: 0,
-                                                y: 15,
-                                            }}
-                                            animate={{
-                                                opacity: 1,
-                                                y: 0,
-                                            }}
-                                            exit={{
-                                                opacity: 0,
-                                                y: 15,
-                                            }}
-                                            transition={{
-                                                duration:
-                                                    0.25,
-                                            }}
-                                        >
-                                            <div>
-                                                <span>
-                                                    {formatCategory(
-                                                        selectedSpot.category
-                                                    )}
-                                                </span>
-
-                                                <h3>
-                                                    {
-                                                        selectedSpot.name
-                                                    }
-                                                </h3>
-
-                                                <p>
-                                                    {formatDistance(
-                                                        selectedSpot.distanceKm
-                                                    )}{" "}
-                                                    away
-                                                </p>
-                                            </div>
-
-                                            <div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setSelectedSpotId(
-                                                            null
-                                                        )
-                                                    }
-                                                >
-                                                    Close
-                                                </button>
-
-                                                <Link
-                                                    href={`/spots/${encodeURIComponent(
-                                                        selectedSpot.slug ??
-                                                        selectedSpot.id
-                                                    )}`}
-                                                >
-                                                    View place
-
-                                                    <ArrowRight
-                                                        size={
-                                                            14
-                                                        }
-                                                    />
-                                                </Link>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </section>
-
-                            {/* RESULTS */}
-
-                            <section className="nt-nearby-results">
-                                <div className="nt-nearby-results-head">
-                                    <div>
-                                        <span>
-                                            NEARBY
-                                        </span>
-
-                                        <h2>
-                                            Places around
-                                            you
-                                        </h2>
-                                    </div>
-
-                                    {!loadingSpots && (
-                                        <p>
-                                            {
-                                                filteredSpots.length
-                                            }{" "}
-                                            {filteredSpots.length ===
-                                                1
-                                                ? "place"
-                                                : "places"}
-                                        </p>
-                                    )}
+                                    </AnimatePresence>
                                 </div>
+                            )}
+                    </section>
 
-                                {error ? (
-                                    <div className="nt-nearby-error">
-                                        <div>
-                                            <RefreshCw
-                                                size={
-                                                    20
-                                                }
-                                            />
-                                        </div>
+                    {/* LOCATION SUCCESS EXPERIENCE */}
 
-                                        <h3>
-                                            Couldn't load
-                                            nearby places
-                                        </h3>
+                    {locationState ===
+                        "success" &&
+                        discoveryStarted && (
+                            <>
+                                {/* SEARCH TOOLS */}
 
-                                        <p>
-                                            {
-                                                error
+                                <section className="nt-nearby-tools">
+                                    <div className="nt-nearby-search">
+                                        <Search
+                                            size={
+                                                17
                                             }
-                                        </p>
+                                        />
 
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                location &&
-                                                void loadNearbySpots(
-                                                    location
+                                        <input
+                                            value={
+                                                search
+                                            }
+                                            onChange={(
+                                                event
+                                            ) =>
+                                                setSearch(
+                                                    event
+                                                        .target
+                                                        .value
                                                 )
                                             }
-                                        >
-                                            Try again
-                                        </button>
+                                            placeholder="Search nearby places..."
+                                            aria-label="Search nearby places"
+                                        />
                                     </div>
-                                ) : loadingSpots ? (
-                                    <NearbySkeleton />
-                                ) : filteredSpots.length ===
-                                    0 ? (
-                                    <NearbyEmpty
-                                        radius={
+
+                                    <div className="nt-nearby-categories">
+                                        {categories.map(
+                                            (
+                                                item
+                                            ) => (
+                                                <button
+                                                    key={
+                                                        item
+                                                    }
+                                                    type="button"
+                                                    className={
+                                                        selectedCategory.toLowerCase() ===
+                                                            item.toLowerCase()
+                                                            ? "active"
+                                                            : ""
+                                                    }
+                                                    onClick={() => {
+                                                        setSelectedCategory(
+                                                            item
+                                                        );
+
+                                                        setSelectedSpotId(
+                                                            null
+                                                        );
+                                                    }}
+                                                >
+                                                    {item ===
+                                                        "all"
+                                                        ? "All"
+                                                        : formatCategory(
+                                                            item
+                                                        )}
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
+                                </section>
+
+                                {/* MAP */}
+
+                                <section className="nt-nearby-map-section">
+                                    <div className="nt-nearby-map-heading">
+                                        <div>
+                                            <span>
+                                                EXPLORE THE MAP
+                                            </span>
+
+                                            <h2>
+                                                Discover around
+                                                you
+                                            </h2>
+                                        </div>
+
+                                        <p>
+                                            Tap a place to
+                                            explore it.
+                                        </p>
+                                    </div>
+
+                                    <NearbyMap
+                                        latitude={
+                                            location.latitude
+                                        }
+                                        longitude={
+                                            location.longitude
+                                        }
+                                        accuracy={
+                                            location.accuracy
+                                        }
+                                        radiusKm={
                                             radius
                                         }
-                                        reset={() => {
-                                            setSearch(
-                                                ""
-                                            );
+                                        spots={filteredSpots
+                                            .filter(
+                                                (
+                                                    spot
+                                                ) =>
+                                                    typeof spot.latitude ===
+                                                    "number" &&
+                                                    typeof spot.longitude ===
+                                                    "number"
+                                            )
+                                            .map(
+                                                (
+                                                    spot
+                                                ) => ({
+                                                    id:
+                                                        spot.id,
 
-                                            setSelectedCategory(
-                                                "all"
-                                            );
+                                                    name:
+                                                        spot.name,
 
+                                                    slug:
+                                                        spot.slug,
+
+                                                    latitude:
+                                                        spot.latitude as number,
+
+                                                    longitude:
+                                                        spot.longitude as number,
+
+                                                    category:
+                                                        spot.category,
+
+                                                    rating:
+                                                        spot.rating,
+
+                                                    review_count:
+                                                        spot.review_count,
+
+                                                    distanceKm:
+                                                        spot.distanceKm,
+                                                })
+                                            )}
+                                        selectedSpotId={
+                                            selectedSpotId
+                                        }
+                                        onSelectSpot={(
+                                            spot
+                                        ) => {
                                             setSelectedSpotId(
-                                                null
-                                            );
-
-                                            setRadius(
-                                                25
+                                                spot.id
                                             );
                                         }}
                                     />
-                                ) : (
-                                    <div className="nt-nearby-grid">
-                                        <AnimatePresence
-                                            mode="popLayout"
-                                        >
-                                            {filteredSpots.map(
-                                                (
-                                                    spot,
-                                                    index
-                                                ) => (
-                                                    <NearbyCard
-                                                        key={
-                                                            spot.id
-                                                        }
-                                                        spot={
-                                                            spot
-                                                        }
-                                                        saved={savedIds.has(
-                                                            spot.id
+
+                                    {/* SELECTED PLACE */}
+
+                                    <AnimatePresence>
+                                        {selectedSpot && (
+                                            <motion.div
+                                                className="nt-nearby-selected-place"
+                                                initial={{
+                                                    opacity: 0,
+                                                    y: 15,
+                                                }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    y: 0,
+                                                }}
+                                                exit={{
+                                                    opacity: 0,
+                                                    y: 15,
+                                                }}
+                                                transition={{
+                                                    duration:
+                                                        0.25,
+                                                }}
+                                            >
+                                                <div>
+                                                    <span>
+                                                        {formatCategory(
+                                                            selectedSpot.category
                                                         )}
-                                                        selected={
-                                                            selectedSpotId ===
-                                                            spot.id
+                                                    </span>
+
+                                                    <h3>
+                                                        {
+                                                            selectedSpot.name
                                                         }
-                                                        index={
-                                                            index
-                                                        }
-                                                        toggleSaved={
-                                                            toggleSaved
-                                                        }
-                                                        directions={
-                                                            openDirections
-                                                        }
-                                                        onSelect={() =>
+                                                    </h3>
+
+                                                    <p>
+                                                        {formatDistance(
+                                                            selectedSpot.distanceKm
+                                                        )}{" "}
+                                                        away
+                                                    </p>
+                                                </div>
+
+                                                <div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
                                                             setSelectedSpotId(
-                                                                spot.id
+                                                                null
                                                             )
                                                         }
-                                                    />
-                                                )
-                                            )}
-                                        </AnimatePresence>
+                                                    >
+                                                        Close
+                                                    </button>
+
+                                                    <Link
+                                                        href={`/spots/${encodeURIComponent(
+                                                            selectedSpot.slug ??
+                                                            selectedSpot.id
+                                                        )}`}
+                                                    >
+                                                        View place
+
+                                                        <ArrowRight
+                                                            size={
+                                                                14
+                                                            }
+                                                        />
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </section>
+
+                                {/* RESULTS */}
+
+                                <section className="nt-nearby-results">
+                                    <div className="nt-nearby-results-head">
+                                        <div>
+                                            <span>
+                                                NEARBY
+                                            </span>
+
+                                            <h2>
+                                                Places around
+                                                you
+                                            </h2>
+                                        </div>
+
+                                        {!loadingSpots && (
+                                            <p>
+                                                {
+                                                    filteredSpots.length
+                                                }{" "}
+                                                {filteredSpots.length ===
+                                                    1
+                                                    ? "place"
+                                                    : "places"}
+                                            </p>
+                                        )}
                                     </div>
-                                )}
-                            </section>
-                        </>
-                    )}
 
-                {/* LOCATION HELP */}
+                                    {error ? (
+                                        <div className="nt-nearby-error">
+                                            <div>
+                                                <RefreshCw
+                                                    size={
+                                                        20
+                                                    }
+                                                />
+                                            </div>
 
-                {locationState !==
-                    "success" &&
-                    locationState !==
-                    "loading" && (
-                        <section className="nt-location-help">
-                            <div className="nt-location-help-icon">
-                                <MapPin
-                                    size={
-                                        22
-                                    }
-                                />
+                                            <h3>
+                                                Couldn't load
+                                                nearby places
+                                            </h3>
+
+                                            <p>
+                                                {
+                                                    error
+                                                }
+                                            </p>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    location &&
+                                                    void loadNearbySpots(
+                                                        location
+                                                    )
+                                                }
+                                            >
+                                                Try again
+                                            </button>
+                                        </div>
+                                    ) : loadingSpots ? (
+                                        <NearbySkeleton />
+                                    ) : filteredSpots.length ===
+                                        0 ? (
+                                        <NearbyEmpty
+                                            radius={
+                                                radius
+                                            }
+                                            reset={() => {
+                                                setSearch(
+                                                    ""
+                                                );
+
+                                                setSelectedCategory(
+                                                    "all"
+                                                );
+
+                                                setSelectedSpotId(
+                                                    null
+                                                );
+
+                                                setRadius(
+                                                    25
+                                                );
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="nt-nearby-grid">
+                                            <AnimatePresence
+                                                mode="popLayout"
+                                            >
+                                                {filteredSpots.map(
+                                                    (
+                                                        spot,
+                                                        index
+                                                    ) => (
+                                                        <NearbyCard
+                                                            key={
+                                                                spot.id
+                                                            }
+                                                            spot={
+                                                                spot
+                                                            }
+                                                            saved={savedIds.has(
+                                                                spot.id
+                                                            )}
+                                                            selected={
+                                                                selectedSpotId ===
+                                                                spot.id
+                                                            }
+                                                            index={
+                                                                index
+                                                            }
+                                                            toggleSaved={
+                                                                toggleSaved
+                                                            }
+                                                            directions={
+                                                                openDirections
+                                                            }
+                                                            onSelect={() =>
+                                                                setSelectedSpotId(
+                                                                    spot.id
+                                                                )
+                                                            }
+                                                        />
+                                                    )
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
+                                </section>
+                            </>
+                        )}
+
+                    {/* LOCATION / DISCOVERY GATE */}
+
+                    {locationState !== "success" && (
+                        <motion.section
+                            className="nt-nearby-location-gate"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            <div className="nt-nearby-gate-orbit" aria-hidden="true">
+                                <span />
+                                <span />
+                                <span />
+                                <div>
+                                    <Navigation size={25} />
+                                </div>
                             </div>
 
-                            <h2>
-                                Turn on location
-                            </h2>
+                            <div className="nt-nearby-gate-copy">
+                                <span className="nt-nearby-gate-eyebrow">
+                                    {locationState === "error" ? "LOCATION NEEDED" : "START HERE"}
+                                </span>
 
-                            <p>
-                                NiceThings uses your
-                                location only to
-                                show places around
-                                you. You stay in
-                                control.
-                            </p>
+                                <h2>
+                                    Find something nice
+                                    <br />
+                                    <em>near you.</em>
+                                </h2>
+
+                                <p>
+                                    Let NiceThings use your current location.
+                                    We&apos;ll then help you choose what you&apos;re looking for before showing the map.
+                                </p>
+
+                                {locationState === "error" && (
+                                    <div className="nt-nearby-gate-error">
+                                        <MapPin size={14} />
+                                        <span>{locationMessage}</span>
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    className="nt-nearby-gate-button"
+                                    onClick={() => void requestLocation()}
+                                    disabled={locationState === "loading"}
+                                >
+                                    {locationState === "loading" ? (
+                                        <>
+                                            <RefreshCw size={17} className="nt-spin" />
+                                            Finding your location…
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Navigation size={17} />
+                                            Use my current location
+                                            <ArrowRight size={16} />
+                                        </>
+                                    )}
+                                </button>
+
+                                <Link
+                                    href="/search"
+                                    className="nt-nearby-gate-secondary"
+                                >
+                                    Explore an area instead
+                                    <ArrowRight size={14} />
+                                </Link>
+                            </div>
+                        </motion.section>
+                    )}
+
+                    {locationState === "success" && !discoveryStarted && (
+                        <motion.section
+                            className="nt-nearby-search-stage"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            <div className="nt-nearby-search-stage-top">
+                                <div>
+                                    <span className="nt-nearby-gate-eyebrow">LOCATION FOUND</span>
+                                    <h2>What are you in the mood for?</h2>
+                                    <p>Search nearby, choose a category, and we&apos;ll open your discovery map.</p>
+                                </div>
+
+                                <div className="nt-nearby-location-confirmed">
+                                    <span className="nt-nearby-live-dot" />
+                                    Location ready
+                                </div>
+                            </div>
+
+                            <form
+                                className="nt-nearby-search-form"
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    setDiscoveryStarted(true);
+                                    setSelectedSpotId(null);
+                                }}
+                            >
+                                <Search size={19} />
+                                <input
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                    placeholder="Try restaurants, cafés, grills…"
+                                    aria-label="Search nearby places"
+                                />
+                                <button type="submit">
+                                    Discover
+                                    <ArrowRight size={16} />
+                                </button>
+                            </form>
+
+                            <div className="nt-nearby-search-suggestions">
+                                <span>Popular nearby</span>
+                                <div>
+                                    {categories.filter((item) => item !== "all").slice(0, 6).map((item) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedCategory(item);
+                                                setSearch(item);
+                                                setDiscoveryStarted(true);
+                                                setSelectedSpotId(null);
+                                            }}
+                                        >
+                                            {formatCategory(item)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    void requestLocation()
-                                }
+                                className="nt-nearby-see-all"
+                                onClick={() => {
+                                    setSearch("");
+                                    setSelectedCategory("all");
+                                    setDiscoveryStarted(true);
+                                }}
                             >
-                                Find places near me
-
-                                <ArrowRight
-                                    size={
-                                        15
-                                    }
-                                />
+                                See everything nearby
+                                <ArrowRight size={14} />
                             </button>
-
-                            <Link
-                                href="/search"
-                                className="nt-nearby-area-link"
-                            >
-                                Explore another area
-                            </Link>
-                        </section>
+                        </motion.section>
                     )}
-            </div>
-        </main>
+
+                    {locationState === "success" && discoveryStarted && (
+                        <motion.button
+                            type="button"
+                            className="nt-nearby-back-to-search"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            onClick={() => setDiscoveryStarted(false)}
+                        >
+                            ← Change what you&apos;re looking for
+                        </motion.button>
+                    )}
+                </div>
+            </main>
+        </>
     );
 }
 

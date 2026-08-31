@@ -18,6 +18,7 @@ import {
     Clock3,
     Eye,
     MapPin,
+    Pencil,
     RefreshCw,
     Search,
     ShieldCheck,
@@ -95,6 +96,11 @@ export default function AdminSubmissionsPage() {
             null
         );
 
+
+    const [
+        editingSubmission,
+        setEditingSubmission,
+    ] = useState(false);
     const [
         actionLoading,
         setActionLoading,
@@ -355,6 +361,63 @@ export default function AdminSubmissionsPage() {
             setActionLoading(
                 false
             );
+        }
+    }
+
+    async function updateSubmission(
+        original: Submission,
+        changes: Partial<Submission>
+    ) {
+        setActionLoading(true);
+
+        try {
+            const {
+                data,
+                error: updateError,
+            } = await supabase
+                .from("nt_spot_submissions")
+                .update({
+                    ...changes,
+                    updated_at:
+                        new Date().toISOString(),
+                })
+                .eq("id", original.id)
+                .select("*")
+                .single();
+
+            if (updateError) {
+                throw updateError;
+            }
+
+            const updated =
+                (data ?? {
+                    ...original,
+                    ...changes,
+                }) as Submission;
+
+            setSubmissions((current) =>
+                current.map((item) =>
+                    item.id === original.id
+                        ? updated
+                        : item
+                )
+            );
+
+            setSelectedSubmission(updated);
+            setEditingSubmission(false);
+            setToast(
+                `${updated.name} updated successfully.`
+            );
+        } catch (err) {
+            console.error(
+                "Submission update error:",
+                err
+            );
+            setToast(
+                "We couldn't save these changes."
+            );
+        } finally {
+            setActionLoading(false);
         }
     }
 
@@ -738,6 +801,15 @@ export default function AdminSubmissionsPage() {
                     updateStatus={
                         updateStatus
                     }
+                    editing={
+                        editingSubmission
+                    }
+                    setEditing={
+                        setEditingSubmission
+                    }
+                    updateSubmission={
+                        updateSubmission
+                    }
                 />
             )}
 
@@ -829,6 +901,9 @@ function SubmissionModal({
     loading,
     close,
     updateStatus,
+    editing,
+    setEditing,
+    updateSubmission,
 }: {
     submission: Submission;
     loading: boolean;
@@ -839,6 +914,12 @@ function SubmissionModal({
             | "PENDING"
             | "APPROVED"
             | "REJECTED"
+    ) => Promise<void>;
+    editing: boolean;
+    setEditing: (value: boolean) => void;
+    updateSubmission: (
+        submission: Submission,
+        changes: Partial<Submission>
     ) => Promise<void>;
 }) {
     return (
@@ -881,202 +962,568 @@ function SubmissionModal({
                 </header>
 
                 <div className="nt-admin-modal-content">
-                    <div className="nt-admin-modal-location">
-                        <MapPin
-                            size={
-                                16
+                    {editing ? (
+                        <SubmissionEditor
+                            submission={submission}
+                            loading={loading}
+                            cancel={() =>
+                                setEditing(false)
                             }
+                            save={updateSubmission}
                         />
+                    ) : (
+                        <>
+                            <div className="nt-admin-modal-location">
+                                <MapPin size={16} />
+                                <span>
+                                    {[
+                                        submission.address,
+                                        submission.neighborhood,
+                                        submission.city,
+                                    ]
+                                        .filter(Boolean)
+                                        .join(", ") ||
+                                        "Location not provided"}
+                                </span>
+                            </div>
 
-                        <span>
-                            {[
-                                submission.address,
-                                submission.neighborhood,
-                                submission.city,
-                            ]
-                                .filter(
-                                    Boolean
-                                )
-                                .join(
-                                    ", "
-                                ) ||
-                                "Location not provided"}
-                        </span>
-                    </div>
-
-                    {submission.description && (
-                        <div className="nt-admin-description">
-                            <span>
-                                DESCRIPTION
-                            </span>
-
-                            <p>
-                                {
-                                    submission.description
-                                }
-                            </p>
-                        </div>
-                    )}
-
-                    <div className="nt-admin-modal-details">
-                        <Detail
-                            label="Category"
-                            value={
-                                submission.category ||
-                                "—"
-                            }
-                        />
-
-                        <Detail
-                            label="Cuisine"
-                            value={
-                                submission.cuisine ||
-                                "—"
-                            }
-                        />
-
-                        <Detail
-                            label="Phone"
-                            value={
-                                submission.phone ||
-                                "—"
-                            }
-                        />
-
-                        <Detail
-                            label="WhatsApp"
-                            value={
-                                submission.whatsapp ||
-                                "—"
-                            }
-                        />
-
-                        <Detail
-                            label="Website"
-                            value={
-                                submission.website ||
-                                "—"
-                            }
-                        />
-
-                        <Detail
-                            label="Submitted"
-                            value={formatDate(
-                                submission.created_at
+                            {submission.description && (
+                                <div className="nt-admin-description">
+                                    <span>
+                                        DESCRIPTION
+                                    </span>
+                                    <p>
+                                        {submission.description}
+                                    </p>
+                                </div>
                             )}
-                        />
-                    </div>
 
-                    <div className="nt-admin-modal-status">
-                        <span>
-                            Current status
-                        </span>
-
-                        <StatusBadge
-                            status={
-                                submission.status
-                            }
-                        />
-                    </div>
-
-                    <div className="nt-admin-modal-actions">
-                        <button
-                            type="button"
-                            disabled={
-                                loading ||
-                                submission.status ===
-                                "APPROVED"
-                            }
-                            onClick={() =>
-                                void updateStatus(
-                                    submission,
-                                    "APPROVED"
-                                )
-                            }
-                        >
-                            <CheckCircle2
-                                size={
-                                    16
-                                }
-                            />
-                            Approve
-                        </button>
-
-                        <button
-                            type="button"
-                            disabled={
-                                loading ||
-                                submission.status ===
-                                "PENDING"
-                            }
-                            onClick={() =>
-                                void updateStatus(
-                                    submission,
-                                    "PENDING"
-                                )
-                            }
-                        >
-                            <Clock3
-                                size={
-                                    16
-                                }
-                            />
-                            Keep pending
-                        </button>
-
-                        <button
-                            type="button"
-                            className="danger"
-                            disabled={
-                                loading ||
-                                submission.status ===
-                                "REJECTED"
-                            }
-                            onClick={() =>
-                                void updateStatus(
-                                    submission,
-                                    "REJECTED"
-                                )
-                            }
-                        >
-                            <X
-                                size={
-                                    16
-                                }
-                            />
-                            Reject
-                        </button>
-                    </div>
-
-                    {submission.latitude !==
-                        null &&
-                        submission.longitude !==
-                        null && (
-                            <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${submission.latitude},${submission.longitude}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="nt-admin-view-public"
-                            >
-                                <MapPin
-                                    size={
-                                        16
+                            <div className="nt-admin-modal-details">
+                                <Detail
+                                    label="Category"
+                                    value={
+                                        submission.category ||
+                                        "—"
                                     }
                                 />
-
-                                View submitted
-                                location
-
-                                <ArrowRight
-                                    size={
-                                        15
+                                <Detail
+                                    label="Cuisine"
+                                    value={
+                                        submission.cuisine ||
+                                        "—"
                                     }
                                 />
-                            </a>
-                        )}
+                                <Detail
+                                    label="Phone"
+                                    value={
+                                        submission.phone ||
+                                        "—"
+                                    }
+                                />
+                                <Detail
+                                    label="WhatsApp"
+                                    value={
+                                        submission.whatsapp ||
+                                        "—"
+                                    }
+                                />
+                                <Detail
+                                    label="Website"
+                                    value={
+                                        submission.website ||
+                                        "—"
+                                    }
+                                />
+                                <Detail
+                                    label="Coordinates"
+                                    value={
+                                        submission.latitude !== null &&
+                                            submission.longitude !== null
+                                            ? `${submission.latitude}, ${submission.longitude}`
+                                            : "—"
+                                    }
+                                />
+                                <Detail
+                                    label="Submitted"
+                                    value={formatDate(
+                                        submission.created_at
+                                    )}
+                                />
+                            </div>
+
+                            <div className="nt-admin-modal-status">
+                                <span>
+                                    Current status
+                                </span>
+                                <StatusBadge
+                                    status={
+                                        submission.status
+                                    }
+                                />
+                            </div>
+
+                            <div className="nt-admin-modal-actions">
+                                <button
+                                    type="button"
+                                    className="secondary"
+                                    disabled={loading}
+                                    onClick={() =>
+                                        setEditing(true)
+                                    }
+                                >
+                                    <Pencil size={16} />
+                                    Edit place
+                                </button>
+
+                                <button
+                                    type="button"
+                                    disabled={
+                                        loading ||
+                                        submission.status ===
+                                        "APPROVED"
+                                    }
+                                    onClick={() =>
+                                        void updateStatus(
+                                            submission,
+                                            "APPROVED"
+                                        )
+                                    }
+                                >
+                                    <CheckCircle2 size={16} />
+                                    Approve
+                                </button>
+
+                                <button
+                                    type="button"
+                                    disabled={
+                                        loading ||
+                                        submission.status ===
+                                        "PENDING"
+                                    }
+                                    onClick={() =>
+                                        void updateStatus(
+                                            submission,
+                                            "PENDING"
+                                        )
+                                    }
+                                >
+                                    <Clock3 size={16} />
+                                    Keep pending
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="danger"
+                                    disabled={
+                                        loading ||
+                                        submission.status ===
+                                        "REJECTED"
+                                    }
+                                    onClick={() =>
+                                        void updateStatus(
+                                            submission,
+                                            "REJECTED"
+                                        )
+                                    }
+                                >
+                                    <X size={16} />
+                                    Reject
+                                </button>
+                            </div>
+
+                            {submission.latitude !== null &&
+                                submission.longitude !== null && (
+                                    <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${submission.latitude},${submission.longitude}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="nt-admin-view-public"
+                                    >
+                                        <MapPin size={16} />
+                                        View submitted location
+                                        <ArrowRight size={15} />
+                                    </a>
+                                )}
+                        </>
+                    )}
                 </div>
             </section>
         </div>
+    );
+}
+
+
+function SubmissionEditor({
+    submission,
+    loading,
+    cancel,
+    save,
+}: {
+    submission: Submission;
+    loading: boolean;
+    cancel: () => void;
+    save: (
+        submission: Submission,
+        changes: Partial<Submission>
+    ) => Promise<void>;
+}) {
+    const [form, setForm] = useState({
+        name: submission.name,
+        description: submission.description ?? "",
+        category: submission.category ?? "",
+        cuisine: submission.cuisine ?? "",
+        city: submission.city ?? "",
+        neighborhood:
+            submission.neighborhood ?? "",
+        address: submission.address ?? "",
+        latitude:
+            submission.latitude === null
+                ? ""
+                : String(submission.latitude),
+        longitude:
+            submission.longitude === null
+                ? ""
+                : String(submission.longitude),
+        phone: submission.phone ?? "",
+        whatsapp: submission.whatsapp ?? "",
+        website: submission.website ?? "",
+    });
+
+    function setField(
+        field: keyof typeof form,
+        value: string
+    ) {
+        setForm((current) => ({
+            ...current,
+            [field]: value,
+        }));
+    }
+
+    function handleSubmit(
+        event: React.FormEvent<HTMLFormElement>
+    ) {
+        event.preventDefault();
+
+        const latitude =
+            form.latitude.trim() === ""
+                ? null
+                : Number(form.latitude);
+
+        const longitude =
+            form.longitude.trim() === ""
+                ? null
+                : Number(form.longitude);
+
+        if (
+            (latitude !== null &&
+                !Number.isFinite(latitude)) ||
+            (longitude !== null &&
+                !Number.isFinite(longitude))
+        ) {
+            return;
+        }
+
+        void save(submission, {
+            name: form.name.trim(),
+            description:
+                form.description.trim() || null,
+            category:
+                form.category.trim() || null,
+            cuisine:
+                form.cuisine.trim() || null,
+            city:
+                form.city.trim() || null,
+            neighborhood:
+                form.neighborhood.trim() || null,
+            address:
+                form.address.trim() || null,
+            latitude,
+            longitude,
+            phone:
+                form.phone.trim() || null,
+            whatsapp:
+                form.whatsapp.trim() || null,
+            website:
+                form.website.trim() || null,
+        });
+    }
+
+    return (
+        <form
+            className="nt-admin-submission-editor"
+            onSubmit={handleSubmit}
+        >
+            <div className="nt-admin-editor-intro">
+                <span>EDIT PLACE</span>
+                <h3>Refine this submission</h3>
+                <p>
+                    Correct the information before
+                    publishing it to NiceThings.
+                </p>
+            </div>
+
+            <div className="nt-admin-editor-section">
+                <div className="nt-admin-editor-section-title">
+                    <strong>Basics</strong>
+                    <span>
+                        Place identity and description
+                    </span>
+                </div>
+
+                <EditorField
+                    label="Place name"
+                    value={form.name}
+                    required
+                    onChange={(value) =>
+                        setField("name", value)
+                    }
+                />
+
+                <div className="nt-admin-editor-grid">
+                    <EditorField
+                        label="Category"
+                        value={form.category}
+                        onChange={(value) =>
+                            setField("category", value)
+                        }
+                    />
+                    <EditorField
+                        label="Cuisine / style"
+                        value={form.cuisine}
+                        onChange={(value) =>
+                            setField("cuisine", value)
+                        }
+                    />
+                </div>
+
+                <EditorTextarea
+                    label="Description"
+                    value={form.description}
+                    onChange={(value) =>
+                        setField(
+                            "description",
+                            value
+                        )
+                    }
+                />
+            </div>
+
+            <div className="nt-admin-editor-section">
+                <div className="nt-admin-editor-section-title">
+                    <strong>Location</strong>
+                    <span>
+                        Keep the map data accurate
+                    </span>
+                </div>
+
+                <div className="nt-admin-editor-grid">
+                    <EditorField
+                        label="City"
+                        value={form.city}
+                        onChange={(value) =>
+                            setField("city", value)
+                        }
+                    />
+                    <EditorField
+                        label="Neighborhood / area"
+                        value={form.neighborhood}
+                        onChange={(value) =>
+                            setField(
+                                "neighborhood",
+                                value
+                            )
+                        }
+                    />
+                </div>
+
+                <EditorField
+                    label="Address"
+                    value={form.address}
+                    onChange={(value) =>
+                        setField("address", value)
+                    }
+                />
+
+                <div className="nt-admin-editor-grid">
+                    <EditorField
+                        label="Latitude"
+                        type="number"
+                        step="any"
+                        value={form.latitude}
+                        onChange={(value) =>
+                            setField(
+                                "latitude",
+                                value
+                            )
+                        }
+                    />
+                    <EditorField
+                        label="Longitude"
+                        type="number"
+                        step="any"
+                        value={form.longitude}
+                        onChange={(value) =>
+                            setField(
+                                "longitude",
+                                value
+                            )
+                        }
+                    />
+                </div>
+
+                {form.latitude &&
+                    form.longitude && (
+                        <a
+                            className="nt-admin-editor-map-link"
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                `${form.latitude},${form.longitude}`
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <MapPin size={15} />
+                            Check this position on Maps
+                            <ArrowRight size={14} />
+                        </a>
+                    )}
+            </div>
+
+            <div className="nt-admin-editor-section">
+                <div className="nt-admin-editor-section-title">
+                    <strong>Contact</strong>
+                    <span>
+                        Public contact information
+                    </span>
+                </div>
+
+                <div className="nt-admin-editor-grid">
+                    <EditorField
+                        label="Phone"
+                        value={form.phone}
+                        onChange={(value) =>
+                            setField("phone", value)
+                        }
+                    />
+                    <EditorField
+                        label="WhatsApp"
+                        value={form.whatsapp}
+                        onChange={(value) =>
+                            setField(
+                                "whatsapp",
+                                value
+                            )
+                        }
+                    />
+                </div>
+
+                <EditorField
+                    label="Website"
+                    value={form.website}
+                    onChange={(value) =>
+                        setField("website", value)
+                    }
+                />
+            </div>
+
+            <div className="nt-admin-editor-actions">
+                <button
+                    type="button"
+                    className="nt-admin-editor-cancel"
+                    onClick={cancel}
+                    disabled={loading}
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    className="nt-admin-editor-save"
+                    disabled={
+                        loading ||
+                        !form.name.trim()
+                    }
+                >
+                    {loading ? (
+                        <>
+                            <RefreshCw
+                                size={15}
+                                className="nt-admin-spin"
+                            />
+                            Saving...
+                        </>
+                    ) : (
+                        <>
+                            <Check size={15} />
+                            Save changes
+                        </>
+                    )}
+                </button>
+            </div>
+        </form>
+    );
+}
+
+function EditorField({
+    label,
+    value,
+    onChange,
+    required = false,
+    type = "text",
+    step,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    required?: boolean;
+    type?: string;
+    step?: string;
+}) {
+    return (
+        <label className="nt-admin-editor-field">
+            <span>
+                {label}
+                {required && (
+                    <b aria-hidden="true">*</b>
+                )}
+            </span>
+
+            <input
+                type={type}
+                step={step}
+                value={value}
+                required={required}
+                onChange={(event) =>
+                    onChange(
+                        event.target.value
+                    )
+                }
+            />
+        </label>
+    );
+}
+
+function EditorTextarea({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <label className="nt-admin-editor-field">
+            <span>{label}</span>
+            <textarea
+                value={value}
+                rows={5}
+                onChange={(event) =>
+                    onChange(
+                        event.target.value
+                    )
+                }
+            />
+        </label>
     );
 }
 

@@ -5,6 +5,8 @@ import {
     useEffect,
     useMemo,
     useState,
+    type FormEvent,
+    type ReactNode,
 } from "react";
 
 import Link from "next/link";
@@ -19,6 +21,9 @@ import {
     Eye,
     ExternalLink,
     MapPin,
+    Pencil,
+    Plus,
+    Save,
     RefreshCw,
     Search,
     ShieldCheck,
@@ -88,6 +93,12 @@ export default function AdminSpotsPage() {
         useState<Spot | null>(
             null
         );
+
+    const [editingSpot, setEditingSpot] =
+        useState<Spot | null>(null);
+
+    const [creatingSpot, setCreatingSpot] =
+        useState(false);
 
     const [actionLoading, setActionLoading] =
         useState(false);
@@ -350,6 +361,89 @@ export default function AdminSpotsPage() {
         }
     }
 
+    async function saveSpot(
+        values: Partial<Spot>,
+        existingId?: string
+    ) {
+        setActionLoading(true);
+
+        try {
+            if (existingId) {
+                const { data, error: updateError } =
+                    await supabase
+                        .from("nt_spots")
+                        .update(values)
+                        .eq("id", existingId)
+                        .select("*")
+                        .single();
+
+                if (updateError) throw updateError;
+
+                setSpots((current) =>
+                    current.map((item) =>
+                        item.id === existingId
+                            ? (data as Spot)
+                            : item
+                    )
+                );
+
+                setSelectedSpot((current) =>
+                    current?.id === existingId
+                        ? (data as Spot)
+                        : current
+                );
+
+                setEditingSpot(null);
+                setToast("Place updated successfully.");
+            } else {
+                const payload = {
+                    name: values.name,
+                    slug:
+                        values.slug ||
+                        String(values.name || "")
+                            .trim()
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .replace(/^-+|-+$/g, ""),
+                    category: values.category || null,
+                    cuisine: values.cuisine || null,
+                    city: values.city || null,
+                    neighborhood: values.neighborhood || null,
+                    address: values.address || null,
+                    status: values.status || "PENDING",
+                    verified: Boolean(values.verified),
+                    featured: Boolean(values.featured),
+                };
+
+                const { data, error: insertError } =
+                    await supabase
+                        .from("nt_spots")
+                        .insert(payload)
+                        .select("*")
+                        .single();
+
+                if (insertError) throw insertError;
+
+                setSpots((current) => [
+                    data as Spot,
+                    ...current,
+                ]);
+
+                setCreatingSpot(false);
+                setToast("Place created successfully.");
+            }
+        } catch (err) {
+            console.error("Admin spot save error:", err);
+            setToast(
+                existingId
+                    ? "We couldn't save this place."
+                    : "We couldn't create this place."
+            );
+        } finally {
+            setActionLoading(false);
+        }
+    }
+
     async function toggleVerified(
         spot: Spot
     ) {
@@ -565,30 +659,41 @@ export default function AdminSpotsPage() {
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        className="nt-admin-refresh"
-                        onClick={() =>
-                            void loadSpots(
-                                true
-                            )
-                        }
-                        disabled={
-                            refreshing
-                        }
-                    >
-                        <RefreshCw
-                            size={
-                                15
+                    <div className="nt-admin-header-actions">
+                        <button
+                            type="button"
+                            className="nt-admin-add-place"
+                            onClick={() => setCreatingSpot(true)}
+                        >
+                            <Plus size={15} />
+                            Add place
+                        </button>
+
+                        <button
+                            type="button"
+                            className="nt-admin-refresh"
+                            onClick={() =>
+                                void loadSpots(
+                                    true
+                                )
                             }
-                            className={
+                            disabled={
                                 refreshing
-                                    ? "nt-admin-spin"
-                                    : ""
                             }
-                        />
-                        Refresh
-                    </button>
+                        >
+                            <RefreshCw
+                                size={
+                                    15
+                                }
+                                className={
+                                    refreshing
+                                        ? "nt-admin-spin"
+                                        : ""
+                                }
+                            />
+                            Refresh
+                        </button>
+                    </div>
                 </header>
 
                 {error && (
@@ -945,6 +1050,29 @@ export default function AdminSpotsPage() {
                     toggleFeatured={
                         toggleFeatured
                     }
+                    onEdit={() => {
+                        setEditingSpot(selectedSpot);
+                        setSelectedSpot(null);
+                    }}
+                />
+            )}
+
+            {editingSpot && (
+                <SpotEditorModal
+                    spot={editingSpot}
+                    loading={actionLoading}
+                    close={() => setEditingSpot(null)}
+                    save={(values) =>
+                        saveSpot(values, editingSpot.id)
+                    }
+                />
+            )}
+
+            {creatingSpot && (
+                <SpotEditorModal
+                    loading={actionLoading}
+                    close={() => setCreatingSpot(false)}
+                    save={(values) => saveSpot(values)}
                 />
             )}
 
@@ -1048,10 +1176,12 @@ function SpotManagementModal({
     updateStatus,
     toggleVerified,
     toggleFeatured,
+    onEdit,
 }: {
     spot: Spot;
     loading: boolean;
     close: () => void;
+    onEdit: () => void;
     updateStatus: (
         spot: Spot,
         status:
@@ -1180,6 +1310,16 @@ function SpotManagementModal({
                     </div>
 
                     <div className="nt-admin-modal-actions">
+                        <button
+                            type="button"
+                            className="nt-admin-edit-primary"
+                            disabled={loading}
+                            onClick={onEdit}
+                        >
+                            <Pencil size={16} />
+                            Edit place
+                        </button>
+
                         <button
                             type="button"
                             disabled={
@@ -1322,6 +1462,400 @@ function SpotManagementModal({
                 </div>
             </section>
         </div>
+    );
+}
+
+function SpotEditorModal({
+    spot,
+    loading,
+    close,
+    save,
+}: {
+    spot?: Spot;
+    loading: boolean;
+    close: () => void;
+    save: (values: Partial<Spot>) => Promise<void>;
+}) {
+    const [form, setForm] = useState({
+        name: spot?.name ?? "",
+        slug: spot?.slug ?? "",
+        category: spot?.category ?? "",
+        cuisine: spot?.cuisine ?? "",
+        city: spot?.city ?? "",
+        neighborhood: spot?.neighborhood ?? "",
+        address: spot?.address ?? "",
+        status: spot?.status ?? "PENDING",
+        verified: Boolean(spot?.verified),
+        featured: Boolean(spot?.featured),
+    });
+
+    function update<K extends keyof typeof form>(
+        key: K,
+        value: (typeof form)[K]
+    ) {
+        setForm((current) => ({
+            ...current,
+            [key]: value,
+        }));
+    }
+
+    async function submit(event: FormEvent) {
+        event.preventDefault();
+
+        if (!form.name.trim()) return;
+
+        await save({
+            ...form,
+            name: form.name.trim(),
+            slug: form.slug.trim() || null,
+            category: form.category.trim() || null,
+            cuisine: form.cuisine.trim() || null,
+            city: form.city.trim() || null,
+            neighborhood: form.neighborhood.trim() || null,
+            address: form.address.trim() || null,
+        });
+    }
+
+    return (
+        <div
+            className="nt-admin-modal-backdrop"
+            onClick={close}
+        >
+            <section
+                className="nt-admin-editor-modal"
+                onClick={(event) =>
+                    event.stopPropagation()
+                }
+            >
+                <header className="nt-admin-modal-header">
+                    <div>
+                        <span>
+                            {spot
+                                ? "EDIT PLACE"
+                                : "ADD PLACE"}
+                        </span>
+
+                        <h2>
+                            {spot
+                                ? spot.name
+                                : "Create a new place"}
+                        </h2>
+
+                        <p className="nt-admin-editor-intro">
+                            Keep the information clean and
+                            accurate so NiceThings can present
+                            this place beautifully.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={close}
+                        aria-label="Close editor"
+                        className="nt-admin-modal-close"
+                    >
+                        <X size={19} />
+                    </button>
+                </header>
+
+                <form
+                    className="nt-admin-editor-form"
+                    onSubmit={submit}
+                >
+                    <div className="nt-admin-editor-section">
+                        <div className="nt-admin-editor-section-title">
+                            <span>01</span>
+                            <div>
+                                <strong>Identity</strong>
+                                <small>
+                                    The information visitors see first.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div className="nt-admin-editor-grid">
+                            <Field
+                                label="Place name"
+                                value={form.name}
+                                required
+                                onChange={(value) =>
+                                    update("name", value)
+                                }
+                            />
+
+                            <Field
+                                label="Slug"
+                                value={form.slug}
+                                onChange={(value) =>
+                                    update("slug", value)
+                                }
+                            />
+
+                            <Field
+                                label="Category"
+                                value={form.category}
+                                onChange={(value) =>
+                                    update("category", value)
+                                }
+                            />
+
+                            <Field
+                                label="Cuisine / style"
+                                value={form.cuisine}
+                                onChange={(value) =>
+                                    update("cuisine", value)
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <div className="nt-admin-editor-section">
+                        <div className="nt-admin-editor-section-title">
+                            <span>02</span>
+                            <div>
+                                <strong>Location</strong>
+                                <small>
+                                    Keep the place easy to find.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div className="nt-admin-location-editor-card">
+                            <div className="nt-admin-location-editor-icon">
+                                <MapPin size={19} />
+                            </div>
+                            <div>
+                                <strong>Place location</strong>
+                                <span>
+                                    City and area information is used
+                                    throughout discovery and search.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="nt-admin-editor-grid">
+                            <Field
+                                label="City"
+                                value={form.city}
+                                onChange={(value) =>
+                                    update("city", value)
+                                }
+                            />
+
+                            <Field
+                                label="Neighborhood / area"
+                                value={form.neighborhood}
+                                onChange={(value) =>
+                                    update("neighborhood", value)
+                                }
+                            />
+
+                            <Field
+                                label="Address"
+                                value={form.address}
+                                wide
+                                onChange={(value) =>
+                                    update("address", value)
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <div className="nt-admin-editor-section">
+                        <div className="nt-admin-editor-section-title">
+                            <span>03</span>
+                            <div>
+                                <strong>Publishing</strong>
+                                <small>
+                                    Control how this place appears.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div className="nt-admin-editor-grid">
+                            <SelectField
+                                label="Status"
+                                value={form.status}
+                                options={[
+                                    ["PENDING", "Pending review"],
+                                    ["APPROVED", "Published"],
+                                    ["REJECTED", "Rejected"],
+                                ]}
+                                onChange={(value) =>
+                                    update("status", value)
+                                }
+                            />
+                        </div>
+
+                        <div className="nt-admin-toggle-grid">
+                            <ToggleField
+                                label="Verified place"
+                                description="Show the verified badge."
+                                checked={form.verified}
+                                onChange={(value) =>
+                                    update("verified", value)
+                                }
+                                icon={<ShieldCheck size={17} />}
+                            />
+
+                            <ToggleField
+                                label="Featured place"
+                                description="Allow the place to appear in featured areas."
+                                checked={form.featured}
+                                onChange={(value) =>
+                                    update("featured", value)
+                                }
+                                icon={
+                                    <Star
+                                        size={17}
+                                        fill={
+                                            form.featured
+                                                ? "currentColor"
+                                                : "none"
+                                        }
+                                    />
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <footer className="nt-admin-editor-footer">
+                        <button
+                            type="button"
+                            className="nt-admin-editor-cancel"
+                            onClick={close}
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="nt-admin-editor-save"
+                            disabled={
+                                loading ||
+                                !form.name.trim()
+                            }
+                        >
+                            <Save size={16} />
+                            {loading
+                                ? "Saving..."
+                                : spot
+                                    ? "Save changes"
+                                    : "Create place"}
+                        </button>
+                    </footer>
+                </form>
+            </section>
+        </div>
+    );
+}
+
+function Field({
+    label,
+    value,
+    required = false,
+    wide = false,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    required?: boolean;
+    wide?: boolean;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <label
+            className={
+                wide
+                    ? "nt-admin-field nt-admin-field-wide"
+                    : "nt-admin-field"
+            }
+        >
+            <span>
+                {label}
+                {required && (
+                    <b aria-hidden="true">*</b>
+                )}
+            </span>
+            <input
+                value={value}
+                required={required}
+                onChange={(event) =>
+                    onChange(event.target.value)
+                }
+            />
+        </label>
+    );
+}
+
+function SelectField({
+    label,
+    value,
+    options,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    options: [string, string][];
+    onChange: (value: string) => void;
+}) {
+    return (
+        <label className="nt-admin-field">
+            <span>{label}</span>
+            <select
+                value={value}
+                onChange={(event) =>
+                    onChange(event.target.value)
+                }
+            >
+                {options.map(([option, label]) => (
+                    <option
+                        key={option}
+                        value={option}
+                    >
+                        {label}
+                    </option>
+                ))}
+            </select>
+        </label>
+    );
+}
+
+function ToggleField({
+    label,
+    description,
+    checked,
+    onChange,
+    icon,
+}: {
+    label: string;
+    description: string;
+    checked: boolean;
+    onChange: (value: boolean) => void;
+    icon: ReactNode;
+}) {
+    return (
+        <label className="nt-admin-toggle-card">
+            <span className="nt-admin-toggle-icon">
+                {icon}
+            </span>
+
+            <span className="nt-admin-toggle-copy">
+                <strong>{label}</strong>
+                <small>{description}</small>
+            </span>
+
+            <input
+                type="checkbox"
+                checked={checked}
+                onChange={(event) =>
+                    onChange(event.target.checked)
+                }
+            />
+
+            <span className="nt-admin-toggle-switch" />
+        </label>
     );
 }
 

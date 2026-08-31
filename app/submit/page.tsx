@@ -1,9 +1,9 @@
 "use client";
-
 import {
     ChangeEvent,
     FormEvent,
     ReactNode,
+    useEffect,
     useMemo,
     useState,
 } from "react";
@@ -18,13 +18,16 @@ import {
     ArrowRight,
     Check,
     ImagePlus,
+    LocateFixed,
     MapPin,
+    Navigation,
     Phone,
     Plus,
     Send,
     Sparkles,
     X,
 } from "lucide-react";
+
 
 import Link from "next/link";
 
@@ -33,6 +36,35 @@ import { useRouter } from "next/navigation";
 import {
     getSupabaseBrowserClient,
 } from "../../lib/supabase/client";
+import dynamic from "next/dynamic";
+
+const SubmitLocationMap = dynamic(
+    () =>
+        import(
+            "../../components/maps/SubmitLocationMap"
+        ),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="nt-submit-map-empty">
+                <div className="nt-submit-map-empty-icon">
+                    <MapPin size={22} />
+                </div>
+
+                <div>
+                    <strong>
+                        Preparing your map
+                    </strong>
+
+                    <span>
+                        NiceThings is preparing
+                        the location preview.
+                    </span>
+                </div>
+            </div>
+        ),
+    }
+);
 
 type FormState = {
     name: string;
@@ -50,6 +82,18 @@ type FormState = {
 type SubmissionRecord = {
     id?: string;
     status?: string | null;
+};
+
+type LocationState =
+    | "idle"
+    | "locating"
+    | "captured"
+    | "error";
+
+type CapturedLocation = {
+    latitude: number;
+    longitude: number;
+    accuracy: number | null;
 };
 
 const INITIAL_FORM: FormState = {
@@ -88,6 +132,7 @@ const CITIES = [
     "Bafoussam",
     "Kribi",
 ];
+
 
 export default function SubmitPage() {
     const router =
@@ -153,6 +198,96 @@ export default function SubmitPage() {
         setShowCity,
     ] =
         useState(false);
+
+    const [
+        locationState,
+        setLocationState,
+    ] =
+        useState<LocationState>(
+            "idle"
+        );
+
+    const [
+        capturedLocation,
+        setCapturedLocation,
+    ] =
+        useState<CapturedLocation | null>(
+            null
+        );
+
+    const [
+        locationError,
+        setLocationError,
+    ] =
+        useState<string | null>(
+            null
+        );
+
+    function captureLocation() {
+        if (
+            !("geolocation" in navigator)
+        ) {
+            setLocationState("error");
+            setLocationError(
+                "Location services are not available on this device."
+            );
+            return;
+        }
+
+        setLocationState("locating");
+        setLocationError(null);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setCapturedLocation({
+                    latitude:
+                        position.coords.latitude,
+                    longitude:
+                        position.coords.longitude,
+                    accuracy:
+                        Number.isFinite(
+                            position.coords.accuracy
+                        )
+                            ? position.coords.accuracy
+                            : null,
+                });
+
+                setLocationState("captured");
+            },
+            (geoError) => {
+                let message =
+                    "We couldn't get your location. Please try again.";
+
+                if (
+                    geoError.code ===
+                    geoError.PERMISSION_DENIED
+                ) {
+                    message =
+                        "Location permission was denied. Please allow location access in your browser settings and try again.";
+                } else if (
+                    geoError.code ===
+                    geoError.POSITION_UNAVAILABLE
+                ) {
+                    message =
+                        "Your location is temporarily unavailable. Move somewhere with a clearer signal and try again.";
+                } else if (
+                    geoError.code ===
+                    geoError.TIMEOUT
+                ) {
+                    message =
+                        "Finding your location took too long. Please try again.";
+                }
+
+                setLocationState("error");
+                setLocationError(message);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0,
+            }
+        );
+    }
 
     function updateField(
         field: keyof FormState,
@@ -305,6 +440,10 @@ export default function SubmitPage() {
             return "Please give us a little more detail about the place.";
         }
 
+        if (!capturedLocation) {
+            return "Please confirm your current location before submitting this place.";
+        }
+
         return null;
     }
 
@@ -381,6 +520,15 @@ export default function SubmitPage() {
 
                 description:
                     form.description.trim(),
+
+                latitude:
+                    capturedLocation.latitude,
+
+                longitude:
+                    capturedLocation.longitude,
+
+                location_accuracy:
+                    capturedLocation.accuracy,
 
                 status:
                     "PENDING",
@@ -548,6 +696,10 @@ export default function SubmitPage() {
         setSubmitted(
             false
         );
+
+        setCapturedLocation(null);
+        setLocationState("idle");
+        setLocationError(null);
 
         setError(null);
     }
@@ -1079,9 +1231,187 @@ export default function SubmitPage() {
                         </div>
                     </section>
 
-                    <section className="nt-submit-section">
+                    <section className="nt-submit-section nt-submit-location-section">
                         <div className="nt-submit-section-number">
                             03
+                        </div>
+
+                        <div className="nt-submit-section-content">
+                            <div className="nt-submit-section-heading">
+                                <span>
+                                    LOCATION
+                                </span>
+
+                                <h2>
+                                    Show us exactly
+                                    where it is
+                                </h2>
+
+                                <p>
+                                    You're telling people about this place because you know it.
+                                    If you're there right now, let NiceThings capture its exact
+                                    position so it can appear accurately on the map.
+                                </p>
+                            </div>
+
+                            <div className={[
+                                "nt-submit-location-card",
+                                locationState,
+                            ].join(" ")}>
+                                <div className="nt-submit-location-card-top">
+                                    <div className="nt-submit-location-icon">
+                                        <MapPin
+                                            size={24}
+                                            strokeWidth={1.9}
+                                        />
+                                    </div>
+
+                                    <div className="nt-submit-location-copy">
+                                        <span className="nt-submit-location-eyebrow">
+                                            {locationState === "captured"
+                                                ? "LOCATION CONFIRMED"
+                                                : locationState === "locating"
+                                                    ? "FINDING YOU"
+                                                    : locationState === "error"
+                                                        ? "LOCATION NEEDS ATTENTION"
+                                                        : "ACCURATE MAP LOCATION"}
+                                        </span>
+
+                                        <strong>
+                                            {locationState === "captured"
+                                                ? "You're at the place."
+                                                : locationState === "locating"
+                                                    ? "Finding your position..."
+                                                    : "Are you at the place right now?"}
+                                        </strong>
+
+                                        <p>
+                                            {locationState === "captured"
+                                                ? "Perfect. We'll send this position with your submission for the team to review."
+                                                : locationState === "locating"
+                                                    ? "Getting a precise GPS position. This can take a few seconds."
+                                                    : "Use your current location to give this place a precise point on the NiceThings map."}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {locationState === "captured" &&
+                                    capturedLocation && (
+                                        <motion.div
+                                            className="nt-submit-location-confirmation"
+                                            initial={{
+                                                opacity: 0,
+                                                y: 8,
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                y: 0,
+                                            }}
+                                        >
+                                            <div className="nt-submit-location-check">
+                                                <Check
+                                                    size={16}
+                                                    strokeWidth={2.5}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <strong>
+                                                    Exact location captured
+                                                </strong>
+
+                                                <span>
+                                                    {capturedLocation.accuracy !== null
+                                                        ? `Accuracy ±${Math.max(
+                                                            1,
+                                                            Math.round(
+                                                                capturedLocation.accuracy
+                                                            )
+                                                        )} m`
+                                                        : "GPS position captured"}
+                                                </span>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                className="nt-submit-location-recapture"
+                                                onClick={
+                                                    captureLocation
+                                                }
+                                            >
+                                                Recapture
+                                            </button>
+                                        </motion.div>
+                                    )}
+
+                                {locationState === "error" &&
+                                    locationError && (
+                                        <motion.div
+                                            className="nt-submit-location-error"
+                                            initial={{
+                                                opacity: 0,
+                                                y: 5,
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                y: 0,
+                                            }}
+                                        >
+                                            <span>
+                                                {locationError}
+                                            </span>
+                                        </motion.div>
+                                    )}
+
+                                <div className="nt-submit-location-actions">
+                                    <button
+                                        type="button"
+                                        className="nt-submit-location-button"
+                                        onClick={
+                                            captureLocation
+                                        }
+                                        disabled={
+                                            locationState ===
+                                            "locating"
+                                        }
+                                    >
+                                        <MapPin
+                                            size={17}
+                                        />
+
+                                        {locationState === "locating"
+                                            ? "Finding your location..."
+                                            : locationState === "captured"
+                                                ? "Update my location"
+                                                : "Use my current location"}
+
+                                        {locationState !==
+                                            "locating" && (
+                                                <ArrowRight
+                                                    size={16}
+                                                />
+                                            )}
+                                    </button>
+
+                                    <div className="nt-submit-location-trust">
+                                        <span className="nt-submit-location-trust-icon">
+                                            <Check
+                                                size={12}
+                                            />
+                                        </span>
+
+                                        <span>
+                                            Your location is used only to place this submission accurately on the map.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="nt-submit-section">
+                        <div className="nt-submit-section-number">
+                            04
                         </div>
 
                         <div className="nt-submit-section-content">
@@ -1222,6 +1552,18 @@ export default function SubmitPage() {
                                 it appears publicly.
                             </p>
                         </div>
+                    </section>
+
+                    <section className="nt-submit-map-section">
+                        <div className="nt-submit-map-section-heading">
+                            <div>
+                                <span>YOUR LOCATION</span>
+                                <h2>Put it on the map.</h2>
+                                <p>Your location is shown here so you can see exactly where NiceThings will place this submission.</p>
+                            </div>
+                            <div className="nt-submit-map-heading-icon"><Navigation size={19} /></div>
+                        </div>
+                        <SubmitLocationMap location={capturedLocation} />
                     </section>
 
                     <div className="nt-submit-actions">

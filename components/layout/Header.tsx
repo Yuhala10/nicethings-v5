@@ -131,13 +131,12 @@ export default function Header() {
                 data-header
             >
                 <div className="nt-header-inner">
-                    <Link
-                        href="/"
+                    <div
                         className="nt-header-brand"
                         aria-label="NiceThings home"
                     >
                         <Logo />
-                    </Link>
+                    </div>
 
                     <nav
                         className="nt-desktop-nav"
