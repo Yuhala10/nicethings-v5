@@ -28,8 +28,9 @@ import {
 } from "lucide-react";
 
 import {
-    getSupabaseBrowserClient,
-} from "../../../lib/supabase/client";
+    adminGet,
+    adminPatch,
+} from "../../../lib/admin-client";
 
 type Spot = {
     id: string;
@@ -56,12 +57,6 @@ type Filter =
     | "REJECTED";
 
 export default function AdminSpotsPage() {
-    const supabase = useMemo(
-        () =>
-            getSupabaseBrowserClient() as any,
-        []
-    );
-
     const [spots, setSpots] =
         useState<Spot[]>([]);
 
@@ -115,34 +110,13 @@ export default function AdminSpotsPage() {
                 setError(null);
 
                 try {
-                    const {
-                        data,
-                        error: spotsError,
-                    } =
-                        await supabase
-                            .from(
-                                "nt_spots"
-                            )
-                            .select(
-                                "*"
-                            )
-                            .order(
-                                "created_at",
-                                {
-                                    ascending:
-                                        false,
-                                }
-                            );
-
-                    if (
-                        spotsError
-                    ) {
-                        throw spotsError;
-                    }
+                    const result =
+                        await adminGet<{
+                            rows: Spot[];
+                        }>("spots");
 
                     setSpots(
-                        (data ??
-                            []) as Spot[]
+                        result.rows
                     );
                 } catch (err) {
                     console.error(
@@ -163,7 +137,7 @@ export default function AdminSpotsPage() {
                     );
                 }
             },
-            [supabase]
+            []
         );
 
     useEffect(() => {
@@ -288,26 +262,10 @@ export default function AdminSpotsPage() {
         );
 
         try {
-            const {
-                error: updateError,
-            } =
-                await supabase
-                    .from(
-                        "nt_spots"
-                    )
-                    .update({
-                        status,
-                    })
-                    .eq(
-                        "id",
-                        spot.id
-                    );
-
-            if (
-                updateError
-            ) {
-                throw updateError;
-            }
+            await adminPatch(
+                `spots/${spot.id}`,
+                { status }
+            );
 
             setSpots(
                 (
@@ -363,27 +321,10 @@ export default function AdminSpotsPage() {
             );
 
         try {
-            const {
-                error: updateError,
-            } =
-                await supabase
-                    .from(
-                        "nt_spots"
-                    )
-                    .update({
-                        verified:
-                            nextValue,
-                    })
-                    .eq(
-                        "id",
-                        spot.id
-                    );
-
-            if (
-                updateError
-            ) {
-                throw updateError;
-            }
+            await adminPatch(
+                `spots/${spot.id}`,
+                { verified: nextValue }
+            );
 
             setSpots(
                 (
@@ -452,27 +393,10 @@ export default function AdminSpotsPage() {
             );
 
         try {
-            const {
-                error: updateError,
-            } =
-                await supabase
-                    .from(
-                        "nt_spots"
-                    )
-                    .update({
-                        featured:
-                            nextValue,
-                    })
-                    .eq(
-                        "id",
-                        spot.id
-                    );
-
-            if (
-                updateError
-            ) {
-                throw updateError;
-            }
+            await adminPatch(
+                `spots/${spot.id}`,
+                { featured: nextValue }
+            );
 
             setSpots(
                 (

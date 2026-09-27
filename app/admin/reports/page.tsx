@@ -26,8 +26,9 @@ import {
 } from "lucide-react";
 
 import {
-    getSupabaseBrowserClient,
-} from "../../../lib/supabase/client";
+    adminGet,
+    adminPatch,
+} from "../../../lib/admin-client";
 
 type Report = {
     id: string;
@@ -56,12 +57,6 @@ type Filter =
     | "REJECTED";
 
 export default function AdminReportsPage() {
-    const supabase = useMemo(
-        () =>
-            getSupabaseBrowserClient() as any,
-        []
-    );
-
     const [reports, setReports] =
         useState<Report[]>([]);
 
@@ -121,119 +116,26 @@ export default function AdminReportsPage() {
                 setError(null);
 
                 try {
-                    const {
-                        data,
-                        error:
-                        reportsError,
-                    } =
-                        await supabase
-                            .from(
-                                "nt_reports"
-                            )
-                            .select(
-                                "*"
-                            )
-                            .order(
-                                "created_at",
-                                {
-                                    ascending:
-                                        false,
-                                }
-                            );
-
-                    if (
-                        reportsError
-                    ) {
-                        throw reportsError;
-                    }
-
-                    const reportRows =
-                        (data ??
-                            []) as Report[];
+                    const result =
+                        await adminGet<{
+                            rows: Report[];
+                            spots: Spot[];
+                        }>("reports");
 
                     setReports(
-                        reportRows
+                        result.rows
                     );
 
-                    const spotIds =
-                        Array.from(
-                            new Set(
-                                reportRows
-                                    .map(
-                                        (
-                                            report
-                                        ) =>
-                                            report.spot_id
-                                    )
-                                    .filter(
-                                        (
-                                            id
-                                        ): id is string =>
-                                            Boolean(
-                                                id
-                                            )
-                                    )
+                    setSpots(
+                        Object.fromEntries(
+                            result.spots.map(
+                                (spot) => [
+                                    spot.id,
+                                    spot,
+                                ]
                             )
-                        );
-
-                    if (
-                        spotIds.length >
-                        0
-                    ) {
-                        const {
-                            data:
-                            spotData,
-                            error:
-                            spotsError,
-                        } =
-                            await supabase
-                                .from(
-                                    "nt_spots"
-                                )
-                                .select(
-                                    "id,name,slug,city,neighborhood,status"
-                                )
-                                .in(
-                                    "id",
-                                    spotIds
-                                );
-
-                        if (
-                            spotsError
-                        ) {
-                            console.warn(
-                                "Could not load reported spots:",
-                                spotsError
-                            );
-                        } else {
-                            const map: Record<
-                                string,
-                                Spot
-                            > = {};
-
-                            (
-                                (spotData ??
-                                    []) as Spot[]
-                            ).forEach(
-                                (
-                                    spot
-                                ) => {
-                                    map[
-                                        spot.id
-                                    ] =
-                                        spot;
-                                }
-                            );
-
-                            setSpots(
-                                map
-                            );
-                        }
-                    } else {
-                        setSpots(
-                            {}
-                        );
-                    }
+                        )
+                    );
                 } catch (err) {
                     console.error(
                         "Admin reports error:",
@@ -253,7 +155,7 @@ export default function AdminReportsPage() {
                     );
                 }
             },
-            [supabase]
+            []
         );
 
     useEffect(() => {
@@ -403,27 +305,10 @@ export default function AdminReportsPage() {
         );
 
         try {
-            const {
-                error:
-                updateError,
-            } =
-                await supabase
-                    .from(
-                        "nt_reports"
-                    )
-                    .update({
-                        status,
-                    })
-                    .eq(
-                        "id",
-                        report.id
-                    );
-
-            if (
-                updateError
-            ) {
-                throw updateError;
-            }
+            await adminPatch(
+                `reports/${report.id}`,
+                { status }
+            );
 
             setReports(
                 (

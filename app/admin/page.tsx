@@ -26,8 +26,8 @@ import {
 import Link from "next/link";
 
 import {
-    getSupabaseBrowserClient,
-} from "../../lib/supabase/client";
+    adminGet,
+} from "../../lib/admin-client";
 
 type DashboardStats = {
     spots: number;
@@ -68,12 +68,6 @@ const EMPTY_STATS: DashboardStats = {
 };
 
 export default function AdminPage() {
-    const supabase = useMemo(
-        () =>
-            getSupabaseBrowserClient() as any,
-        []
-    );
-
     const [stats, setStats] =
         useState<DashboardStats>(
             EMPTY_STATS
@@ -120,222 +114,23 @@ export default function AdminPage() {
                 setError(null);
 
                 try {
-                    const [
-                        spotsResult,
-                        pendingSpotsResult,
-                        submissionsResult,
-                        pendingSubmissionsResult,
-                        reportsResult,
-                        pendingReportsResult,
-                        visitorsResult,
-                        reviewsResult,
-                        recentSubmissionsResult,
-                        recentReportsResult,
-                    ] =
-                        await Promise.all([
-                            supabase
-                                .from(
-                                    "nt_spots"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                )
-                                .eq(
-                                    "status",
-                                    "APPROVED"
-                                ),
+                    const result =
+                        await adminGet<{
+                            stats: DashboardStats;
+                            recentSubmissions: RecentSubmission[];
+                            recentReports: RecentReport[];
+                        }>("dashboard");
 
-                            supabase
-                                .from(
-                                    "nt_spots"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                )
-                                .eq(
-                                    "status",
-                                    "PENDING"
-                                ),
-
-                            supabase
-                                .from(
-                                    "nt_spot_submissions"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                ),
-
-                            supabase
-                                .from(
-                                    "nt_spot_submissions"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                )
-                                .eq(
-                                    "status",
-                                    "PENDING"
-                                ),
-
-                            supabase
-                                .from(
-                                    "nt_reports"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                ),
-
-                            supabase
-                                .from(
-                                    "nt_reports"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                )
-                                .eq(
-                                    "status",
-                                    "PENDING"
-                                ),
-
-                            supabase
-                                .from(
-                                    "nt_visitors"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                ),
-
-                            supabase
-                                .from(
-                                    "nt_reviews"
-                                )
-                                .select(
-                                    "id",
-                                    {
-                                        count: "exact",
-                                        head: true,
-                                    }
-                                ),
-
-                            supabase
-                                .from(
-                                    "nt_spot_submissions"
-                                )
-                                .select(
-                                    "id,name,city,category,status,created_at"
-                                )
-                                .order(
-                                    "created_at",
-                                    {
-                                        ascending:
-                                            false,
-                                    }
-                                )
-                                .limit(6),
-
-                            supabase
-                                .from(
-                                    "nt_reports"
-                                )
-                                .select(
-                                    "id,reason,status,created_at"
-                                )
-                                .order(
-                                    "created_at",
-                                    {
-                                        ascending:
-                                            false,
-                                    }
-                                )
-                                .limit(5),
-                        ]);
-
-                    const firstError =
-                        [
-                            spotsResult,
-                            pendingSpotsResult,
-                            submissionsResult,
-                            pendingSubmissionsResult,
-                            reportsResult,
-                            pendingReportsResult,
-                            visitorsResult,
-                            reviewsResult,
-                            recentSubmissionsResult,
-                            recentReportsResult,
-                        ].find(
-                            (
-                                result
-                            ) =>
-                                result?.error
-                        );
-
-                    if (firstError?.error) {
-                        throw firstError.error;
-                    }
-
-                    setStats({
-                        spots:
-                            spotsResult.count ??
-                            0,
-                        pendingSpots:
-                            pendingSpotsResult.count ??
-                            0,
-                        submissions:
-                            submissionsResult.count ??
-                            0,
-                        pendingSubmissions:
-                            pendingSubmissionsResult.count ??
-                            0,
-                        reports:
-                            reportsResult.count ??
-                            0,
-                        pendingReports:
-                            pendingReportsResult.count ??
-                            0,
-                        visitors:
-                            visitorsResult.count ??
-                            0,
-                        reviews:
-                            reviewsResult.count ??
-                            0,
-                    });
+                    setStats(
+                        result.stats
+                    );
 
                     setRecentSubmissions(
-                        (recentSubmissionsResult.data ??
-                            []) as RecentSubmission[]
+                        result.recentSubmissions
                     );
 
                     setRecentReports(
-                        (recentReportsResult.data ??
-                            []) as RecentReport[]
+                        result.recentReports
                     );
                 } catch (err) {
                     console.error(
@@ -351,7 +146,7 @@ export default function AdminPage() {
                     setRefreshing(false);
                 }
             },
-            [supabase]
+            []
         );
 
     useEffect(() => {

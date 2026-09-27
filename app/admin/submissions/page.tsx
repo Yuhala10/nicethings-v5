@@ -26,8 +26,9 @@ import {
 } from "lucide-react";
 
 import {
-    getSupabaseBrowserClient,
-} from "../../../lib/supabase/client";
+    adminGet,
+    adminPatch,
+} from "../../../lib/admin-client";
 
 type Submission = {
     id: string;
@@ -55,12 +56,6 @@ type Filter =
     | "REJECTED";
 
 export default function AdminSubmissionsPage() {
-    const supabase = useMemo(
-        () =>
-            getSupabaseBrowserClient() as any,
-        []
-    );
-
     const [
         submissions,
         setSubmissions,
@@ -123,35 +118,13 @@ export default function AdminSubmissionsPage() {
                 setError(null);
 
                 try {
-                    const {
-                        data,
-                        error:
-                        submissionsError,
-                    } =
-                        await supabase
-                            .from(
-                                "nt_spot_submissions"
-                            )
-                            .select(
-                                "*"
-                            )
-                            .order(
-                                "created_at",
-                                {
-                                    ascending:
-                                        false,
-                                }
-                            );
-
-                    if (
-                        submissionsError
-                    ) {
-                        throw submissionsError;
-                    }
+                    const result =
+                        await adminGet<{
+                            rows: Submission[];
+                        }>("submissions");
 
                     setSubmissions(
-                        (data ??
-                            []) as Submission[]
+                        result.rows
                     );
                 } catch (err) {
                     console.error(
@@ -171,7 +144,7 @@ export default function AdminSubmissionsPage() {
                     );
                 }
             },
-            [supabase]
+            []
         );
 
     useEffect(() => {
@@ -289,27 +262,10 @@ export default function AdminSubmissionsPage() {
         );
 
         try {
-            const {
-                error:
-                updateError,
-            } =
-                await supabase
-                    .from(
-                        "nt_spot_submissions"
-                    )
-                    .update({
-                        status,
-                    })
-                    .eq(
-                        "id",
-                        submission.id
-                    );
-
-            if (
-                updateError
-            ) {
-                throw updateError;
-            }
+            await adminPatch(
+                `submissions/${submission.id}`,
+                { status }
+            );
 
             setSubmissions(
                 (
