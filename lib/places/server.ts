@@ -9,10 +9,17 @@ import { DAY_KEYS, type PlaceDetail, type PlaceSummary } from "./types";
 export const PLACES_TAG = "places";
 const REVALIDATE_SECONDS = 300;
 
+// Local preview: NT_PREVIEW_DRAFTS=1 shows DRAFT places too (using the
+// server key), so the app can be seen full of data before anything is
+// published. Never active in production builds.
+const PREVIEW_DRAFTS =
+    process.env.NT_PREVIEW_DRAFTS === "1" && process.env.NODE_ENV !== "production";
+const VISIBLE_STATUSES = PREVIEW_DRAFTS ? ["APPROVED", "DRAFT"] : ["APPROVED"];
+
 function publicClient() {
     return createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        PREVIEW_DRAFTS ? process.env.SUPABASE_SERVICE_ROLE_KEY! : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         { auth: { persistSession: false, autoRefreshToken: false } }
     );
 }
@@ -109,7 +116,7 @@ async function loadAllPlaces(): Promise<PlaceSummary[]> {
         const { data, error } = await db
             .from("nt_spots")
             .select(SUMMARY_COLUMNS)
-            .eq("status", "APPROVED")
+            .in("status", VISIBLE_STATUSES)
             .not("latitude", "is", null)
             .not("longitude", "is", null)
             .range(from, from + 999);
@@ -133,7 +140,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         .from("nt_spots")
         .select("*")
         .eq("slug", slug)
-        .eq("status", "APPROVED")
+        .in("status", VISIBLE_STATUSES)
         .maybeSingle();
 
     if (error) throw error;

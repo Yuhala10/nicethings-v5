@@ -1,0 +1,322 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* NiceThings design tokens — orange & charcoal, warm paper background.
+   Surfaces are CSS variables so dark mode is a single switch. */
+
+:root {
+    --nt-bg: #faf9f7;
+    --nt-surface: #ffffff;
+    --nt-surface-2: #f5f3ef;
+    --nt-surface-3: #ece9e3;
+    --nt-text: #171717;
+    --nt-text-2: #404040;
+    --nt-muted: #737373;
+    --nt-line: #e9e7e2;
+    --nt-line-strong: #dedbd4;
+    --nt-overlay: rgba(17, 17, 17, 0.45);
+    --nt-glass: rgba(255, 255, 255, 0.82);
+    --nt-shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px rgba(17, 17, 17, 0.08);
+    --nt-shadow-lg: 0 2px 6px rgba(17, 17, 17, 0.05), 0 24px 60px rgba(17, 17, 17, 0.16);
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --nt-bg: #0e0e0e;
+        --nt-surface: #171717;
+        --nt-surface-2: #1f1f1f;
+        --nt-surface-3: #2a2a2a;
+        --nt-text: #f5f5f4;
+        --nt-text-2: #d6d3d1;
+        --nt-muted: #a3a3a3;
+        --nt-line: #2a2a2a;
+        --nt-line-strong: #3a3a3a;
+        --nt-overlay: rgba(0, 0, 0, 0.6);
+        --nt-glass: rgba(23, 23, 23, 0.82);
+        --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+        --nt-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.55);
+        color-scheme: dark;
+    }
+}
+
+:root[data-theme="dark"] {
+    --nt-bg: #0e0e0e;
+    --nt-surface: #171717;
+    --nt-surface-2: #1f1f1f;
+    --nt-surface-3: #2a2a2a;
+    --nt-text: #f5f5f4;
+    --nt-text-2: #d6d3d1;
+    --nt-muted: #a3a3a3;
+    --nt-line: #2a2a2a;
+    --nt-line-strong: #3a3a3a;
+    --nt-overlay: rgba(0, 0, 0, 0.6);
+    --nt-glass: rgba(23, 23, 23, 0.82);
+    --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --nt-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+}
+
+@theme inline {
+    --color-brand-50: #fff7ed;
+    --color-brand-100: #ffedd5;
+    --color-brand-200: #fed7aa;
+    --color-brand-400: #fb923c;
+    --color-brand-500: #f97316;
+    --color-brand-600: #ea580c;
+    --color-brand-700: #c2410c;
+    --color-ink: #111111;
+
+    --color-bg: var(--nt-bg);
+    --color-surface: var(--nt-surface);
+    --color-surface-2: var(--nt-surface-2);
+    --color-surface-3: var(--nt-surface-3);
+    --color-text: var(--nt-text);
+    --color-text-2: var(--nt-text-2);
+    --color-muted: var(--nt-muted);
+    --color-line: var(--nt-line);
+    --color-line-strong: var(--nt-line-strong);
+    --color-glass: var(--nt-glass);
+    --color-open: #16a34a;
+    --color-closing: #d97706;
+    --color-closed: #dc2626;
+
+    --font-sans: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: var(--font-heading), var(--font-body), system-ui, sans-serif;
+
+    --shadow-card: var(--nt-shadow);
+    --shadow-float: var(--nt-shadow-lg);
+
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+    html {
+        background: var(--nt-bg);
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        min-height: 100dvh;
+        background: var(--nt-bg);
+        color: var(--nt-text);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        overscroll-behavior-y: none;
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+    }
+
+    p {
+        text-wrap: pretty;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+
+    ::selection {
+        background: var(--color-brand-200);
+        color: #111;
+    }
+}
+
+@layer components {
+    .nt-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        height: 2.375rem;
+        padding: 0 0.95rem;
+        border-radius: 999px;
+        border: 1px solid var(--nt-line-strong);
+        background: var(--nt-surface);
+        color: var(--nt-text);
+        font-size: 0.875rem;
+        font-weight: 600;
+        white-space: nowrap;
+        transition:
+            background 160ms ease,
+            border-color 160ms ease,
+            color 160ms ease,
+            transform 160ms var(--ease-spring);
+    }
+
+    .nt-chip:active {
+        transform: scale(0.96);
+    }
+
+    .nt-chip[aria-pressed="true"] {
+        background: #111;
+        border-color: #111;
+        color: #fff;
+    }
+
+    :root[data-theme="dark"] .nt-chip[aria-pressed="true"],
+    .nt-dark-chip[aria-pressed="true"] {
+        background: var(--color-brand-500);
+        border-color: var(--color-brand-500);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .nt-chip[aria-pressed="true"] {
+            background: var(--color-brand-500);
+            border-color: var(--color-brand-500);
+            color: #fff;
+        }
+    }
+
+    .nt-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 3rem;
+        padding: 0 1.25rem;
+        border-radius: 1rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition:
+            transform 160ms var(--ease-spring),
+            background 160ms ease,
+            opacity 160ms ease;
+    }
+
+    .nt-btn:active {
+        transform: scale(0.97);
+    }
+
+    .nt-btn-primary {
+        background: var(--color-brand-500);
+        color: #fff;
+        box-shadow: 0 6px 18px rgba(249, 115, 22, 0.35);
+    }
+
+    .nt-btn-primary:hover {
+        background: var(--color-brand-600);
+    }
+
+    .nt-btn-dark {
+        background: #111;
+        color: #fff;
+    }
+
+    .nt-btn-soft {
+        background: var(--nt-surface-2);
+        color: var(--nt-text);
+    }
+
+    .nt-card {
+        background: var(--nt-surface);
+        border: 1px solid var(--nt-line);
+        border-radius: 1.5rem;
+        box-shadow: var(--nt-shadow);
+    }
+
+    .nt-scroll-x {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nt-scroll-x::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nt-skeleton {
+        background: linear-gradient(
+            90deg,
+            var(--nt-surface-2) 0%,
+            var(--nt-surface-3) 50%,
+            var(--nt-surface-2) 100%
+        );
+        background-size: 200% 100%;
+        animation: nt-shimmer 1.4s ease-in-out infinite;
+    }
+
+    .nt-safe-bottom {
+        padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+    }
+}
+
+@keyframes nt-shimmer {
+    from {
+        background-position: 200% 0;
+    }
+    to {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes nt-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 7px rgba(22, 163, 74, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+    }
+}
+
+@keyframes nt-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.nt-open-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--color-open);
+    animation: nt-pulse 2s infinite;
+}
+
+.nt-rise {
+    animation: nt-rise 420ms var(--ease-spring) both;
+}
+
+/* Map chrome in the brand style */
+.maplibregl-ctrl-attrib {
+    font-size: 10px;
+    background: var(--nt-glass) !important;
+    color: var(--nt-muted);
+    border-radius: 8px 0 0 0;
+}
+
+.maplibregl-ctrl-attrib a {
+    color: var(--nt-muted) !important;
+}
+
+.maplibregl-canvas:focus-visible {
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
