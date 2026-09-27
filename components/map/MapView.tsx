@@ -385,7 +385,7 @@ export default function MapView({
 
     return (
         <div className={className || "relative"}>
-            <div ref={containerRef} className="absolute inset-0" />
+            <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
             {!ready && !failed && <div className="nt-skeleton absolute inset-0" aria-hidden />}
             {failed && (
                 <div className="absolute inset-0 grid place-items-center bg-surface-2 p-8 text-center">
