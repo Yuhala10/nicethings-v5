@@ -19,10 +19,11 @@ export async function requireAdmin() {
 }
 
 export function fail(error: unknown, status = 500) {
+    // Failed HEAD/count requests come back with an empty message.
     const message =
-        error && typeof error === "object" && "message" in error
+        (error && typeof error === "object" && "message" in error
             ? String((error as { message: unknown }).message)
-            : "Unexpected server error.";
+            : "") || "The database request failed. Please try again.";
 
     console.error("Admin API error:", error);
 
