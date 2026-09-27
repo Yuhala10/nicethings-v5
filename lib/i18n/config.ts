@@ -4,7 +4,9 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "fr";
 export const LOCALE_COOKIE = "nt_lang";
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://nicethings.site").replace(/\/$/, "");
+// Vercel serves the site on www (the bare domain redirects there), so
+// canonical URLs, the sitemap and structured data must use www too.
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.nicethings.site").replace(/\/$/, "");
 
 // Cameroon is on West Africa Time (UTC+1, no daylight saving). Everything
 // time-sensitive (open now, "ce soir", rush hour) is computed in this zone,
