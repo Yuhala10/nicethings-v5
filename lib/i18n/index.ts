@@ -1,87 +1,27 @@
-"use client";
+import { en } from "./en";
+import { fr, type Dictionary } from "./fr";
+import type { Locale } from "./config";
 
-import {
-    translations,
-} from "./en";
+export * from "./config";
+export type { Dictionary };
 
-export type Language =
-    | "en"
-    | "fr";
+const DICTIONARIES: Record<Locale, Dictionary> = { fr, en };
 
-const STORAGE_KEY =
-    "nicethings-language";
-
-export function getInitialLanguage(): Language {
-    if (
-        typeof window === "undefined"
-    ) {
-        return "en";
-    }
-
-    const stored =
-        window.localStorage.getItem(
-            STORAGE_KEY
-        );
-
-    if (
-        stored === "en" ||
-        stored === "fr"
-    ) {
-        return stored;
-    }
-
-    const browserLanguage =
-        window.navigator.language
-            .toLowerCase();
-
-    return browserLanguage.startsWith(
-        "fr"
-    )
-        ? "fr"
-        : "en";
+export function getDictionary(locale: Locale): Dictionary {
+    return DICTIONARIES[locale];
 }
 
-export function setLanguage(
-    language: Language
-) {
-    if (
-        typeof window === "undefined"
-    ) {
-        return;
-    }
-
-    window.localStorage.setItem(
-        STORAGE_KEY,
-        language
+// "{count} lieux" + { count: 3 } → "3 lieux"
+export function fill(template: string, values: Record<string, string | number>) {
+    return template.replace(/\{(\w+)\}/g, (match, key) =>
+        key in values ? String(values[key]) : match
     );
-
-    document.documentElement.lang =
-        language;
 }
 
-export function getLanguage(): Language {
-    return getInitialLanguage();
-}
+// Legacy language type used by the admin area and visitor record.
+export type Language = Locale;
 
-export function getTranslations(
-    language: Language
-) {
-    return translations[language];
-}
-
-export function t(
-    language: Language,
-    section: string,
-    key: string
-): string {
-    const dictionary =
-        translations[language] as Record<
-            string,
-            Record<string, string>
-        >;
-
-    return (
-        dictionary?.[section]?.[key] ??
-        key
-    );
+export function getInitialLanguage(): Locale {
+    if (typeof document === "undefined") return "fr";
+    return document.documentElement.lang === "en" ? "en" : "fr";
 }
