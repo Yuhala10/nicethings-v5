@@ -17,11 +17,3 @@ export function fill(template: string, values: Record<string, string | number>) 
         key in values ? String(values[key]) : match
     );
 }
-
-// Legacy language type used by the admin area and visitor record.
-export type Language = Locale;
-
-export function getInitialLanguage(): Locale {
-    if (typeof document === "undefined") return "fr";
-    return document.documentElement.lang === "en" ? "en" : "fr";
-}

@@ -1,6 +1,8 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { fail, pick, readJson, requireAdmin, UUID_PATTERN } from "../../../../../lib/admin-api";
 import { ADMIN_RESOURCES, isAdminResource } from "../../../../../lib/admin-resources";
+import { PLACES_TAG } from "../../../../../lib/places/server";
 
 type Context = {
     params: Promise<{ resource: string; id: string }>;
@@ -45,6 +47,9 @@ export async function PATCH(request: Request, context: Context) {
     if (!data) {
         return NextResponse.json({ ok: false, message: "Not found." }, { status: 404 });
     }
+
+    // Public pages serve cached places; refresh them in the background.
+    if (resource === "spots") revalidateTag(PLACES_TAG, "max");
 
     return NextResponse.json({ ok: true, row: data });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, LocateFixed, X } from "lucide-react";
 import { YAOUNDE_NEIGHBORHOODS } from "@/lib/tags";
@@ -19,6 +20,13 @@ export default function AreaPicker({
     onLocate: () => void;
 }) {
     const { t } = useLocale();
+
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open, onClose]);
 
     return (
         <AnimatePresence>

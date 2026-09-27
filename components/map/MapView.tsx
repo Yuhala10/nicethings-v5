@@ -5,6 +5,8 @@ import type { GeoJSONSource, Map as MapLibreMap, StyleSpecification } from "mapl
 import type { FeatureCollection, Point } from "geojson";
 import type { LatLng } from "@/lib/places/geo";
 import { YAOUNDE_BOUNDS, YAOUNDE_CENTER } from "@/lib/places/geo";
+import { MapPinOff } from "lucide-react";
+import { useLocale } from "../site/LocaleProvider";
 
 // Vector map (MapLibre + OpenFreeMap tiles, free and keyless) with:
 // clustered place pins, price labels, a selected-pin highlight, the
@@ -198,6 +200,8 @@ export default function MapView({
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MapLibreMap | null>(null);
     const [ready, setReady] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const { t } = useLocale();
     const onSelectRef = useRef(onSelect);
     const paddingRef = useRef(padding);
 
@@ -212,11 +216,16 @@ export default function MapView({
         let map: MapLibreMap | null = null;
 
         (async () => {
-            const [{ default: maplibregl }, style] = await Promise.all([
-                import("maplibre-gl"),
-                loadStyle(prefersDark()),
-            ]);
+            let loaded: [typeof import("maplibre-gl"), StyleSpecification];
+            try {
+                loaded = await Promise.all([import("maplibre-gl"), loadStyle(prefersDark())]);
+            } catch {
+                // Offline or tiles unreachable: the list around the map still works.
+                if (!cancelled) setFailed(true);
+                return;
+            }
             if (cancelled || !containerRef.current) return;
+            const [maplibregl, style] = loaded;
 
             const dark = prefersDark();
             map = new maplibregl.Map({
@@ -238,12 +247,16 @@ export default function MapView({
             });
             map.touchZoomRotate.disableRotation();
 
-            map.on("load", () => {
-                if (!map) return;
+            // Add pins as soon as the style is parsed: on a slow connection the
+            // full "load" (every tile) can take many seconds.
+            const onStyle = () => {
+                if (!map || mapRef.current) return;
                 addLayers(map, dark);
                 mapRef.current = map;
                 setReady(true);
-            });
+            };
+            if (map.isStyleLoaded()) onStyle();
+            else map.once("style.load", onStyle);
 
             map.on("click", "clusters", async (event) => {
                 const feature = event.features?.[0];
@@ -371,9 +384,17 @@ export default function MapView({
     }, [route, ready]);
 
     return (
-        <div className={`relative ${className}`}>
+        <div className={className || "relative"}>
             <div ref={containerRef} className="absolute inset-0" />
-            {!ready && <div className="nt-skeleton absolute inset-0" aria-hidden />}
+            {!ready && !failed && <div className="nt-skeleton absolute inset-0" aria-hidden />}
+            {failed && (
+                <div className="absolute inset-0 grid place-items-center bg-surface-2 p-8 text-center">
+                    <div className="max-w-xs text-sm text-muted">
+                        <MapPinOff size={28} className="mx-auto mb-3" />
+                        {t.errors.mapFailed}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

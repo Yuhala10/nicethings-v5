@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Explorer from "@/components/explore/Explorer";
 import { getDictionary, isLocale } from "@/lib/i18n";
+import { compactPlaces } from "@/lib/places/compact";
 import { getAllPlaces } from "@/lib/places/server";
 
 type Props = {
@@ -26,5 +27,5 @@ export default async function SearchPage({ params, searchParams }: Props) {
     if (!isLocale(lang)) return null;
     const places = await getAllPlaces();
 
-    return <Explorer places={places} initialText={q.slice(0, 200)} autoFocusSearch={!q} />;
+    return <Explorer places={compactPlaces(places)} initialText={q.slice(0, 200)} autoFocusSearch={!q} />;
 }

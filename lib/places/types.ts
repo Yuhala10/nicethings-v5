@@ -47,6 +47,9 @@ export type PlaceSummary = {
     verified: boolean;
     featured: boolean;
     cover: string | null;
+    // Where the listing came from: "field" (checked in person), "osm"
+    // (OpenStreetMap import) or "submission" (sent by a visitor).
+    source: string;
 };
 
 export type PlacePhoto = {
@@ -79,6 +82,7 @@ export type PlaceDetail = PlaceSummary & {
     instagram: string | null;
     lastVerifiedAt: string | null;
     updatedAt: string;
+    sourceRef: string | null; // e.g. "node/123" for OpenStreetMap
     photos: PlacePhoto[];
     menu: PlaceMenuItem[];
     reviews: PlaceReview[];

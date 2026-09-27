@@ -9,7 +9,7 @@ export function useNow(intervalMs = 60_000) {
     const [now, setNow] = useState<Date | null>(null);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- time only exists on the client
+         
         setNow(new Date());
         const id = window.setInterval(() => setNow(new Date()), intervalMs);
         return () => window.clearInterval(id);

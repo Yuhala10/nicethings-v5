@@ -27,22 +27,19 @@ export type DiscoveryQuery = {
     keywords?: string[]; // leftover words matched against names/cuisine
 };
 
-export type IntentKey = "eat" | "coffee" | "tonight" | "date" | "chill" | "family";
+export type IntentKey = "eat" | "coffee" | "drinks" | "tonight" | "date" | "chill" | "family" | "stay";
 
-// Home-screen mood chips.
-export const INTENTS: Record<IntentKey, { icon: string; query: DiscoveryQuery }> = {
-    eat: { icon: "🍽️", query: { categories: ["Restaurant"] } },
-    coffee: {
-        icon: "☕",
-        query: { categories: ["Cafe", "Bakery"], goodFor: ["study"], amenities: ["wifi"] },
-    },
-    tonight: {
-        icon: "🌙",
-        query: { categories: ["Bar", "Club", "Restaurant"], vibes: ["lively"], goodFor: ["party", "friends"] },
-    },
-    date: { icon: "❤️", query: { vibes: ["romantic", "chic", "calm"], goodFor: ["date"] } },
-    chill: { icon: "😌", query: { vibes: ["calm", "outdoor", "casual"], goodFor: ["friends"] } },
-    family: { icon: "👨‍👩‍👧", query: { goodFor: ["family"], categories: ["Restaurant", "Nature", "Entertainment"] } },
+// Home-screen quick picks, in the order people reach for them. Each one is
+// just a DiscoveryQuery, so a chip and a typed sentence rank the same way.
+export const INTENTS: Record<IntentKey, { query: DiscoveryQuery }> = {
+    eat: { query: { categories: ["Restaurant"] } },
+    coffee: { query: { categories: ["Cafe", "Bakery"], goodFor: ["study"], amenities: ["wifi"] } },
+    drinks: { query: { categories: ["Bar"] } },
+    tonight: { query: { categories: ["Bar", "Club", "Restaurant"], vibes: ["lively"], goodFor: ["party", "friends"] } },
+    date: { query: { vibes: ["romantic", "chic", "calm"], goodFor: ["date"] } },
+    chill: { query: { vibes: ["calm", "outdoor", "casual"] } },
+    family: { query: { goodFor: ["family"], categories: ["Restaurant", "Nature", "Entertainment"] } },
+    stay: { query: { categories: ["Hotel"] } },
 };
 
 export function mergeQueries(...queries: (DiscoveryQuery | null | undefined)[]): DiscoveryQuery {

@@ -79,7 +79,7 @@ export function useOrigin() {
             area = localStorage.getItem(KEY);
         } catch {}
 
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring persisted choice on mount
+         
         if (area) chooseArea(area);
         if (granted) locate();
     }, [chooseArea, locate]);

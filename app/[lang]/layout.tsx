@@ -19,7 +19,6 @@ export function generateStaticParams() {
     return LOCALES.map((lang) => ({ lang }));
 }
 
-export const dynamicParams = false;
 
 type Props = {
     children: React.ReactNode;
@@ -51,9 +50,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         twitter: { card: "summary_large_image" },
         icons: {
             icon: [{ url: "/brand/icon.svg", type: "image/svg+xml" }, { url: "/favicon.ico" }],
-            apple: "/icons/icon-192.png",
+            apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
         },
-        manifest: `/manifest-${lang}.webmanifest`,
+        manifest: "/manifest.webmanifest",
         appleWebApp: { capable: true, title: "NiceThings", statusBarStyle: "default" },
         formatDetection: { telephone: false },
         category: "travel",
@@ -94,7 +93,19 @@ export default async function SiteLayout({ children, params }: Props) {
             <body>
                 <script
                     type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify([
+                            websiteJsonLd,
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "Organization",
+                                name: "NiceThings",
+                                url: SITE_URL,
+                                logo: `${SITE_URL}/icons/icon-512.png`,
+                                areaServed: { "@type": "City", name: "Yaoundé", addressCountry: "CM" },
+                            },
+                        ]),
+                    }}
                 />
                 <LocaleProvider locale={lang} dictionary={dictionary}>
                     <SiteChrome>{children}</SiteChrome>

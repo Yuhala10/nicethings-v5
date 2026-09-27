@@ -54,10 +54,22 @@ const SUMMARY_COLUMNS = [
     ...DAY_KEYS.map((day) => `${day}_open`),
     "verified",
     "featured",
+    "source",
 ].join(",");
 
 function trimTime(value: unknown) {
     return typeof value === "string" ? value.slice(0, 5) : null;
+}
+
+// OpenStreetMap names are typed by volunteers: "sweet body", "LOISIR PLUS".
+// Mixed-case names are left exactly as written.
+export function displayName(name: string) {
+    const letters = name.replace(/[^\p{L}]/gu, "");
+    if (letters.length < 4) return name;
+    if (letters !== letters.toLowerCase() && letters !== letters.toUpperCase()) return name;
+    return name
+        .toLowerCase()
+        .replace(/(^|[\s\-(])(\p{L})/gu, (_, before: string, letter: string) => before + letter.toUpperCase());
 }
 
 function toSummary(row: SpotRow, cover: string | null): PlaceSummary {
@@ -65,7 +77,7 @@ function toSummary(row: SpotRow, cover: string | null): PlaceSummary {
     return {
         id: row.id,
         slug: row.slug,
-        name: row.name,
+        name: displayName(row.name),
         category: (row.category as string) ?? "Other",
         cuisine: (row.cuisine as string | null) ?? null,
         neighborhood: (row.neighborhood as string | null) ?? null,
@@ -86,6 +98,7 @@ function toSummary(row: SpotRow, cover: string | null): PlaceSummary {
         verified: Boolean(row.verified),
         featured: Boolean(row.featured),
         cover,
+        source: (row.source as string) ?? "field",
     };
 }
 
@@ -129,7 +142,7 @@ async function loadAllPlaces(): Promise<PlaceSummary[]> {
     return rows.map((row) => toSummary(row, covers.get(row.id) ?? null));
 }
 
-export const getAllPlaces = unstable_cache(loadAllPlaces, ["places:all:v1"], {
+export const getAllPlaces = unstable_cache(loadAllPlaces, ["places:all:v2"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
@@ -187,6 +200,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         instagram: row.instagram ?? null,
         lastVerifiedAt: row.last_verified_at ?? null,
         updatedAt: row.updated_at,
+        sourceRef: row.source_ref ?? null,
         photos: photoList,
         menu: (menu.data ?? []).map((item) => ({
             name: item.name,
@@ -204,7 +218,15 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v1"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v2"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
+
+// Saved places and other short lists: served from the cached catalogue.
+export async function getPlacesBySlugs(slugs: string[]) {
+    const wanted = new Set(slugs);
+    const places = await getAllPlaces();
+    const bySlug = new Map(places.filter((place) => wanted.has(place.slug)).map((place) => [place.slug, place]));
+    return slugs.map((slug) => bySlug.get(slug)).filter((place): place is PlaceSummary => Boolean(place));
+}
