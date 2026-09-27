@@ -2,7 +2,8 @@ import { DAY_KEYS, type DayKey, type PlaceSummary } from "./types";
 
 // The explorer ships the whole catalogue to the phone for instant search.
 // This wire format keeps it small on 3G: short keys, defaults omitted,
-// coordinates rounded to ~1 m, and the slug doubling as the id.
+// coordinates rounded to ~1 m, and the slug doubling as the id. A payload
+// holds one city, so the city is passed alongside rather than per place.
 
 export type CompactPlace = {
     s: string; // slug (also used as id)
@@ -47,7 +48,7 @@ export function compactPlaces(places: PlaceSummary[]): CompactPlace[] {
     });
 }
 
-export function expandPlaces(items: CompactPlace[]): PlaceSummary[] {
+export function expandPlaces(items: CompactPlace[], city: string): PlaceSummary[] {
     return items.map((item) => {
         const closed = item.t?.[2] ?? 0;
         const days: DayKey[] = DAY_KEYS.filter((_, index) => !(closed & (1 << index)));
@@ -57,6 +58,7 @@ export function expandPlaces(items: CompactPlace[]): PlaceSummary[] {
             name: item.n,
             category: item.c,
             cuisine: item.u ?? null,
+            city,
             neighborhood: item.h ?? null,
             lat: item.a,
             lng: item.o,

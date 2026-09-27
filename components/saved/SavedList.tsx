@@ -20,13 +20,11 @@ export default function SavedList() {
     const [hydrated, setHydrated] = useState(false);
     const key = saved.join(",");
 
-     
     useEffect(() => setHydrated(true), []);
 
     useEffect(() => {
         if (!hydrated) return;
         if (!key) {
-             
             setState({ status: "done", places: [] });
             return;
         }
@@ -79,7 +77,7 @@ export default function SavedList() {
                         <Heart size={24} />
                     </div>
                     <p className="mx-auto mb-6 max-w-xs text-text-2">{t.saved.empty}</p>
-                    <Link href={paths.explore(locale)} className="nt-btn nt-btn-primary">
+                    <Link href={paths.map(locale)} className="nt-btn nt-btn-primary">
                         <Compass size={18} />
                         {t.saved.explore}
                     </Link>

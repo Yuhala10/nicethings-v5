@@ -1,15 +1,18 @@
-import { CATEGORIES, YAOUNDE_NEIGHBORHOODS, type Category } from "../tags";
+import { CATEGORIES, type Category } from "../tags";
 import type { Locale } from "../i18n/config";
 
-// URL scheme (both languages share slugs for places and neighbourhoods so a
-// shared link works for everyone; category words are localised for SEO):
-//   /fr                          explore (map)
+// URL scheme (both languages share slugs for places, cities and
+// neighbourhoods so a shared link works for everyone; category words are
+// localised for SEO):
+//   /fr                          landing page (all of Cameroon)
+//   /fr/carte                    opens the map in the visitor's city
+//   /fr/douala/carte             the map app for one city
 //   /fr/p/le-petit-cafe-bastos   place page
-//   /fr/y-aller/<slug>           directions
-//   /fr/yaounde                  city guide
-//   /fr/yaounde/bastos           neighbourhood guide
-//   /fr/yaounde/restaurants      category guide
-//   /fr/yaounde/bastos/bars      neighbourhood × category
+//   /fr/y-aller/<slug>           directions and navigation
+//   /fr/douala                   city guide
+//   /fr/douala/akwa              neighbourhood guide
+//   /fr/douala/restaurants       category guide
+//   /fr/douala/akwa/bars         neighbourhood × category
 
 export function slugify(value: string) {
     return value
@@ -65,21 +68,18 @@ export function categoryFromSlug(slug: string): Category | null {
     return null;
 }
 
-export function neighborhoodFromSlug(slug: string) {
-    return YAOUNDE_NEIGHBORHOODS.find((area) => slugify(area.name) === slug) ?? null;
-}
-
 export const paths = {
-    explore: (locale: Locale) => `/${locale}`,
+    home: (locale: Locale) => `/${locale}`,
+    map: (locale: Locale, query?: string) => `/${locale}/carte${query ? `?q=${encodeURIComponent(query)}` : ""}`,
+    explore: (locale: Locale, city: string, query?: string) =>
+        `/${locale}/${city}/carte${query ? `?q=${encodeURIComponent(query)}` : ""}`,
     place: (locale: Locale, slug: string) => `/${locale}/p/${slug}`,
     directions: (locale: Locale, slug: string) => `/${locale}/y-aller/${slug}`,
-    city: (locale: Locale) => `/${locale}/yaounde`,
-    neighborhood: (locale: Locale, name: string) => `/${locale}/yaounde/${slugify(name)}`,
-    category: (locale: Locale, category: string) => `/${locale}/yaounde/${categorySlug(category, locale)}`,
-    neighborhoodCategory: (locale: Locale, name: string, category: string) =>
-        `/${locale}/yaounde/${slugify(name)}/${categorySlug(category, locale)}`,
-    search: (locale: Locale, query?: string) =>
-        `/${locale}/recherche${query ? `?q=${encodeURIComponent(query)}` : ""}`,
+    city: (locale: Locale, city: string) => `/${locale}/${city}`,
+    neighborhood: (locale: Locale, city: string, name: string) => `/${locale}/${city}/${slugify(name)}`,
+    category: (locale: Locale, city: string, category: string) => `/${locale}/${city}/${categorySlug(category, locale)}`,
+    neighborhoodCategory: (locale: Locale, city: string, name: string, category: string) =>
+        `/${locale}/${city}/${slugify(name)}/${categorySlug(category, locale)}`,
     saved: (locale: Locale) => `/${locale}/favoris`,
     submit: (locale: Locale) => `/${locale}/ajouter`,
     privacy: (locale: Locale) => `/${locale}/confidentialite`,

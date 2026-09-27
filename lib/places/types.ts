@@ -33,6 +33,7 @@ export type PlaceSummary = {
     name: string;
     category: string;
     cuisine: string | null;
+    city: string; // city slug, e.g. "douala"
     neighborhood: string | null;
     lat: number;
     lng: number;

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
+import { DEFAULT_CITY, cityByName } from "../cities";
 import { DAY_KEYS, type PlaceDetail, type PlaceSummary } from "./types";
 
 // Public, cookie-less reads with the publishable key: Row Level Security
@@ -38,6 +39,7 @@ const SUMMARY_COLUMNS = [
     "name",
     "category",
     "cuisine",
+    "city",
     "neighborhood",
     "latitude",
     "longitude",
@@ -80,6 +82,7 @@ function toSummary(row: SpotRow, cover: string | null): PlaceSummary {
         name: displayName(row.name),
         category: (row.category as string) ?? "Other",
         cuisine: (row.cuisine as string | null) ?? null,
+        city: cityByName(row.city as string | null)?.slug ?? DEFAULT_CITY.slug,
         neighborhood: (row.neighborhood as string | null) ?? null,
         lat: row.latitude as number,
         lng: row.longitude as number,
@@ -142,7 +145,7 @@ async function loadAllPlaces(): Promise<PlaceSummary[]> {
     return rows.map((row) => toSummary(row, covers.get(row.id) ?? null));
 }
 
-export const getAllPlaces = unstable_cache(loadAllPlaces, ["places:all:v2"], {
+export const getAllPlaces = unstable_cache(loadAllPlaces, ["places:all:v3"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
@@ -218,7 +221,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v2"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v3"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
@@ -229,4 +232,15 @@ export async function getPlacesBySlugs(slugs: string[]) {
     const places = await getAllPlaces();
     const bySlug = new Map(places.filter((place) => wanted.has(place.slug)).map((place) => [place.slug, place]));
     return slugs.map((slug) => bySlug.get(slug)).filter((place): place is PlaceSummary => Boolean(place));
+}
+
+export async function getCityPlaces(city: string) {
+    return (await getAllPlaces()).filter((place) => place.city === city);
+}
+
+// Published places per city slug, for city pickers and the landing page.
+export async function getCityCounts() {
+    const counts: Record<string, number> = {};
+    for (const place of await getAllPlaces()) counts[place.city] = (counts[place.city] ?? 0) + 1;
+    return counts;
 }

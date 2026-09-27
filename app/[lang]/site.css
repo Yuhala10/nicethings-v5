@@ -3,71 +3,77 @@
    MapLibre's own `.maplibregl-map { position: relative }`. */
 @import "maplibre-gl/dist/maplibre-gl.css" layer(base);
 
-/* NiceThings design tokens — orange & charcoal, warm paper background.
-   Surfaces are CSS variables so dark mode is a single switch. */
+/* NiceThings design system — "Cameroon after dark": warm charcoal, a
+   sunset gradient (orange → coral → pink) for everything that moves you
+   forward, and vivid category colours. Surfaces are variables so dark mode
+   is one switch. */
 
 :root {
-    --nt-bg: #faf9f7;
+    --nt-bg: #fbf8f4;
     --nt-surface: #ffffff;
-    --nt-surface-2: #f5f3ef;
-    --nt-surface-3: #ece9e3;
-    --nt-text: #171717;
-    --nt-text-2: #404040;
-    --nt-muted: #737373;
-    --nt-line: #e9e7e2;
-    --nt-line-strong: #dedbd4;
-    --nt-overlay: rgba(17, 17, 17, 0.45);
-    --nt-glass: rgba(255, 255, 255, 0.82);
-    --nt-shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px rgba(17, 17, 17, 0.08);
-    --nt-shadow-lg: 0 2px 6px rgba(17, 17, 17, 0.05), 0 24px 60px rgba(17, 17, 17, 0.16);
+    --nt-surface-2: #f4efe8;
+    --nt-surface-3: #e9e2d8;
+    --nt-text: #17120e;
+    --nt-text-2: #45392f;
+    --nt-muted: #7a6c60;
+    --nt-line: #ece5dc;
+    --nt-line-strong: #ddd3c6;
+    --nt-overlay: rgba(23, 18, 14, 0.5);
+    --nt-glass: rgba(255, 252, 248, 0.78);
+    --nt-shadow: 0 1px 2px rgba(40, 24, 10, 0.05), 0 10px 30px -8px rgba(40, 24, 10, 0.14);
+    --nt-shadow-lg: 0 2px 8px rgba(40, 24, 10, 0.06), 0 30px 70px -12px rgba(40, 24, 10, 0.28);
+    --nt-sunset: linear-gradient(120deg, #ff8a1f 0%, #ff5b36 52%, #eb3a6f 100%);
+    --nt-glow: 0 10px 30px -8px rgba(255, 91, 54, 0.55);
     color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --nt-bg: #0e0e0e;
-        --nt-surface: #171717;
-        --nt-surface-2: #1f1f1f;
-        --nt-surface-3: #2a2a2a;
-        --nt-text: #f5f5f4;
-        --nt-text-2: #d6d3d1;
-        --nt-muted: #a3a3a3;
-        --nt-line: #2a2a2a;
-        --nt-line-strong: #3a3a3a;
-        --nt-overlay: rgba(0, 0, 0, 0.6);
-        --nt-glass: rgba(23, 23, 23, 0.82);
-        --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
-        --nt-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.55);
+        --nt-bg: #0e0b09;
+        --nt-surface: #17130f;
+        --nt-surface-2: #211b16;
+        --nt-surface-3: #2d251e;
+        --nt-text: #f7f1ea;
+        --nt-text-2: #ddd2c6;
+        --nt-muted: #a8998b;
+        --nt-line: #2a221b;
+        --nt-line-strong: #3a3027;
+        --nt-overlay: rgba(0, 0, 0, 0.62);
+        --nt-glass: rgba(23, 19, 15, 0.78);
+        --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+        --nt-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.4), 0 30px 70px -12px rgba(0, 0, 0, 0.75);
         color-scheme: dark;
     }
 }
 
 :root[data-theme="dark"] {
-    --nt-bg: #0e0e0e;
-    --nt-surface: #171717;
-    --nt-surface-2: #1f1f1f;
-    --nt-surface-3: #2a2a2a;
-    --nt-text: #f5f5f4;
-    --nt-text-2: #d6d3d1;
-    --nt-muted: #a3a3a3;
-    --nt-line: #2a2a2a;
-    --nt-line-strong: #3a3a3a;
-    --nt-overlay: rgba(0, 0, 0, 0.6);
-    --nt-glass: rgba(23, 23, 23, 0.82);
-    --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
-    --nt-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.55);
+    --nt-bg: #0e0b09;
+    --nt-surface: #17130f;
+    --nt-surface-2: #211b16;
+    --nt-surface-3: #2d251e;
+    --nt-text: #f7f1ea;
+    --nt-text-2: #ddd2c6;
+    --nt-muted: #a8998b;
+    --nt-line: #2a221b;
+    --nt-line-strong: #3a3027;
+    --nt-overlay: rgba(0, 0, 0, 0.62);
+    --nt-glass: rgba(23, 19, 15, 0.78);
+    --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+    --nt-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.4), 0 30px 70px -12px rgba(0, 0, 0, 0.75);
     color-scheme: dark;
 }
 
 @theme inline {
-    --color-brand-50: #fff7ed;
-    --color-brand-100: #ffedd5;
-    --color-brand-200: #fed7aa;
-    --color-brand-400: #fb923c;
-    --color-brand-500: #f97316;
-    --color-brand-600: #ea580c;
-    --color-brand-700: #c2410c;
-    --color-ink: #111111;
+    --color-brand-50: #fff4ec;
+    --color-brand-100: #ffe6d4;
+    --color-brand-200: #ffc9a3;
+    --color-brand-400: #ff8a4c;
+    --color-brand-500: #ff6a2b;
+    --color-brand-600: #ea4f16;
+    --color-brand-700: #c23b0c;
+    --color-coral: #ff5b36;
+    --color-rose: #eb3a6f;
+    --color-ink: #17120e;
 
     --color-bg: var(--nt-bg);
     --color-surface: var(--nt-surface);
@@ -90,12 +96,14 @@
     --shadow-float: var(--nt-shadow-lg);
 
     --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
     html {
         background: var(--nt-bg);
         -webkit-tap-highlight-color: transparent;
+        -webkit-text-size-adjust: 100%;
     }
 
     body {
@@ -112,7 +120,7 @@
     h2,
     h3 {
         font-family: var(--font-display);
-        letter-spacing: -0.02em;
+        letter-spacing: -0.025em;
         text-wrap: balance;
     }
 
@@ -123,12 +131,16 @@
     :focus-visible {
         outline: 2px solid var(--color-brand-500);
         outline-offset: 2px;
-        border-radius: 6px;
+        border-radius: 8px;
     }
 
     ::selection {
         background: var(--color-brand-200);
-        color: #111;
+        color: #17120e;
+    }
+
+    button {
+        cursor: pointer;
     }
 }
 
@@ -136,45 +148,40 @@
     .nt-chip {
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
-        height: 2.375rem;
-        padding: 0 0.95rem;
+        gap: 0.45rem;
+        height: 2.5rem;
+        padding: 0 1rem;
         border-radius: 999px;
-        border: 1px solid var(--nt-line-strong);
+        border: 1px solid var(--nt-line);
         background: var(--nt-surface);
         color: var(--nt-text);
         font-size: 0.875rem;
-        font-weight: 600;
+        font-weight: 650;
         white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(40, 24, 10, 0.04);
         transition:
-            background 160ms ease,
-            border-color 160ms ease,
-            color 160ms ease,
-            transform 160ms var(--ease-spring);
+            background 200ms ease,
+            border-color 200ms ease,
+            color 200ms ease,
+            box-shadow 200ms ease,
+            transform 220ms var(--ease-spring);
     }
 
     .nt-chip:active {
-        transform: scale(0.96);
+        transform: scale(0.95);
+    }
+
+    @media (hover: hover) {
+        .nt-chip:hover {
+            border-color: var(--nt-line-strong);
+        }
     }
 
     .nt-chip[aria-pressed="true"] {
-        background: #111;
-        border-color: #111;
+        background: var(--nt-sunset);
+        border-color: transparent;
         color: #fff;
-    }
-
-    :root[data-theme="dark"] .nt-chip[aria-pressed="true"],
-    .nt-dark-chip[aria-pressed="true"] {
-        background: var(--color-brand-500);
-        border-color: var(--color-brand-500);
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root:not([data-theme="light"]) .nt-chip[aria-pressed="true"] {
-            background: var(--color-brand-500);
-            border-color: var(--color-brand-500);
-            color: #fff;
-        }
+        box-shadow: var(--nt-glow);
     }
 
     .nt-btn {
@@ -183,33 +190,50 @@
         justify-content: center;
         gap: 0.5rem;
         height: 3rem;
-        padding: 0 1.25rem;
-        border-radius: 1rem;
-        font-weight: 700;
+        padding: 0 1.3rem;
+        border-radius: 1.1rem;
+        font-weight: 750;
         font-size: 0.95rem;
+        letter-spacing: -0.005em;
         transition:
-            transform 160ms var(--ease-spring),
-            background 160ms ease,
-            opacity 160ms ease;
+            transform 220ms var(--ease-spring),
+            background 200ms ease,
+            box-shadow 200ms ease,
+            opacity 200ms ease,
+            filter 200ms ease;
     }
 
     .nt-btn:active {
-        transform: scale(0.97);
+        transform: scale(0.96);
     }
 
     .nt-btn-primary {
-        background: var(--color-brand-500);
+        background: var(--nt-sunset);
         color: #fff;
-        box-shadow: 0 6px 18px rgba(249, 115, 22, 0.35);
+        box-shadow: var(--nt-glow);
     }
 
-    .nt-btn-primary:hover {
-        background: var(--color-brand-600);
+    @media (hover: hover) {
+        .nt-btn-primary:hover {
+            filter: brightness(1.06) saturate(1.05);
+        }
     }
 
     .nt-btn-dark {
-        background: #111;
+        background: #17120e;
         color: #fff;
+    }
+
+    :root[data-theme="dark"] .nt-btn-dark {
+        background: #f7f1ea;
+        color: #17120e;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .nt-btn-dark {
+            background: #f7f1ea;
+            color: #17120e;
+        }
     }
 
     .nt-btn-soft {
@@ -217,10 +241,24 @@
         color: var(--nt-text);
     }
 
+    @media (hover: hover) {
+        .nt-btn-soft:hover {
+            background: var(--nt-surface-3);
+        }
+    }
+
+    .nt-btn-glass {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
     .nt-card {
         background: var(--nt-surface);
         border: 1px solid var(--nt-line);
-        border-radius: 1.5rem;
+        border-radius: 1.6rem;
         box-shadow: var(--nt-shadow);
     }
 
@@ -230,6 +268,12 @@
         scroll-snap-type: x proximity;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+
+    .nt-scroll-x > * {
+        scroll-snap-align: start;
+        scroll-margin-inline: 1rem;
     }
 
     .nt-scroll-x::-webkit-scrollbar {
@@ -237,12 +281,7 @@
     }
 
     .nt-skeleton {
-        background: linear-gradient(
-            90deg,
-            var(--nt-surface-2) 0%,
-            var(--nt-surface-3) 50%,
-            var(--nt-surface-2) 100%
-        );
+        background: linear-gradient(90deg, var(--nt-surface-2) 0%, var(--nt-surface-3) 50%, var(--nt-surface-2) 100%);
         background-size: 200% 100%;
         animation: nt-shimmer 1.4s ease-in-out infinite;
     }
@@ -251,104 +290,109 @@
         padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
     }
 
-    /* Photo stand-in: a tint of the category tone with the icon in full tone. */
+    .nt-sunset {
+        background: var(--nt-sunset);
+    }
+
+    .nt-sunset-text {
+        background: var(--nt-sunset);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* Photo stand-in: the category colour as a rich gradient with its icon
+       in white — bold enough to make a list feel alive. */
     .nt-art {
-        background-color: #f1eee9;
+        background-color: var(--tone);
         background:
-            radial-gradient(120% 90% at 15% 10%, rgba(255, 255, 255, 0.55), transparent 60%),
-            color-mix(in oklab, var(--tone) 13%, var(--nt-surface));
+            radial-gradient(90% 70% at 18% 12%, rgba(255, 255, 255, 0.32), transparent 62%),
+            radial-gradient(70% 60% at 100% 100%, rgba(0, 0, 0, 0.22), transparent 70%),
+            linear-gradient(150deg, color-mix(in oklab, var(--tone) 72%, #ffb56b) 0%, var(--tone) 55%, color-mix(in oklab, var(--tone) 78%, #1a0a05) 100%);
+        color: #fff;
+    }
+
+    .nt-art-soft {
+        background: color-mix(in oklab, var(--tone) 14%, var(--nt-surface));
         color: var(--tone);
     }
 
     .nt-pressable {
         transition:
-            transform 180ms var(--ease-spring),
-            box-shadow 180ms ease,
-            background 160ms ease;
+            transform 240ms var(--ease-spring),
+            box-shadow 240ms ease,
+            background 200ms ease;
     }
 
     .nt-pressable:active {
-        transform: scale(0.98);
+        transform: scale(0.975);
     }
 
     @media (hover: hover) {
         .nt-pressable:hover {
-            box-shadow: var(--nt-shadow);
+            transform: translateY(-2px);
         }
     }
 
     .nt-section-title {
         font-family: var(--font-display);
-        font-size: 1.05rem;
+        font-size: 1.15rem;
         font-weight: 800;
-        letter-spacing: -0.015em;
+        letter-spacing: -0.02em;
         color: var(--nt-text);
     }
 
     .nt-eyebrow {
         font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
+        font-weight: 750;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--nt-muted);
     }
 
     .nt-input {
         width: 100%;
-        height: 3rem;
-        padding: 0 0.95rem;
-        border-radius: 0.9rem;
+        height: 3.1rem;
+        padding: 0 1rem;
+        border-radius: 1rem;
         border: 1px solid var(--nt-line-strong);
         background: var(--nt-surface);
         color: var(--nt-text);
         font-size: 1rem; /* 16px: stops iOS zooming into the field */
-        transition: border-color 160ms ease, box-shadow 160ms ease;
+        transition:
+            border-color 180ms ease,
+            box-shadow 180ms ease;
     }
 
     textarea.nt-input {
         height: auto;
         min-height: 6.5rem;
-        padding: 0.75rem 0.95rem;
+        padding: 0.8rem 1rem;
         resize: vertical;
     }
 
     .nt-input:focus {
         outline: none;
         border-color: var(--color-brand-500);
-        box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-brand-500) 22%, transparent);
+        box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-brand-500) 20%, transparent);
     }
 
     .nt-input[aria-invalid="true"] {
         border-color: var(--color-closed);
     }
-}
 
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .nt-art {
-        background: color-mix(in oklab, var(--tone) 26%, var(--nt-surface));
-        color: color-mix(in oklab, var(--tone) 45%, white);
+    /* Bars that float over busy content need to stay readable. */
+    .nt-glass-strong {
+        background: color-mix(in oklab, var(--nt-surface) 97%, transparent);
+        backdrop-filter: blur(24px) saturate(1.6);
+        -webkit-backdrop-filter: blur(24px) saturate(1.6);
     }
-}
 
-:root[data-theme="dark"] .nt-art {
-    background: color-mix(in oklab, var(--tone) 26%, var(--nt-surface));
-    color: color-mix(in oklab, var(--tone) 45%, white);
-}
-
-@keyframes nt-pop {
-    0% {
-        transform: scale(1);
+    .nt-glass {
+        background: var(--nt-glass);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
     }
-    40% {
-        transform: scale(1.3);
-    }
-    100% {
-        transform: scale(1.1);
-    }
-}
-
-.nt-pop {
-    animation: nt-pop 360ms var(--ease-spring) both;
 }
 
 @keyframes nt-shimmer {
@@ -375,11 +419,51 @@
 @keyframes nt-rise {
     from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(14px);
     }
     to {
         opacity: 1;
         transform: none;
+    }
+}
+
+@keyframes nt-pop {
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.35);
+    }
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes nt-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes nt-reveal {
+    from {
+        opacity: 0.001;
+        transform: translateY(28px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes nt-slide-aside {
+    to {
+        opacity: 0;
+        transform: translateX(-18%);
     }
 }
 
@@ -392,15 +476,37 @@
 }
 
 .nt-rise {
-    animation: nt-rise 420ms var(--ease-spring) both;
+    animation: nt-rise 520ms var(--ease-out) both;
+}
+
+.nt-pop {
+    animation: nt-pop 380ms var(--ease-spring) both;
+}
+
+.nt-float {
+    animation: nt-float 6s ease-in-out infinite;
+}
+
+/* Sections glide in as they enter the screen. Browsers without
+   scroll-driven animations simply show them: content is never hidden. */
+@supports (animation-timeline: view()) {
+    .nt-reveal {
+        animation: nt-reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 40%;
+    }
 }
 
 /* Map chrome in the brand style */
+.maplibregl-ctrl-top-left {
+    top: calc(env(safe-area-inset-top) + 4.4rem);
+}
+
 .maplibregl-ctrl-attrib {
     font-size: 10px;
     background: var(--nt-glass) !important;
     color: var(--nt-muted);
-    border-radius: 8px 0 0 0;
+    border-radius: 10px;
 }
 
 .maplibregl-ctrl-attrib a {
@@ -409,6 +515,28 @@
 
 .maplibregl-canvas:focus-visible {
     outline: none;
+}
+
+/* Route changes cross-fade and slide a little (View Transitions). */
+::view-transition-old(root) {
+    animation: 180ms ease both nt-vt-out;
+}
+
+::view-transition-new(root) {
+    animation: 320ms var(--ease-out) both nt-vt-in;
+}
+
+@keyframes nt-vt-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes nt-vt-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

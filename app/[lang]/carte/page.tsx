@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import MapEntry from "@/components/explore/MapEntry";
 
-// Old search URL: opens the map in the visitor's city with the same query.
 export const metadata: Metadata = { robots: { index: false, follow: true } };
 
-export default function SearchPage() {
+export default function MapEntryPage() {
     return (
         <Suspense>
             <MapEntry />

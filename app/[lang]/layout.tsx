@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Manrope } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { LocaleProvider } from "@/components/site/LocaleProvider";
 import SiteChrome from "@/components/site/SiteChrome";
@@ -8,7 +8,7 @@ import { paths } from "@/lib/places/paths";
 import "./site.css";
 
 const body = DM_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-const heading = Manrope({
+const heading = Bricolage_Grotesque({
     subsets: ["latin"],
     weight: ["600", "700", "800"],
     variable: "--font-heading",
@@ -83,7 +83,7 @@ export default async function SiteLayout({ children, params }: Props) {
         inLanguage: lang === "fr" ? "fr-CM" : "en-CM",
         potentialAction: {
             "@type": "SearchAction",
-            target: `${SITE_URL}${paths.search(lang)}?q={search_term_string}`,
+            target: `${SITE_URL}${paths.map(lang)}?q={search_term_string}`,
             "query-input": "required name=search_term_string",
         },
     };

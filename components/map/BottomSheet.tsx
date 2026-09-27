@@ -16,6 +16,7 @@ type Props = {
     children: ReactNode; // scrolls when the sheet is full
     peekHeight?: number;
     bottomInset?: number; // space taken by the tab bar
+    onScroll?: (scrollTop: number) => void; // drives the collapsing header
 };
 
 function useIsDesktop() {
@@ -36,7 +37,8 @@ export default function BottomSheet({
     header,
     children,
     peekHeight = 168,
-    bottomInset = 64,
+    bottomInset = 84,
+    onScroll,
 }: Props) {
     const desktop = useIsDesktop();
     const y = useMotionValue(0);
@@ -65,7 +67,10 @@ export default function BottomSheet({
         if (!viewport || desktop) return;
         const target = positions(viewport)[snap];
         const controlsAnimation = animate(y, target, { type: "spring", stiffness: 420, damping: 42, mass: 0.9 });
-        if (snap !== "full" && scrollRef.current) scrollRef.current.scrollTop = 0;
+        if (snap !== "full" && scrollRef.current) {
+            scrollRef.current.scrollTop = 0;
+            onScroll?.(0);
+        }
         return () => controlsAnimation.stop();
     }, [snap, viewport, desktop, positions, y]);
 
@@ -99,7 +104,12 @@ export default function BottomSheet({
         return (
             <aside className="absolute inset-y-0 left-0 z-20 flex w-[420px] flex-col border-r border-line bg-bg shadow-float">
                 <div className="shrink-0">{header}</div>
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
+                <div
+                    className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+                    onScroll={(event) => onScroll?.(event.currentTarget.scrollTop)}
+                >
+                    {children}
+                </div>
             </aside>
         );
     }
@@ -108,7 +118,7 @@ export default function BottomSheet({
 
     return (
         <motion.section
-            className="fixed inset-x-0 top-0 z-30 flex flex-col rounded-t-[1.75rem] border-t border-line bg-bg shadow-float will-change-transform"
+            className="fixed inset-x-0 top-0 z-30 flex flex-col rounded-t-[2rem] border-t border-line bg-bg shadow-float will-change-transform"
             style={{ y, height: viewport ? viewport - 72 : "100dvh", visibility: viewport ? "visible" : "hidden" }}
             drag="y"
             dragListener={false}
@@ -131,6 +141,7 @@ export default function BottomSheet({
             </div>
             <div
                 ref={scrollRef}
+                onScroll={(event) => onScroll?.(event.currentTarget.scrollTop)}
                 className={`min-h-0 flex-1 overscroll-contain ${snap === "full" ? "overflow-y-auto" : "touch-none overflow-hidden"}`}
                 style={{ paddingBottom: bottomInset + 24 }}
                 onPointerDown={(event) => {

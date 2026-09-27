@@ -33,7 +33,7 @@ export default function StatusScreen({
                         {t.common.retry}
                     </button>
                 )}
-                <Link href={paths.explore(locale)} className={`nt-btn ${onRetry ? "nt-btn-soft" : "nt-btn-primary"}`}>
+                <Link href={paths.home(locale)} className={`nt-btn ${onRetry ? "nt-btn-soft" : "nt-btn-primary"}`}>
                     <Compass size={18} />
                     {t.common.home}
                 </Link>

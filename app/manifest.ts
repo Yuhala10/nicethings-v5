@@ -1,18 +1,18 @@
 import type { MetadataRoute } from "next";
 
-// Installable app. start_url is "/" so the proxy opens it in the visitor's
-// language (saved choice, then phone language, then French).
+// Installable app. It opens straight on the map: "/carte" goes through the
+// proxy, which adds the visitor's language, then the map picks their city.
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: "NiceThings — Yaoundé",
+        name: "NiceThings — Cameroun",
         short_name: "NiceThings",
-        description: "Où sortir, manger et chiller à Yaoundé, selon ton budget et ton quartier.",
-        start_url: "/",
+        description: "Où sortir, manger et chiller au Cameroun, avec l'itinéraire guidé.",
+        start_url: "/carte",
         scope: "/",
         display: "standalone",
         orientation: "portrait",
-        background_color: "#faf9f7",
-        theme_color: "#faf9f7",
+        background_color: "#0b0806",
+        theme_color: "#0b0806",
         lang: "fr",
         categories: ["travel", "food", "lifestyle"],
         icons: [

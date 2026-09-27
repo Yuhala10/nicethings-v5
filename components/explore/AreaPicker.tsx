@@ -3,18 +3,19 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, LocateFixed, X } from "lucide-react";
-import { YAOUNDE_NEIGHBORHOODS } from "@/lib/tags";
 import { useLocale } from "../site/LocaleProvider";
 
 export default function AreaPicker({
     open,
     current,
+    areas,
     onClose,
     onPick,
     onLocate,
 }: {
     open: boolean;
     current: string | null;
+    areas: readonly { name: string }[];
     onClose: () => void;
     onPick: (name: string | null) => void;
     onLocate: () => void;
@@ -42,7 +43,7 @@ export default function AreaPicker({
                         role="dialog"
                         aria-modal
                         aria-label={t.location.chooseArea}
-                        className="nt-safe-bottom w-full max-w-lg rounded-t-[1.75rem] bg-bg p-5 shadow-float md:rounded-[1.75rem]"
+                        className="nt-safe-bottom w-full max-w-lg rounded-t-[2rem] bg-bg p-5 shadow-float md:rounded-[2rem]"
                         initial={{ y: 60, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 60, opacity: 0 }}
@@ -81,7 +82,7 @@ export default function AreaPicker({
                                 {t.filters.anyNeighborhood}
                                 {current === null && <Check size={15} />}
                             </button>
-                            {YAOUNDE_NEIGHBORHOODS.map((area) => (
+                            {areas.map((area) => (
                                 <button
                                     key={area.name}
                                     type="button"

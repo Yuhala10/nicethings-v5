@@ -23,18 +23,18 @@ import {
 export type CategoryStyle = { icon: LucideIcon; tone: string };
 
 export const CATEGORY_STYLE: Record<string, CategoryStyle> = {
-    Restaurant: { icon: UtensilsCrossed, tone: "#c2410c" },
-    Cafe: { icon: Coffee, tone: "#92400e" },
-    Bar: { icon: Wine, tone: "#9d174d" },
-    Club: { icon: Music, tone: "#6d28d9" },
-    Hotel: { icon: BedDouble, tone: "#1d4ed8" },
-    Bakery: { icon: Croissant, tone: "#b45309" },
-    Shopping: { icon: ShoppingBag, tone: "#7e22ce" },
-    Beauty: { icon: Scissors, tone: "#be123c" },
-    Wellness: { icon: Dumbbell, tone: "#15803d" },
-    Entertainment: { icon: Ticket, tone: "#0e7490" },
-    Culture: { icon: Landmark, tone: "#a16207" },
-    Nature: { icon: Trees, tone: "#166534" },
+    Restaurant: { icon: UtensilsCrossed, tone: "#ea580c" },
+    Cafe: { icon: Coffee, tone: "#a0522d" },
+    Bar: { icon: Wine, tone: "#db2777" },
+    Club: { icon: Music, tone: "#7c3aed" },
+    Hotel: { icon: BedDouble, tone: "#2563eb" },
+    Bakery: { icon: Croissant, tone: "#d97706" },
+    Shopping: { icon: ShoppingBag, tone: "#9333ea" },
+    Beauty: { icon: Scissors, tone: "#e11d48" },
+    Wellness: { icon: Dumbbell, tone: "#059669" },
+    Entertainment: { icon: Ticket, tone: "#0891b2" },
+    Culture: { icon: Landmark, tone: "#b7791f" },
+    Nature: { icon: Trees, tone: "#16a34a" },
     Other: { icon: MapPin, tone: "#57534e" },
 };
 

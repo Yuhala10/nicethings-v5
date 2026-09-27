@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
     cleanCategory,
+    cleanCity,
     cleanPhone,
     cleanPosition,
     cleanPrice,
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
         .insert({
             name,
             category: cleanCategory(body.category),
+            city: cleanCity(body.city) ?? "Yaoundé",
             neighborhood: cleanText(body.neighborhood, 60),
             landmark: cleanText(body.landmark, 200),
             phone,

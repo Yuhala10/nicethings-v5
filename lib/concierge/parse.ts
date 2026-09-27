@@ -1,4 +1,3 @@
-import { YAOUNDE_NEIGHBORHOODS } from "../tags";
 import { cityNow } from "../places/hours";
 import { DAY_KEYS, type DayKey } from "../places/types";
 import type { DiscoveryQuery, TimeWindow } from "./query";
@@ -186,16 +185,21 @@ function parseWhen(text: string, now = new Date()): TimeWindow | null {
     return { day, from: label ? from : 10 * 60, to: label ? to : 22 * 60, label: label ?? "afternoon" };
 }
 
-function parseNeighborhood(text: string) {
-    for (const area of YAOUNDE_NEIGHBORHOODS) {
+function parseNeighborhood(text: string, areas: readonly { name: string }[]) {
+    // Longest names first so "Bonamoussadi" wins over "Bona".
+    for (const area of [...areas].sort((a, b) => b.name.length - a.name.length)) {
         const key = normalize(area.name).trim();
         if (text.includes(` ${key} `) || text.includes(` ${key.replace(/-/g, " ")} `)) return area.name;
     }
-    // Common alternative spellings and nicknames.
-    if (/\b(centre ville|center|downtown|en ville|poste centrale)\b/.test(text)) return "Centre-ville";
-    if (/\b(omnisports|stade omnisport)\b/.test(text)) return "Omnisport";
-    if (/\b(biyem assi|biyemassi)\b/.test(text)) return "Biyem-Assi";
-    if (/\b(elig essono)\b/.test(text)) return "Elig-Essono";
+    // Common alternative spellings and nicknames, when the city has them.
+    const known = new Set(areas.map((area) => area.name));
+    const nick = (pattern: RegExp, name: string) => (known.has(name) && pattern.test(text) ? name : null);
+    const alias =
+        nick(/\b(centre ville|center|downtown|en ville|poste centrale)\b/, "Centre-ville") ??
+        nick(/\b(omnisports|stade omnisport)\b/, "Omnisport") ??
+        nick(/\b(biyem assi|biyemassi)\b/, "Biyem-Assi") ??
+        nick(/\b(elig essono)\b/, "Elig-Essono");
+    if (alias) return alias;
     return null;
 }
 
@@ -207,7 +211,11 @@ export type ParsedQuery = DiscoveryQuery & {
     totalBudget?: boolean;
 };
 
-export function parseDiscoveryText(input: string, now = new Date()): ParsedQuery {
+export function parseDiscoveryText(
+    input: string,
+    now = new Date(),
+    areas: readonly { name: string }[] = []
+): ParsedQuery {
     const text = normalize(input);
     const budget = parseBudget(text);
     const groupSize = parseGroupSize(text);
@@ -217,7 +225,7 @@ export function parseDiscoveryText(input: string, now = new Date()): ParsedQuery
         vibes: matchAll(text, VIBE_RULES),
         goodFor: matchAll(text, GOOD_FOR_RULES),
         amenities: matchAll(text, AMENITY_RULES),
-        neighborhood: parseNeighborhood(text),
+        neighborhood: parseNeighborhood(text, areas),
         groupSize,
         when: parseWhen(text, now),
         ...budget,

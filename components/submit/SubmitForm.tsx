@@ -4,11 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Check, Compass, LocateFixed, Plus } from "lucide-react";
 import { paths } from "@/lib/places/paths";
-import { CATEGORIES, YAOUNDE_NEIGHBORHOODS } from "@/lib/tags";
+import { CITIES } from "@/lib/cities";
+import { CATEGORIES } from "@/lib/tags";
+import { useCurrentCity } from "../site/SiteChrome";
 import { useLocale } from "../site/LocaleProvider";
 
 type Fields = {
     name: string;
+    city: string;
     category: string;
     neighborhood: string;
     landmark: string;
@@ -18,11 +21,13 @@ type Fields = {
     website: string; // honeypot
 };
 
-const EMPTY: Fields = { name: "", category: "", neighborhood: "", landmark: "", price: "", phone: "", why: "", website: "" };
+const EMPTY: Fields = { name: "", city: "", category: "", neighborhood: "", landmark: "", price: "", phone: "", why: "", website: "" };
 
 export default function SubmitForm() {
     const { locale, t } = useLocale();
+    const currentCity = useCurrentCity();
     const [fields, setFields] = useState<Fields>(EMPTY);
+    const city = fields.city || currentCity;
     const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
     const [locating, setLocating] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
@@ -63,7 +68,7 @@ export default function SubmitForm() {
             const response = await fetch("/api/submissions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...fields, lat: position?.lat, lng: position?.lng }),
+                body: JSON.stringify({ ...fields, city, lat: position?.lat, lng: position?.lng }),
             });
             setState(response.ok ? "sent" : "failed");
         } catch {
@@ -91,7 +96,7 @@ export default function SubmitForm() {
                         <Plus size={18} />
                         {t.submit.title}
                     </button>
-                    <Link href={paths.explore(locale)} className="nt-btn nt-btn-primary">
+                    <Link href={paths.map(locale)} className="nt-btn nt-btn-primary">
                         <Compass size={18} />
                         {t.saved.explore}
                     </Link>
@@ -144,18 +149,25 @@ export default function SubmitForm() {
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="submit-neighborhood" className={label}>
-                        {t.submit.neighborhood}
+                    <label htmlFor="submit-city" className={label}>
+                        {t.nav.cities}
                     </label>
-                    <select id="submit-neighborhood" value={fields.neighborhood} onChange={set("neighborhood")} className="nt-input">
-                        <option value="">—</option>
-                        {YAOUNDE_NEIGHBORHOODS.map((area) => (
-                            <option key={area.name} value={area.name}>
-                                {area.name}
+                    <select id="submit-city" value={city} onChange={set("city")} className="nt-input">
+                        {CITIES.map((item) => (
+                            <option key={item.slug} value={item.slug}>
+                                {item.name}
                             </option>
                         ))}
                     </select>
                 </div>
+            </div>
+
+            <div>
+                <label htmlFor="submit-neighborhood" className={label}>
+                    {t.submit.neighborhood}
+                    {optional}
+                </label>
+                <input id="submit-neighborhood" value={fields.neighborhood} onChange={set("neighborhood")} maxLength={60} className="nt-input" />
             </div>
 
             <div>

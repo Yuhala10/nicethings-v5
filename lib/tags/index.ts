@@ -69,27 +69,6 @@ export const CATEGORIES = defineTags({
 
 export type Category = keyof typeof CATEGORIES;
 
-// Neighbourhoods of Yaoundé with an approximate centre, used when the
-// visitor has no GPS ("Choisir mon quartier") and to snap new places.
-export const YAOUNDE_NEIGHBORHOODS = [
-    { name: "Bastos", lat: 3.8913, lng: 11.5095 },
-    { name: "Centre-ville", lat: 3.8667, lng: 11.5167 },
-    { name: "Nlongkak", lat: 3.8800, lng: 11.5180 },
-    { name: "Omnisport", lat: 3.8840, lng: 11.5420 },
-    { name: "Essos", lat: 3.8700, lng: 11.5380 },
-    { name: "Mvan", lat: 3.8300, lng: 11.5160 },
-    { name: "Biyem-Assi", lat: 3.8350, lng: 11.4850 },
-    { name: "Mendong", lat: 3.8250, lng: 11.4720 },
-    { name: "Etoudi", lat: 3.9120, lng: 11.5250 },
-    { name: "Nkolbisson", lat: 3.8700, lng: 11.4500 },
-    { name: "Mimboman", lat: 3.8620, lng: 11.5550 },
-    { name: "Emana", lat: 3.9200, lng: 11.5120 },
-    { name: "Elig-Essono", lat: 3.8780, lng: 11.5270 },
-    { name: "Mokolo", lat: 3.8720, lng: 11.5000 },
-    { name: "Ngousso", lat: 3.8950, lng: 11.5500 },
-    { name: "Santa Barbara", lat: 3.9000, lng: 11.5000 },
-] as const;
-
 // Budget bands per person, in FCFA, used by the home-screen budget chips.
 export const BUDGETS = [
     { key: "under5", max: 5000, label: { en: "Under 5k", fr: "Moins de 5k" } },

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { YAOUNDE_BOUNDS } from "./places/geo";
+import { CAMEROON_BOUNDS, cityBySlug } from "./cities";
 import { CATEGORIES } from "./tags";
 
 // Visitor contributions (new places, error reports). Inputs are validated
@@ -42,6 +42,10 @@ export function cleanPosition(lat: unknown, lng: unknown) {
     const la = Number(lat);
     const ln = Number(lng);
     if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
-    const [[west, south], [east, north]] = YAOUNDE_BOUNDS;
+    const [[west, south], [east, north]] = CAMEROON_BOUNDS;
     return la >= south && la <= north && ln >= west && ln <= east ? { lat: la, lng: ln } : null;
+}
+
+export function cleanCity(value: unknown) {
+    return typeof value === "string" ? cityBySlug(value)?.name ?? null : null;
 }

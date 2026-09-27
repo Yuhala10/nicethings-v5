@@ -10,11 +10,3 @@ export function distanceMeters(a: LatLng, b: LatLng) {
         Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
     return 6_371_000 * 2 * Math.asin(Math.sqrt(h));
 }
-
-// Centre of Yaoundé, used before we know where the visitor is.
-export const YAOUNDE_CENTER: LatLng = { lat: 3.8667, lng: 11.5167 };
-
-export const YAOUNDE_BOUNDS: [[number, number], [number, number]] = [
-    [11.38, 3.72],
-    [11.64, 4.02],
-];

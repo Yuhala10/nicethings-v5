@@ -8,7 +8,7 @@ type Doc = { title: string; updated: string; sections: { heading: string; body: 
 export const PRIVACY: Record<Locale, Doc> = {
     fr: {
         title: "Confidentialité",
-        updated: "Mise à jour : 27 septembre 2026",
+        updated: "Mise à jour : 28 septembre 2026",
         sections: [
             {
                 heading: "En bref",
@@ -26,7 +26,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 heading: "Ta position",
                 body: [
                     "Ta position n'est demandée que si tu appuies sur « Utiliser ma position ». Elle sert dans ton navigateur à trier les lieux par distance.",
-                    "Pour calculer un itinéraire, ton point de départ et la destination sont envoyés au service de calcul d'itinéraires OSRM (OpenStreetMap). Les fonds de carte viennent d'OpenFreeMap, qui reçoit ton adresse IP comme tout site web.",
+                    "Pour calculer un itinéraire et te guider, ta position et la destination sont envoyées au service d'itinéraires OSRM d'OpenStreetMap (serveurs FOSSGIS). Pendant le guidage, ta position est suivie dans ton navigateur ; les consignes vocales sont lues par ton téléphone. Les fonds de carte viennent d'OpenFreeMap, qui reçoit ton adresse IP comme tout site web.",
                 ],
             },
             {
@@ -43,7 +43,7 @@ export const PRIVACY: Record<Locale, Doc> = {
     },
     en: {
         title: "Privacy",
-        updated: "Updated: 27 September 2026",
+        updated: "Updated: 28 September 2026",
         sections: [
             {
                 heading: "In short",
@@ -59,7 +59,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 heading: "Your location",
                 body: [
                     "We only ask for your location when you tap “Use my location”. It is used in your browser to sort places by distance.",
-                    "To calculate directions, your starting point and the destination are sent to the OSRM routing service (OpenStreetMap). Map tiles come from OpenFreeMap, which sees your IP address like any website.",
+                    "To calculate directions and guide you, your position and the destination are sent to OpenStreetMap's OSRM routing service (FOSSGIS servers). During guidance your position is followed in your browser; spoken instructions are read by your phone. Map tiles come from OpenFreeMap, which sees your IP address like any website.",
                 ],
             },
             {
@@ -79,12 +79,12 @@ export const PRIVACY: Record<Locale, Doc> = {
 export const TERMS: Record<Locale, Doc> = {
     fr: {
         title: "Conditions d'utilisation",
-        updated: "Mise à jour : 27 septembre 2026",
+        updated: "Mise à jour : 28 septembre 2026",
         sections: [
             {
                 heading: "Le service",
                 body: [
-                    "NiceThings est un guide gratuit pour découvrir des lieux à Yaoundé. Les informations viennent de notre équipe, de la communauté et d'OpenStreetMap.",
+                    "NiceThings est un guide gratuit pour découvrir des lieux dans les villes du Cameroun. Les informations viennent de notre équipe, de la communauté et d'OpenStreetMap.",
                 ],
             },
             {
@@ -108,12 +108,12 @@ export const TERMS: Record<Locale, Doc> = {
     },
     en: {
         title: "Terms of use",
-        updated: "Updated: 27 September 2026",
+        updated: "Updated: 28 September 2026",
         sections: [
             {
                 heading: "The service",
                 body: [
-                    "NiceThings is a free guide to discovering places in Yaoundé. Information comes from our team, the community and OpenStreetMap.",
+                    "NiceThings is a free guide to discovering places in Cameroon's cities. Information comes from our team, the community and OpenStreetMap.",
                 ],
             },
             {

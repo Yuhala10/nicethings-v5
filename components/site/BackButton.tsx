@@ -17,7 +17,7 @@ export default function BackButton({ className = "" }: { className?: string }) {
             onClick={() => {
                 const internal = document.referrer.startsWith(window.location.origin);
                 if (internal && window.history.length > 1) router.back();
-                else router.push(paths.explore(locale));
+                else router.push(paths.home(locale));
             }}
             className={`grid h-10 w-10 place-items-center rounded-full bg-glass shadow-card backdrop-blur-xl transition active:scale-90 ${className}`}
             aria-label={t.common.back}

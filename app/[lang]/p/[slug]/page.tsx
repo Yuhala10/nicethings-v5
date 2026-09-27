@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck, ChevronRight, Database, ExternalLink, Globe, MapPin, Users } from "lucide-react";
+import { ViewTransition } from "react";
+import { BadgeCheck, ChevronRight, Database, ExternalLink, Globe, MapPin, Navigation, Users } from "lucide-react";
 import BackButton from "@/components/site/BackButton";
 import HoursTable from "@/components/place/HoursTable";
 import PlaceActions from "@/components/place/PlaceActions";
 import PlaceCard from "@/components/place/PlaceCard";
 import PlaceMap from "@/components/place/PlaceMap";
 import ReportButton from "@/components/place/ReportButton";
-import { PlaceThumb, PriceLabel, Rating } from "@/components/place/bits";
+import { OpenBadge, PlaceThumb, PriceLabel, Rating } from "@/components/place/bits";
+import { HeroActions, StickyPlaceBar } from "@/components/place/PlaceHeroBits";
+import { DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { SITE_URL, fill, getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { formatPrice, formatRelativeDays } from "@/lib/i18n/format";
-import { SCHEMA_TYPES, cuisineLabel, firstPhone, formatPhone, isIndexable, knownFacts } from "@/lib/places/display";
+import { SCHEMA_TYPES, categoryStyle, cuisineLabel, firstPhone, formatPhone, isIndexable, knownFacts } from "@/lib/places/display";
 import { distanceMeters } from "@/lib/places/geo";
 import { CATEGORY_PLURALS, paths } from "@/lib/places/paths";
 import { getAllPlaces, getPlace } from "@/lib/places/server";
@@ -28,13 +31,19 @@ export function generateStaticParams() {
 
 type Props = { params: Promise<{ lang: string; slug: string }> };
 
+// "Bastos, Yaoundé" — or just the city when the neighbourhood is unknown.
+function placeArea(place: PlaceDetail) {
+    const city = (cityBySlug(place.city) ?? DEFAULT_CITY).name;
+    return place.neighborhood ? `${place.neighborhood}, ${city}` : city;
+}
+
 function describe(place: PlaceDetail, locale: Locale) {
     const t = getDictionary(locale);
     if (place.description) return place.description.slice(0, 158);
     return fill(t.spot.descriptionFallback, {
         name: place.name,
         category: tagLabel(CATEGORIES, place.category, locale),
-        area: place.neighborhood ?? "Yaoundé",
+        area: placeArea(place),
     });
 }
 
@@ -45,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!place) return {};
     const t = getDictionary(lang);
     const category = tagLabel(CATEGORIES, place.category, lang);
-    const title = `${place.name} · ${fill(t.spot.placeIn, { category, area: place.neighborhood ?? "Yaoundé" })}`;
+    const title = `${place.name} · ${fill(t.spot.placeIn, { category, area: placeArea(place) })}`;
 
     return {
         title,
@@ -59,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-function jsonLd(place: PlaceDetail, locale: Locale, phone: string | null) {
+function jsonLd(place: PlaceDetail, locale: Locale, phone: string | null, cityName: string) {
     const t = getDictionary(locale);
     const url = `${SITE_URL}${paths.place(locale, place.slug)}`;
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -72,7 +81,7 @@ function jsonLd(place: PlaceDetail, locale: Locale, phone: string | null) {
         address: {
             "@type": "PostalAddress",
             streetAddress: place.address ?? undefined,
-            addressLocality: "Yaoundé",
+            addressLocality: cityName,
             addressRegion: place.neighborhood ?? undefined,
             addressCountry: "CM",
         },
@@ -95,8 +104,8 @@ function jsonLd(place: PlaceDetail, locale: Locale, phone: string | null) {
     }
 
     const crumbs = [
-        { name: t.city.title, url: `${SITE_URL}${paths.city(locale)}` },
-        place.neighborhood && { name: place.neighborhood, url: `${SITE_URL}${paths.neighborhood(locale, place.neighborhood)}` },
+        { name: cityName, url: `${SITE_URL}${paths.city(locale, place.city)}` },
+        place.neighborhood && { name: place.neighborhood, url: `${SITE_URL}${paths.neighborhood(locale, place.city, place.neighborhood)}` },
         { name: place.name, url },
     ].filter(Boolean) as { name: string; url: string }[];
 
@@ -145,6 +154,8 @@ export default async function PlacePage({ params }: Props) {
     const phone = firstPhone(place.phone);
     const whatsapp = firstPhone(place.whatsapp);
     const area = place.neighborhood;
+    const cityName = (cityBySlug(place.city) ?? DEFAULT_CITY).name;
+    const style = categoryStyle(place.category);
 
     // Nearby and similar places come from the cached catalogue.
     const all = await getAllPlaces();
@@ -166,79 +177,95 @@ export default async function PlacePage({ params }: Props) {
     const updatedAgo = formatRelativeDays(place.updatedAt, lang);
 
     return (
-        <article className="mx-auto max-w-3xl md:px-6 md:pt-6">
+        <article className="pb-4">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(place, lang, phone)).replace(/</g, "\\u003c") }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(place, lang, phone, cityName)).replace(/</g, "\\u003c") }}
             />
+            <StickyPlaceBar slug={place.slug} name={place.name} />
 
-            {/* Hero: the photo when we have one, otherwise the map — the one
-                picture we can always show honestly. */}
-            <div className="relative">
-                {place.photos.length > 0 ? (
-                    <div className="nt-scroll-x snap-x snap-mandatory md:gap-2 md:rounded-[1.5rem]">
-                        {place.photos.map((photo, index) => (
+            {/* Hero: the photo when there is one, otherwise the category's
+                own artwork — bold colour, the name set large. */}
+            <header className="relative isolate overflow-hidden text-white">
+                <ViewTransition name={`place-${place.slug}`}>
+                    {place.photos.length > 0 ? (
+                        <div className="absolute inset-0 -z-20">
                             <PlaceThumb
-                                key={photo.url}
-                                cover={photo.url}
+                                cover={place.photos[0].url}
                                 category={place.category}
-                                name={photo.alt ?? place.name}
-                                sizes="(min-width: 768px) 720px, 100vw"
-                                priority={index === 0}
-                                className="aspect-[4/3] w-full shrink-0 snap-center md:aspect-[16/9] md:rounded-[1.5rem]"
+                                name={place.photos[0].alt ?? place.name}
+                                sizes="100vw"
+                                priority
+                                className="h-full w-full"
                             />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="relative h-[15rem] overflow-hidden md:h-[18rem] md:rounded-[1.5rem]">
-                        <PlaceMap id={place.id} lat={place.lat} lng={place.lng} className="absolute inset-0" />
-                    </div>
-                )}
-                <div className="absolute inset-x-0 top-0 flex justify-between p-3 pt-[max(env(safe-area-inset-top),0.75rem)] md:hidden">
-                    <BackButton />
-                </div>
-            </div>
-
-            <div className="px-4 md:px-0">
-                <nav aria-label="Breadcrumb" className="mt-4 flex flex-wrap items-center gap-1 text-[0.8rem] font-semibold text-muted">
-                    <Link href={paths.city(lang)} className="hover:text-text">
-                        {t.city.title}
-                    </Link>
-                    {area && (
-                        <>
-                            <ChevronRight size={13} />
-                            <Link href={paths.neighborhood(lang, area)} className="hover:text-text">
-                                {area}
-                            </Link>
-                            <ChevronRight size={13} />
-                            <Link href={paths.neighborhoodCategory(lang, area, place.category)} className="hover:text-text">
-                                {CATEGORY_PLURALS[place.category as keyof typeof CATEGORY_PLURALS]?.[lang] ?? category}
-                            </Link>
-                        </>
+                        </div>
+                    ) : (
+                        <div className="nt-art absolute inset-0 -z-20" style={{ "--tone": style.tone } as React.CSSProperties}>
+                            <style.icon
+                                size={320}
+                                strokeWidth={0.8}
+                                className="absolute -right-16 -bottom-20 rotate-[-12deg] opacity-[0.16] md:right-[8%]"
+                                aria-hidden
+                            />
+                        </div>
                     )}
-                </nav>
+                </ViewTransition>
+                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/25 to-black/10" />
 
-                <header className="mt-2 mb-5">
-                    <h1 className="text-[1.75rem] leading-[1.15] font-extrabold md:text-4xl">
-                        {place.name}
-                        {place.verified && (
-                            <BadgeCheck
-                                size={24}
-                                className="ml-2 inline-block fill-brand-500 align-[-0.1em] text-surface"
-                                aria-label={t.trust.verifiedTitle}
-                            />
-                        )}
-                    </h1>
-                    <p className="mt-1.5 text-[0.95rem] text-muted">
-                        {place.cuisine ? `${category} · ${cuisineLabel(place.cuisine, lang, 3)}` : category}
-                        {area ? ` · ${area}` : ""}
-                    </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                        <Rating rating={place.rating} count={place.reviewCount} />
-                        <PriceLabel min={place.priceMin} max={place.priceMax} className="text-sm" />
+                <div className="mx-auto max-w-3xl px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-7 md:px-6 md:pt-8 md:pb-10">
+                    <div className="flex items-center justify-between">
+                        <BackButton className="border border-white/20 !bg-black/25 text-white backdrop-blur-md" />
+                        <HeroActions slug={place.slug} name={place.name} />
                     </div>
-                </header>
 
+                    <div className="pt-24 md:pt-36">
+                        <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1 text-[0.8rem] font-semibold text-white/70">
+                            <Link href={paths.city(lang, place.city)} className="hover:text-white">
+                                {cityName}
+                            </Link>
+                            {area && (
+                                <>
+                                    <ChevronRight size={13} />
+                                    <Link href={paths.neighborhood(lang, place.city, area)} className="hover:text-white">
+                                        {area}
+                                    </Link>
+                                    <ChevronRight size={13} />
+                                    <Link href={paths.neighborhoodCategory(lang, place.city, area, place.category)} className="hover:text-white">
+                                        {CATEGORY_PLURALS[place.category as keyof typeof CATEGORY_PLURALS]?.[lang] ?? category}
+                                    </Link>
+                                </>
+                            )}
+                        </nav>
+                        <h1 className="text-[2.3rem] leading-[1.02] font-extrabold tracking-[-0.03em] drop-shadow-sm md:text-6xl">
+                            {place.name}
+                            {place.verified && (
+                                <BadgeCheck size={28} className="ml-2 inline-block fill-white align-[-0.08em] text-[#ff5b36]" aria-label={t.trust.verifiedTitle} />
+                            )}
+                        </h1>
+                        <p className="mt-2 text-[1rem] font-medium text-white/85">
+                            {place.cuisine ? `${category} · ${cuisineLabel(place.cuisine, lang, 3)}` : category}
+                            {` · ${[area, cityName].filter(Boolean).join(", ")}`}
+                        </p>
+                        <div className="mt-4 flex flex-wrap items-center gap-2 [&>*:empty]:hidden">
+                            <span className="rounded-full bg-white/95 px-3 py-1.5 text-[#17120e] shadow-card empty:hidden">
+                                <OpenBadge hours={place.hours} compact />
+                            </span>
+                            {hasPrice && (
+                                <span className="rounded-full bg-white/95 px-3 py-1.5 text-[#17120e] shadow-card">
+                                    <PriceLabel min={place.priceMin} max={place.priceMax} className="text-xs !text-[#17120e]" />
+                                </span>
+                            )}
+                            {place.reviewCount > 0 && (
+                                <span className="rounded-full bg-white/95 px-3 py-1.5 text-[#17120e] shadow-card">
+                                    <Rating rating={place.rating} count={place.reviewCount} />
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div className="mx-auto max-w-3xl px-4 pt-5 md:px-6">
                 <PlaceActions slug={place.slug} name={place.name} phone={phone} whatsapp={whatsapp} />
 
                 {place.description && (
@@ -281,7 +308,7 @@ export default async function PlacePage({ params }: Props) {
                                 <dd className="flex gap-2 text-sm text-text-2">
                                     <MapPin size={16} className="mt-0.5 shrink-0 text-brand-500" />
                                     <span>
-                                        {[place.address, area, "Yaoundé"].filter(Boolean).join(", ")}
+                                        {[place.address, area, cityName].filter(Boolean).join(", ")}
                                         {place.landmark && (
                                             <span className="mt-1 block text-muted">
                                                 {t.spot.howToFind} : {place.landmark}
@@ -435,36 +462,41 @@ export default async function PlacePage({ params }: Props) {
                     </div>
                 </section>
 
-                {place.photos.length > 0 && (
-                    <Section title={t.spot.onMap}>
-                        <div className="relative h-56 overflow-hidden rounded-2xl">
-                            <PlaceMap id={place.id} lat={place.lat} lng={place.lng} className="absolute inset-0" />
+                <Section title={t.spot.onMap}>
+                    <div className="relative h-60 overflow-hidden rounded-[1.4rem] shadow-card">
+                        <PlaceMap id={place.id} lat={place.lat} lng={place.lng} category={place.category} className="absolute inset-0" />
+                        <Link
+                            href={paths.directions(lang, place.slug)}
+                            className="nt-btn nt-btn-primary absolute right-3 bottom-3 h-11 px-4 text-sm"
+                        >
+                            <Navigation size={16} />
+                            {t.spot.directions}
+                        </Link>
+                    </div>
+                </Section>
+
+                {nearby.length > 0 && (
+                    <section className="border-t border-line py-6">
+                        <h2 className="nt-section-title mb-3">{t.spot.nearby}</h2>
+                        <div className="nt-scroll-x -mx-4 gap-3 px-4 md:mx-0 md:px-0">
+                            {nearby.map(({ place: item, distance }) => (
+                                <PlaceCard key={item.id} place={item} distance={distance} />
+                            ))}
                         </div>
-                    </Section>
+                    </section>
+                )}
+
+                {similar.length > 0 && (
+                    <section className="border-t border-line py-6">
+                        <h2 className="nt-section-title mb-3">{t.spot.similar}</h2>
+                        <div className="nt-scroll-x -mx-4 gap-3 px-4 md:mx-0 md:px-0">
+                            {similar.map(({ place: item }) => (
+                                <PlaceCard key={item.id} place={item} />
+                            ))}
+                        </div>
+                    </section>
                 )}
             </div>
-
-            {nearby.length > 0 && (
-                <section className="border-t border-line py-6 md:mx-0">
-                    <h2 className="nt-section-title mb-3 px-4 md:px-0">{t.spot.nearby}</h2>
-                    <div className="nt-scroll-x gap-3 px-4 md:px-0">
-                        {nearby.map(({ place: item, distance }) => (
-                            <PlaceCard key={item.id} place={item} distance={distance} />
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {similar.length > 0 && (
-                <section className="border-t border-line py-6">
-                    <h2 className="nt-section-title mb-3 px-4 md:px-0">{t.spot.similar}</h2>
-                    <div className="nt-scroll-x gap-3 px-4 md:px-0">
-                        {similar.map(({ place: item }) => (
-                            <PlaceCard key={item.id} place={item} />
-                        ))}
-                    </div>
-                </section>
-            )}
         </article>
     );
 }

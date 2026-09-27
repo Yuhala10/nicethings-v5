@@ -2,7 +2,6 @@ import { knownFacts } from "../places/display";
 import { distanceMeters, type LatLng } from "../places/geo";
 import { getOpenState, isOpenDuring } from "../places/hours";
 import type { PlaceSummary } from "../places/types";
-import { YAOUNDE_NEIGHBORHOODS } from "../tags";
 import type { DiscoveryQuery } from "./query";
 
 // Scores every place against a query and a context. Hard constraints
@@ -12,6 +11,7 @@ import type { DiscoveryQuery } from "./query";
 export type RankContext = {
     origin?: LatLng | null; // visitor position or chosen neighbourhood centre
     now?: Date | null;
+    areas?: readonly { name: string; lat: number; lng: number }[]; // the city's neighbourhoods
 };
 
 export type RankedPlace = {
@@ -80,7 +80,7 @@ export function rankPlaces(
     // everything time-based so server and browser agree on the order.
     const now = context.now === undefined ? new Date() : context.now;
     const area = query.neighborhood
-        ? YAOUNDE_NEIGHBORHOODS.find((item) => item.name === query.neighborhood)
+        ? context.areas?.find((item) => item.name === query.neighborhood) ?? null
         : null;
     const origin = area ? { lat: area.lat, lng: area.lng } : context.origin ?? null;
     const keywords = (query.keywords ?? []).map(normalizeWord);

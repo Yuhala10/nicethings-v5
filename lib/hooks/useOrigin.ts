@@ -1,88 +1,70 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { cityAt, type City } from "../cities";
 import type { LatLng } from "../places/geo";
-import { YAOUNDE_BOUNDS } from "../places/geo";
-import { YAOUNDE_NEIGHBORHOODS } from "../tags";
+import { useGeo } from "./useGeo";
 
-// Where the visitor is starting from: live GPS when allowed, otherwise the
-// neighbourhood they picked. Remembered on the phone between visits.
+// Where the visitor is starting from in a given city: their live GPS
+// position when they are in that city, otherwise the neighbourhood they
+// picked (remembered per city).
 
 export type Origin =
-    | { kind: "gps"; position: LatLng; accuracy: number }
+    | { kind: "gps"; position: LatLng; accuracy: number; heading: number | null }
     | { kind: "area"; name: string; position: LatLng };
 
 export type LocateStatus = "idle" | "locating" | "denied" | "unavailable" | "outside";
 
-const KEY = "nt_origin_v1";
-const GRANTED_KEY = "nt_geo_granted";
+type AreaPoint = { name: string; lat: number; lng: number };
 
-function inYaounde({ lat, lng }: LatLng) {
-    const [[west, south], [east, north]] = YAOUNDE_BOUNDS;
-    return lat >= south && lat <= north && lng >= west && lng <= east;
-}
+export function useOrigin(city: City, areas: readonly AreaPoint[]) {
+    const geo = useGeo();
+    const key = `nt_area_${city.slug}`;
+    const [areaName, setAreaName] = useState<string | null>(null);
 
-export function useOrigin() {
-    const [origin, setOrigin] = useState<Origin | null>(null);
-    const [status, setStatus] = useState<LocateStatus>("idle");
-
-    const locate = useCallback(() => {
-        if (!("geolocation" in navigator)) {
-            setStatus("unavailable");
-            return;
-        }
-        setStatus("locating");
-        navigator.geolocation.getCurrentPosition(
-            (result) => {
-                const position = { lat: result.coords.latitude, lng: result.coords.longitude };
-                try {
-                    localStorage.setItem(GRANTED_KEY, "1");
-                } catch {}
-                // Someone opening the app from Douala or abroad still gets a
-                // useful Yaoundé map rather than an empty one.
-                if (!inYaounde(position)) {
-                    setStatus("outside");
-                    return;
-                }
-                setOrigin({ kind: "gps", position, accuracy: result.coords.accuracy });
-                setStatus("idle");
-            },
-            (error) => setStatus(error.code === error.PERMISSION_DENIED ? "denied" : "unavailable"),
-            { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
-        );
-    }, []);
-
-    const chooseArea = useCallback((name: string | null) => {
-        if (!name) {
-            setOrigin(null);
-            try {
-                localStorage.removeItem(KEY);
-            } catch {}
-            return;
-        }
-        const area = YAOUNDE_NEIGHBORHOODS.find((item) => item.name === name);
-        if (!area) return;
-        setOrigin({ kind: "area", name: area.name, position: { lat: area.lat, lng: area.lng } });
-        setStatus("idle");
-        try {
-            localStorage.setItem(KEY, area.name);
-        } catch {}
-    }, []);
-
-    // Restore: re-use GPS silently if the visitor allowed it before,
-    // otherwise their last chosen neighbourhood.
     useEffect(() => {
-        let granted = false;
-        let area: string | null = null;
         try {
-            granted = localStorage.getItem(GRANTED_KEY) === "1";
-            area = localStorage.getItem(KEY);
+            setAreaName(localStorage.getItem(key));
         } catch {}
+    }, [key]);
 
-         
-        if (area) chooseArea(area);
-        if (granted) locate();
-    }, [chooseArea, locate]);
+    const gpsCity = geo.position ? cityAt(geo.position.lat, geo.position.lng) : null;
+    const inCity = gpsCity?.slug === city.slug;
 
-    return { origin, status, locate, chooseArea };
+    const origin = useMemo<Origin | null>(() => {
+        if (geo.position && inCity) {
+            return {
+                kind: "gps",
+                position: { lat: geo.position.lat, lng: geo.position.lng },
+                accuracy: geo.position.accuracy,
+                heading: geo.position.heading,
+            };
+        }
+        const area = areaName ? areas.find((item) => item.name === areaName) : null;
+        return area ? { kind: "area", name: area.name, position: { lat: area.lat, lng: area.lng } } : null;
+    }, [geo.position, inCity, areaName, areas]);
+
+    const chooseArea = useCallback(
+        (name: string | null) => {
+            setAreaName(name);
+            try {
+                if (name) localStorage.setItem(key, name);
+                else localStorage.removeItem(key);
+            } catch {}
+        },
+        [key]
+    );
+
+    const status: LocateStatus =
+        geo.status === "locating"
+            ? "locating"
+            : geo.status === "denied"
+              ? "denied"
+              : geo.status === "unavailable"
+                ? "unavailable"
+                : geo.position && !inCity
+                  ? "outside"
+                  : "idle";
+
+    return { origin, status, locate: geo.start, chooseArea, gpsCity, geoActive: geo.status === "active" };
 }
