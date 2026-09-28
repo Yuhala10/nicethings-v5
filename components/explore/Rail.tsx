@@ -4,8 +4,8 @@ import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLocale } from "../site/LocaleProvider";
 
-// A titled, horizontally scrolling row. Marked no-drag so swiping sideways
-// inside the map sheet scrolls the row instead of moving the sheet.
+// A titled, horizontally scrolling row. Sideways swipes scroll the row;
+// up/down swipes that start on a card still scroll the page.
 export default function Rail({
     title,
     subtitle,
@@ -36,7 +36,7 @@ export default function Rail({
                     </button>
                 )}
             </div>
-            <div className="nt-scroll-x touch-pan-x gap-3 px-4 pb-1" data-no-drag>
+            <div className="nt-scroll-x gap-3 px-4 pb-1">
                 {children}
             </div>
         </section>

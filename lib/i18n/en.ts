@@ -202,6 +202,8 @@ export const en: Dictionary = {
         arrivedVoice: "You have arrived at {name}. Enjoy!",
         seePlace: "See the place",
         done: "Done",
+        showMap: "See the map",
+        showDetails: "Show the route details",
     },
     reviews: {
         title: "Reviews",

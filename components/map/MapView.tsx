@@ -40,6 +40,7 @@ type Props = {
     route?: MapRoute | null;
     follow?: FollowCamera | null; // navigation camera
     labels?: { name: string; lat: number; lng: number; count: number }[]; // neighbourhood names
+    fitKey?: string | number; // change it to re-frame the route (e.g. a panel resized)
     center?: LatLng;
     zoom?: number;
     bounds?: [[number, number], [number, number]]; // [[west, south], [east, north]]
@@ -100,7 +101,8 @@ function loadStyle(dark: boolean) {
                 })
         );
     }
-    return styleCache.get(url)!;
+    // Each map gets its own copy: MapLibre modifies the style it is given.
+    return styleCache.get(url)!.then((style) => structuredClone(style));
 }
 
 function loadImage(src: string) {
@@ -413,6 +415,7 @@ export default function MapView({
     route = null,
     follow = null,
     labels,
+    fitKey,
     center = { lat: 3.8667, lng: 11.5167 },
     zoom = 12.4,
     bounds,
@@ -619,6 +622,22 @@ export default function MapView({
         frame = requestAnimationFrame(animate);
         return () => cancelAnimationFrame(frame);
     }, [routeKey, ready]);
+
+    // Re-frame the whole trip when the space around the map changes.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!ready || !map || fitKey === undefined || follow || !route || route.coordinates.length < 2) return;
+        const lngs = route.coordinates.map((p) => p[0]);
+        const lats = route.coordinates.map((p) => p[1]);
+        map.fitBounds(
+            [
+                [Math.min(...lngs), Math.min(...lats)],
+                [Math.max(...lngs), Math.max(...lats)],
+            ],
+            { padding: paddingRef.current, duration: 650, maxZoom: 16.5 }
+        );
+         
+    }, [fitKey, ready]);
 
     // While navigating: the part already driven turns grey.
     const progress = route?.progress ?? 0;

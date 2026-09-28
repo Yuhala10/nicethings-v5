@@ -204,6 +204,8 @@ export const fr = {
         arrivedVoice: "Tu es arrivé à {name}. Profite bien !",
         seePlace: "Voir la fiche du lieu",
         done: "Terminer",
+        showMap: "Voir la carte",
+        showDetails: "Afficher l'itinéraire",
     },
     reviews: {
         title: "Avis",

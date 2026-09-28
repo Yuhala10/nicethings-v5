@@ -12,6 +12,7 @@ import {
     ArrowUpRight,
     Car,
     ChevronDown,
+    ChevronUp,
     CornerUpLeft,
     CornerUpRight,
     Flag,
@@ -128,6 +129,25 @@ export default function Navigator({
     const [loading, setLoading] = useState(false);
     const [failed, setFailed] = useState(false);
     const [phase, setPhase] = useState<Phase>("preview");
+    // Phone: the details panel can be pulled down to a slim bar to see the map.
+    const [collapsed, setCollapsed] = useState(false);
+    const swipe = useRef<{ y: number; t: number } | null>(null);
+    const swipeHandlers = {
+        onPointerDown: (event: React.PointerEvent) => {
+            swipe.current = { y: event.clientY, t: Date.now() };
+        },
+        onPointerUp: (event: React.PointerEvent) => {
+            const start = swipe.current;
+            swipe.current = null;
+            if (!start) return;
+            const dy = event.clientY - start.y;
+            if (dy > 36) setCollapsed(true);
+            else if (dy < -36) setCollapsed(false);
+        },
+        onPointerCancel: () => {
+            swipe.current = null;
+        },
+    };
     const [muted, setMuted] = useState(false);
     const [stepsOpen, setStepsOpen] = useState(false);
     const [pickerOpen, setPickerOpen] = useState(false);
@@ -318,8 +338,14 @@ export default function Navigator({
                 padding={
                     phase === "navigating"
                         ? { top: 200, bottom: 160, left: 40, right: 40 }
-                        : { top: 90, bottom: typeof window !== "undefined" && window.innerWidth >= 768 ? 90 : 420, left: 50, right: 50 }
+                        : {
+                              top: 90,
+                              bottom: typeof window !== "undefined" && window.innerWidth >= 768 ? 90 : collapsed ? 200 : 420,
+                              left: 50,
+                              right: 50,
+                          }
                 }
+                fitKey={collapsed ? "collapsed" : "open"}
             />
 
             {/* ---------------- Preview ---------------- */}
@@ -341,15 +367,66 @@ export default function Navigator({
                             </Link>
                         </motion.div>
 
+                        {collapsed && (
+                            <motion.button
+                                key="peek"
+                                type="button"
+                                initial={{ y: 80, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: 80, opacity: 0 }}
+                                transition={{ type: "spring", stiffness: 420, damping: 38 }}
+                                onClick={() => setCollapsed(false)}
+                                {...swipeHandlers}
+                                className="absolute inset-x-3 bottom-[max(env(safe-area-inset-bottom),0.75rem)] z-30 flex touch-none items-center gap-3 rounded-[1.6rem] border border-line bg-bg p-3 pl-4 text-left shadow-float md:hidden"
+                                aria-label={t.route.showDetails}
+                            >
+                                <span className="absolute top-1.5 left-1/2 h-1 w-9 -translate-x-1/2 rounded-full bg-line-strong" />
+                                <span className="min-w-0 flex-1 pt-1.5">
+                                    <span className="block truncate font-display text-[1.02rem] font-extrabold">{place.name}</span>
+                                    <span className="block truncate text-sm font-semibold text-muted">
+                                        {route ? `${formatDuration(route.duration, locale)} · ${formatDistance(route.distance, locale)}` : t.route.loading}
+                                    </span>
+                                </span>
+                                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-2">
+                                    <ChevronUp size={20} />
+                                </span>
+                                <span
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        begin();
+                                    }}
+                                    className="nt-btn nt-btn-primary h-11 shrink-0 px-4 text-sm"
+                                >
+                                    <Navigation size={16} />
+                                    {t.route.start}
+                                </span>
+                            </motion.button>
+                        )}
+
                         <motion.section
                             initial={{ y: 60, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 80, opacity: 0 }}
                             transition={{ type: "spring", stiffness: 380, damping: 38 }}
-                            className="absolute inset-x-0 bottom-0 z-30 max-h-[70dvh] overflow-y-auto rounded-t-[2rem] border-t border-line bg-bg px-4 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] shadow-float md:inset-y-0 md:left-0 md:max-h-none md:w-[440px] md:rounded-none md:border-t-0 md:border-r md:px-6 md:pt-8"
+                            className={`${collapsed ? "hidden md:block" : ""} absolute inset-x-0 bottom-0 z-30 max-h-[70dvh] overflow-y-auto rounded-t-[2rem] border-t border-line bg-bg px-4 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] shadow-float md:inset-y-0 md:left-0 md:max-h-none md:w-[440px] md:rounded-none md:border-t-0 md:border-r md:px-6 md:pt-8`}
                             aria-labelledby="route-title"
                         >
-                            <div className="mx-auto mb-3 h-1.5 w-11 rounded-full bg-line-strong md:hidden" />
+                            {/* Grab zone: swipe down (or tap) to see the map. */}
+                            <button
+                                type="button"
+                                onClick={() => setCollapsed(true)}
+                                {...swipeHandlers}
+                                className="-mx-4 -mt-3 mb-1 flex w-[calc(100%+2rem)] touch-none flex-col items-center gap-1 pt-3 pb-2 md:hidden"
+                                aria-label={t.route.showMap}
+                            >
+                                <span className="h-1.5 w-11 rounded-full bg-line-strong" />
+                                <span className="inline-flex items-center gap-1 text-[0.72rem] font-bold text-muted">
+                                    <ChevronDown size={14} />
+                                    {t.route.showMap}
+                                </span>
+                            </button>
 
                             <div className="mb-4 flex items-center gap-3">
                                 <span

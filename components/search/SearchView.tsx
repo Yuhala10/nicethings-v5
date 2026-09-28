@@ -73,7 +73,6 @@ export default function SearchView({
     const [areaPickerOpen, setAreaPickerOpen] = useState(false);
     const [cityPickerOpen, setCityPickerOpen] = useState(false);
     const [primer, setPrimer] = useState(false);
-    const [chipsHidden, setChipsHidden] = useState(false);
     const searchRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => rememberCity(city.slug), [city.slug]);
@@ -93,19 +92,6 @@ export default function SearchView({
         } catch {}
     };
 
-    // Swipe up: the chip rows slide away to give results the screen; swipe
-    // down a little and they glide back.
-    useEffect(() => {
-        let last = window.scrollY;
-        const onScroll = () => {
-            const y = window.scrollY;
-            if (Math.abs(y - last) < 8) return;
-            setChipsHidden(y > 260 && y > last);
-            last = y;
-        };
-        window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
-    }, []);
 
      
     useEffect(() => setVisible(PAGE), [d.query, d.sort, origin]);
@@ -244,16 +230,12 @@ export default function SearchView({
                         </div>
                     )}
 
-                    <AnimatePresence initial={false}>
-                        {!chipsHidden && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0, x: -40 }}
-                                animate={{ height: "auto", opacity: 1, x: 0 }}
-                                exit={{ height: 0, opacity: 0, x: -60 }}
-                                transition={{ type: "spring", stiffness: 380, damping: 36 }}
-                                className="overflow-hidden"
-                            >
-                                <div className="nt-scroll-x -mx-4 mt-3 gap-2 px-4 md:mx-0 md:flex-wrap md:px-0">
+                </div>
+            </div>
+
+            <div className="mx-auto max-w-5xl md:px-2">
+                {/* Quick picks scroll away with the page: no layout work while scrolling. */}
+                <div className="nt-scroll-x gap-2 px-4 pt-4 md:flex-wrap">
                                     {INTENT_ORDER.map((key) => {
                                         const Icon = INTENT_ICONS[key];
                                         return (
@@ -291,13 +273,7 @@ export default function SearchView({
                                             </button>
                                         ))}
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </div>
 
-            <div className="mx-auto max-w-5xl md:px-2">
                 <AnimatePresence>
                     {showPrimer && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden px-4">
