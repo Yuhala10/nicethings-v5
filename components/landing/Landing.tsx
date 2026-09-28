@@ -295,7 +295,7 @@ export default function Landing({
                     </div>
                     <ul className="grid gap-3">
                         {[
-                            { icon: BadgeCheck, title: t.trust.verifiedTitle, body: t.landing.trustVerified, tone: "text-brand-500" },
+                            { icon: BadgeCheck, title: t.trust.verifiedTitle, body: t.landing.trustVerified, tone: "text-[#0095f6]" },
                             { icon: Sparkles, title: t.trust.submissionTitle, body: t.landing.trustCommunity, tone: "text-[#7c3aed]" },
                             { icon: MapIcon, title: t.trust.osmTitle, body: t.landing.trustOsm, tone: "text-[#0891b2]" },
                         ].map((item) => (

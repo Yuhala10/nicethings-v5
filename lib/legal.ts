@@ -33,6 +33,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 heading: "Ce que tu nous envoies",
                 body: [
                     "Quand tu proposes un lieu ou signales une erreur, on enregistre ce que tu écris (et ta position si tu l'ajoutes) pour vérifier et mettre à jour la fiche. N'y mets pas d'informations personnelles.",
+                    "Les mots tapés dans la recherche sont enregistrés de façon anonyme (sans lien avec toi ni ta position) pour savoir quels lieux ajouter.",
                 ],
             },
             {
@@ -66,6 +67,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 heading: "What you send us",
                 body: [
                     "When you suggest a place or report an error, we store what you write (and your position if you add it) to check and update the listing. Please don't include personal information.",
+                    "Words typed in search are stored anonymously (not linked to you or your position) so we know which places to add.",
                 ],
             },
             {

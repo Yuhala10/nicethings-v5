@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { BadgeCheck, Heart, Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { fill } from "@/lib/i18n";
 import { formatPriceRange, formatTime } from "@/lib/i18n/format";
 import { categoryStyle } from "@/lib/places/display";
@@ -11,6 +11,7 @@ import type { PlaceHours } from "@/lib/places/types";
 import { useNow } from "@/lib/hooks/useNow";
 import { useSaved } from "@/lib/hooks/useSaved";
 import { useLocale } from "../site/LocaleProvider";
+import VerifiedTick from "./VerifiedTick";
 
 export function OpenBadge({ hours, compact = false }: { hours: PlaceHours; compact?: boolean }) {
     const { locale, t } = useLocale();
@@ -88,13 +89,7 @@ export function Rating({ rating, count }: { rating: number; count: number }) {
 export function VerifiedMark({ verified, className = "" }: { verified: boolean; className?: string }) {
     const { t } = useLocale();
     if (!verified) return null;
-    return (
-        <BadgeCheck
-            size={16}
-            className={`shrink-0 fill-brand-500 text-surface ${className}`}
-            aria-label={t.trust.verifiedTitle}
-        />
-    );
+    return <VerifiedTick size={16} className={className} label={t.trust.verifiedTitle} />;
 }
 
 // The place's picture, or — for the many places without one yet — a calm

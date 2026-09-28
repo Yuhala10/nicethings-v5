@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
-import { AtSign, BadgeCheck, ChevronRight, Clock3, Database, ExternalLink, Globe, MapPin, Navigation, Phone, Users, Wallet, type LucideIcon } from "lucide-react";
+import VerifiedTick from "@/components/place/VerifiedTick";
+import { AtSign, ChevronRight, Clock3, Database, ExternalLink, Globe, MapPin, Navigation, Phone, Users, Wallet, type LucideIcon } from "lucide-react";
 import BackButton from "@/components/site/BackButton";
 import HoursTable from "@/components/place/HoursTable";
 import PlaceActions from "@/components/place/PlaceActions";
@@ -275,7 +276,9 @@ export default async function PlacePage({ params }: Props) {
                         <h1 className="text-[2.3rem] leading-[1.02] font-extrabold tracking-[-0.03em] drop-shadow-sm md:text-6xl">
                             {place.name}
                             {place.verified && (
-                                <BadgeCheck size={28} className="ml-2 inline-block fill-white align-[-0.08em] text-[#ff5b36]" aria-label={t.trust.verifiedTitle} />
+                                <span className="ml-2 inline-grid h-8 w-8 place-items-center rounded-full bg-white align-[-0.12em] md:h-11 md:w-11">
+                                    <VerifiedTick size={30} className="md:h-10 md:w-10" label={t.trust.verifiedTitle} />
+                                </span>
                             )}
                         </h1>
                         <p className="mt-2 text-[1rem] font-medium text-white/85">
@@ -428,7 +431,7 @@ export default async function PlacePage({ params }: Props) {
                     <div className="rounded-[1.6rem] bg-surface-2 p-5">
                         <div className="mb-1.5 flex items-center gap-2 font-bold">
                             {place.verified ? (
-                                <BadgeCheck size={18} className="fill-brand-500 text-surface" />
+                                <VerifiedTick size={20} />
                             ) : place.source === "submission" ? (
                                 <Users size={18} className="text-muted" />
                             ) : (

@@ -7,7 +7,7 @@
         radial-gradient(60% 45% at 80% 0%, rgba(255, 106, 43, 0.35), transparent 70%),
         radial-gradient(50% 40% at 0% 100%, rgba(124, 58, 237, 0.25), transparent 70%),
         #0b0806;
-    font-family: "DM Sans", system-ui, sans-serif;
+    font-family: var(--font-body), system-ui, sans-serif;
     color: #17120e;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .brandName {
-    font-family: "Manrope", system-ui, sans-serif;
+    font-family: var(--font-heading), system-ui, sans-serif;
     font-weight: 800;
     font-size: 1.15rem;
     letter-spacing: -0.02em;
@@ -52,7 +52,7 @@
 }
 
 .title {
-    font-family: "Manrope", system-ui, sans-serif;
+    font-family: var(--font-heading), system-ui, sans-serif;
     font-size: 1.7rem;
     font-weight: 800;
     letter-spacing: -0.03em;

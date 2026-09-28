@@ -1,1302 +1,303 @@
 "use client";
 
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { BadgeCheck, ChevronLeft, ChevronRight, Download, ImageIcon, Plus, Search, Star } from "lucide-react";
+import VerifiedTick from "@/components/place/VerifiedTick";
+import { Empty, PageHeader, Skeleton, StatusBadge, timeAgo, useAdminData, useAdminToast } from "@/components/admin/ui";
+import { SOURCE_LABELS } from "@/lib/admin-labels";
+import { CITIES } from "@/lib/cities";
+import { CATEGORIES } from "@/lib/tags";
 
-import {
-    AlertTriangle,
-    ArrowLeft,
-    ArrowRight,
-    Check,
-    CheckCircle2,
-    Clock3,
-    Eye,
-    ExternalLink,
-    MapPin,
-    RefreshCw,
-    Search,
-    ShieldCheck,
-    Star,
-    Store,
-    X,
-} from "lucide-react";
-
-import {
-    adminGet,
-    adminPatch,
-} from "@/lib/admin-client";
-
-type Spot = {
+type Row = {
     id: string;
+    slug: string;
     name: string;
-    slug: string | null;
-    category: string | null;
-    cuisine: string | null;
+    category: string;
     city: string | null;
     neighborhood: string | null;
-    address: string | null;
-    rating: number | null;
-    review_count: number | null;
-    verified: boolean | null;
-    featured: boolean | null;
-    status: string | null;
-    created_at: string | null;
-    updated_at: string | null;
+    status: string;
+    verified: boolean;
+    featured: boolean;
+    minimum_price: number | null;
+    maximum_price: number | null;
+    opening_time: string | null;
+    phone: string | null;
+    source: string;
+    updated_at: string;
+    photo_count: number;
 };
 
-type Filter =
-    | "ALL"
-    | "APPROVED"
-    | "PENDING"
-    | "REJECTED";
+const STATUS_FILTERS = [
+    ["", "Tous"],
+    ["APPROVED", "Publiés"],
+    ["DRAFT", "Brouillons"],
+    ["CLOSED", "Fermés"],
+    ["REJECTED", "Refusés"],
+] as const;
 
-export default function AdminSpotsPage() {
-    const [spots, setSpots] =
-        useState<Spot[]>([]);
+const MISSING_FILTERS = [
+    ["photo", "Sans photo"],
+    ["price", "Sans prix"],
+    ["hours", "Sans horaires"],
+    ["phone", "Sans téléphone"],
+] as const;
 
-    const [loading, setLoading] =
-        useState(true);
-
-    const [refreshing, setRefreshing] =
-        useState(false);
-
-    const [error, setError] =
-        useState<string | null>(
-            null
-        );
-
-    const [search, setSearch] =
-        useState("");
-
-    const [filter, setFilter] =
-        useState<Filter>(
-            "ALL"
-        );
-
-    const [selectedSpot, setSelectedSpot] =
-        useState<Spot | null>(
-            null
-        );
-
-    const [actionLoading, setActionLoading] =
-        useState(false);
-
-    const [toast, setToast] =
-        useState<string | null>(
-            null
-        );
-
-    const loadSpots =
-        useCallback(
-            async (
-                refresh = false
-            ) => {
-                if (refresh) {
-                    setRefreshing(
-                        true
-                    );
-                } else {
-                    setLoading(
-                        true
-                    );
-                }
-
-                setError(null);
-
-                try {
-                    const result =
-                        await adminGet<{
-                            rows: Spot[];
-                        }>("spots");
-
-                    setSpots(
-                        result.rows
-                    );
-                } catch (err) {
-                    console.error(
-                        "Admin spots error:",
-                        err
-                    );
-
-                    setError(
-                        "We couldn't load the spots."
-                    );
-                } finally {
-                    setLoading(
-                        false
-                    );
-
-                    setRefreshing(
-                        false
-                    );
-                }
-            },
-            []
-        );
-
-    useEffect(() => {
-        void loadSpots();
-    }, [loadSpots]);
-
-    useEffect(() => {
-        if (!toast) {
-            return;
-        }
-
-        const timer =
-            window.setTimeout(
-                () =>
-                    setToast(
-                        null
-                    ),
-                3000
-            );
-
-        return () =>
-            window.clearTimeout(
-                timer
-            );
-    }, [toast]);
-
-    const filteredSpots =
-        useMemo(() => {
-            const query =
-                search
-                    .trim()
-                    .toLowerCase();
-
-            return spots.filter(
-                (spot) => {
-                    const matchesFilter =
-                        filter ===
-                        "ALL" ||
-                        (
-                            spot.status ??
-                            ""
-                        ).toUpperCase() ===
-                        filter;
-
-                    if (
-                        !matchesFilter
-                    ) {
-                        return false;
-                    }
-
-                    if (!query) {
-                        return true;
-                    }
-
-                    return [
-                        spot.name,
-                        spot.category,
-                        spot.cuisine,
-                        spot.city,
-                        spot.neighborhood,
-                        spot.address,
-                    ]
-                        .filter(
-                            (
-                                value
-                            ) =>
-                                Boolean(
-                                    value
-                                )
-                        )
-                        .some(
-                            (
-                                value
-                            ) =>
-                                String(
-                                    value
-                                )
-                                    .toLowerCase()
-                                    .includes(
-                                        query
-                                    )
-                        );
-                }
-            );
-        }, [
-            spots,
-            search,
-            filter,
-        ]);
-
-    const counts = useMemo(
-        () => ({
-            all: spots.length,
-            approved: spots.filter(
-                (spot) =>
-                    spot.status ===
-                    "APPROVED"
-            ).length,
-            pending: spots.filter(
-                (spot) =>
-                    spot.status ===
-                    "PENDING"
-            ).length,
-            rejected: spots.filter(
-                (spot) =>
-                    spot.status ===
-                    "REJECTED"
-            ).length,
-        }),
-        [spots]
-    );
-
-    async function updateSpotStatus(
-        spot: Spot,
-        status: Exclude<
-            Filter,
-            "ALL"
-        >
-    ) {
-        setActionLoading(
-            true
-        );
-
-        try {
-            await adminPatch(
-                `spots/${spot.id}`,
-                { status }
-            );
-
-            setSpots(
-                (
-                    current
-                ) =>
-                    current.map(
-                        (
-                            item
-                        ) =>
-                            item.id ===
-                                spot.id
-                                ? {
-                                    ...item,
-                                    status,
-                                }
-                                : item
-                    )
-            );
-
-            setSelectedSpot(
-                null
-            );
-
-            setToast(
-                `${spot.name} marked ${status.toLowerCase()}.`
-            );
-        } catch (err) {
-            console.error(
-                "Spot status update error:",
-                err
-            );
-
-            setToast(
-                "We couldn't update this spot."
-            );
-        } finally {
-            setActionLoading(
-                false
-            );
-        }
-    }
-
-    async function toggleVerified(
-        spot: Spot
-    ) {
-        setActionLoading(
-            true
-        );
-
-        const nextValue =
-            !Boolean(
-                spot.verified
-            );
-
-        try {
-            await adminPatch(
-                `spots/${spot.id}`,
-                { verified: nextValue }
-            );
-
-            setSpots(
-                (
-                    current
-                ) =>
-                    current.map(
-                        (
-                            item
-                        ) =>
-                            item.id ===
-                                spot.id
-                                ? {
-                                    ...item,
-                                    verified:
-                                        nextValue,
-                                }
-                                : item
-                    )
-            );
-
-            setSelectedSpot(
-                (
-                    current
-                ) =>
-                    current?.id ===
-                        spot.id
-                        ? {
-                            ...current,
-                            verified:
-                                nextValue,
-                        }
-                        : current
-            );
-
-            setToast(
-                nextValue
-                    ? "Spot verified."
-                    : "Verification removed."
-            );
-        } catch (err) {
-            console.error(
-                "Spot verification error:",
-                err
-            );
-
-            setToast(
-                "We couldn't update verification."
-            );
-        } finally {
-            setActionLoading(
-                false
-            );
-        }
-    }
-
-    async function toggleFeatured(
-        spot: Spot
-    ) {
-        setActionLoading(
-            true
-        );
-
-        const nextValue =
-            !Boolean(
-                spot.featured
-            );
-
-        try {
-            await adminPatch(
-                `spots/${spot.id}`,
-                { featured: nextValue }
-            );
-
-            setSpots(
-                (
-                    current
-                ) =>
-                    current.map(
-                        (
-                            item
-                        ) =>
-                            item.id ===
-                                spot.id
-                                ? {
-                                    ...item,
-                                    featured:
-                                        nextValue,
-                                }
-                                : item
-                    )
-            );
-
-            setSelectedSpot(
-                (
-                    current
-                ) =>
-                    current?.id ===
-                        spot.id
-                        ? {
-                            ...current,
-                            featured:
-                                nextValue,
-                        }
-                        : current
-            );
-
-            setToast(
-                nextValue
-                    ? "Spot featured."
-                    : "Spot removed from featured."
-            );
-        } catch (err) {
-            console.error(
-                "Spot featured update error:",
-                err
-            );
-
-            setToast(
-                "We couldn't update the featured status."
-            );
-        } finally {
-            setActionLoading(
-                false
-            );
-        }
-    }
-
+// A dot per fact: filled when known. Shows at a glance what a listing lacks.
+function Facts({ row }: { row: Row }) {
+    const facts = [
+        ["Photo", row.photo_count > 0],
+        ["Prix", Boolean(row.minimum_price || row.maximum_price)],
+        ["Horaires", Boolean(row.opening_time)],
+        ["Téléphone", Boolean(row.phone)],
+    ] as const;
     return (
-        <main className="nt-admin-page">
-            <div className="nt-admin-container">
-                <header className="nt-admin-header nt-admin-inner-header">
-                    <div>
-                        <Link
-                            href="/admin"
-                            className="nt-admin-back"
-                        >
-                            <ArrowLeft
-                                size={
-                                    14
-                                }
-                            />
-                            Admin dashboard
-                        </Link>
-
-                        <div className="nt-admin-eyebrow">
-                            <Store
-                                size={
-                                    14
-                                }
-                            />
-                            CONTENT MANAGEMENT
-                        </div>
-
-                        <h1>
-                            Spots
-                        </h1>
-
-                        <p>
-                            Manage the places
-                            published across
-                            NiceThings.
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="nt-admin-refresh"
-                        onClick={() =>
-                            void loadSpots(
-                                true
-                            )
-                        }
-                        disabled={
-                            refreshing
-                        }
-                    >
-                        <RefreshCw
-                            size={
-                                15
-                            }
-                            className={
-                                refreshing
-                                    ? "nt-admin-spin"
-                                    : ""
-                            }
-                        />
-                        Refresh
-                    </button>
-                </header>
-
-                {error && (
-                    <div className="nt-admin-error">
-                        <AlertTriangle
-                            size={
-                                17
-                            }
-                        />
-
-                        <span>
-                            {error}
-                        </span>
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                void loadSpots()
-                            }
-                        >
-                            Try again
-                        </button>
-                    </div>
-                )}
-
-                <section className="nt-admin-mini-stats">
-                    <MiniStat
-                        label="All spots"
-                        value={
-                            counts.all
-                        }
-                        active={
-                            filter ===
-                            "ALL"
-                        }
-                        onClick={() =>
-                            setFilter(
-                                "ALL"
-                            )
-                        }
-                    />
-
-                    <MiniStat
-                        label="Published"
-                        value={
-                            counts.approved
-                        }
-                        active={
-                            filter ===
-                            "APPROVED"
-                        }
-                        onClick={() =>
-                            setFilter(
-                                "APPROVED"
-                            )
-                        }
-                    />
-
-                    <MiniStat
-                        label="Pending"
-                        value={
-                            counts.pending
-                        }
-                        active={
-                            filter ===
-                            "PENDING"
-                        }
-                        onClick={() =>
-                            setFilter(
-                                "PENDING"
-                            )
-                        }
-                    />
-
-                    <MiniStat
-                        label="Rejected"
-                        value={
-                            counts.rejected
-                        }
-                        active={
-                            filter ===
-                            "REJECTED"
-                        }
-                        onClick={() =>
-                            setFilter(
-                                "REJECTED"
-                            )
-                        }
-                    />
-                </section>
-
-                <section className="nt-admin-toolbar">
-                    <div className="nt-admin-search">
-                        <Search
-                            size={
-                                17
-                            }
-                        />
-
-                        <input
-                            value={
-                                search
-                            }
-                            onChange={(
-                                event
-                            ) =>
-                                setSearch(
-                                    event
-                                        .target
-                                        .value
-                                )
-                            }
-                            placeholder="Search spots, cities, categories..."
-                            aria-label="Search spots"
-                        />
-
-                        {search && (
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setSearch(
-                                        ""
-                                    )
-                                }
-                                aria-label="Clear search"
-                            >
-                                <X
-                                    size={
-                                        15
-                                    }
-                                />
-                            </button>
-                        )}
-                    </div>
-
-                    <span className="nt-admin-result-count">
-                        {loading
-                            ? "Loading..."
-                            : `${filteredSpots.length} result${filteredSpots.length ===
-                                1
-                                ? ""
-                                : "s"
-                            }`}
-                    </span>
-                </section>
-
-                <section className="nt-admin-spots-panel">
-                    {loading ? (
-                        <SpotsSkeleton />
-                    ) : filteredSpots.length ===
-                        0 ? (
-                        <div className="nt-admin-large-empty">
-                            <div>
-                                <Search
-                                    size={
-                                        22
-                                    }
-                                />
-                            </div>
-
-                            <h2>
-                                No spots found
-                            </h2>
-
-                            <p>
-                                Try another search
-                                or change the
-                                current filter.
-                            </p>
-
-                            {(search ||
-                                filter !==
-                                "ALL") && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setSearch(
-                                                ""
-                                            );
-                                            setFilter(
-                                                "ALL"
-                                            );
-                                        }}
-                                    >
-                                        Clear filters
-                                    </button>
-                                )}
-                        </div>
-                    ) : (
-                        <div className="nt-admin-spots-list">
-                            {filteredSpots.map(
-                                (
-                                    spot
-                                ) => (
-                                    <article
-                                        className="nt-admin-spot-row"
-                                        key={
-                                            spot.id
-                                        }
-                                    >
-                                        <div className="nt-admin-spot-icon">
-                                            <MapPin
-                                                size={
-                                                    18
-                                                }
-                                            />
-                                        </div>
-
-                                        <div className="nt-admin-spot-main">
-                                            <div className="nt-admin-spot-title">
-                                                <h2>
-                                                    {
-                                                        spot.name
-                                                    }
-                                                </h2>
-
-                                                {spot.verified && (
-                                                    <span className="nt-admin-verified">
-                                                        <Check
-                                                            size={
-                                                                11
-                                                            }
-                                                        />
-                                                        Verified
-                                                    </span>
-                                                )}
-
-                                                {spot.featured && (
-                                                    <span className="nt-admin-featured">
-                                                        Featured
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <p>
-                                                {[
-                                                    spot.category,
-                                                    spot.cuisine,
-                                                    spot.city,
-                                                    spot.neighborhood,
-                                                ]
-                                                    .filter(
-                                                        Boolean
-                                                    )
-                                                    .join(
-                                                        " · "
-                                                    ) ||
-                                                    "No additional details"}
-                                            </p>
-
-                                            <div className="nt-admin-spot-meta">
-                                                {spot.rating !==
-                                                    null && (
-                                                        <span>
-                                                            <Star
-                                                                size={
-                                                                    12
-                                                                }
-                                                                fill="currentColor"
-                                                            />
-                                                            {Number(
-                                                                spot.rating
-                                                            ).toFixed(
-                                                                1
-                                                            )}
-                                                        </span>
-                                                    )}
-
-                                                <StatusBadge
-                                                    status={
-                                                        spot.status
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="nt-admin-spot-actions">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setSelectedSpot(
-                                                        spot
-                                                    )
-                                                }
-                                                title="Manage spot"
-                                            >
-                                                <Eye
-                                                    size={
-                                                        16
-                                                    }
-                                                />
-                                                <span>
-                                                    Manage
-                                                </span>
-                                            </button>
-
-                                            {spot.slug && (
-                                                <Link
-                                                    href={`/spots/${spot.slug}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    title="View public page"
-                                                >
-                                                    <ExternalLink
-                                                        size={
-                                                            15
-                                                        }
-                                                    />
-                                                </Link>
-                                            )}
-                                        </div>
-                                    </article>
-                                )
-                            )}
-                        </div>
-                    )}
-                </section>
-
-                <footer className="nt-admin-footer">
-                    <div>
-                        <ShieldCheck
-                            size={
-                                14
-                            }
-                        />
-                        NiceThings Admin
-                    </div>
-
-                    <span>
-                        Content management
-                    </span>
-                </footer>
-            </div>
-
-            {selectedSpot && (
-                <SpotManagementModal
-                    spot={
-                        selectedSpot
-                    }
-                    loading={
-                        actionLoading
-                    }
-                    close={() =>
-                        setSelectedSpot(
-                            null
-                        )
-                    }
-                    updateStatus={
-                        updateSpotStatus
-                    }
-                    toggleVerified={
-                        toggleVerified
-                    }
-                    toggleFeatured={
-                        toggleFeatured
-                    }
-                />
-            )}
-
-            {toast && (
-                <div className="nt-admin-toast">
-                    <CheckCircle2
-                        size={
-                            16
-                        }
-                    />
-                    {toast}
-                </div>
-            )}
-        </main>
-    );
-}
-
-function MiniStat({
-    label,
-    value,
-    active,
-    onClick,
-}: {
-    label: string;
-    value: number;
-    active: boolean;
-    onClick: () => void;
-}) {
-    return (
-        <button
-            type="button"
-            className={
-                active
-                    ? "nt-admin-mini-stat active"
-                    : "nt-admin-mini-stat"
-            }
-            onClick={
-                onClick
-            }
-        >
-            <strong>
-                {value.toLocaleString(
-                    "en-US"
-                )}
-            </strong>
-
-            <span>
-                {label}
-            </span>
-        </button>
-    );
-}
-
-function StatusBadge({
-    status,
-}: {
-    status: string | null;
-}) {
-    const normalized =
-        (
-            status ??
-            "UNKNOWN"
-        ).toUpperCase();
-
-    let label =
-        "Unknown";
-
-    if (
-        normalized ===
-        "APPROVED"
-    ) {
-        label =
-            "Published";
-    } else if (
-        normalized ===
-        "PENDING"
-    ) {
-        label =
-            "Pending";
-    } else if (
-        normalized ===
-        "REJECTED"
-    ) {
-        label =
-            "Rejected";
-    }
-
-    return (
-        <span
-            className={`nt-admin-status ${normalized.toLowerCase()}`}
-        >
-            {label}
+        <span className="flex gap-1" aria-label={facts.map(([label, ok]) => `${label} ${ok ? "oui" : "non"}`).join(", ")}>
+            {facts.map(([label, ok]) => (
+                <span key={label} title={label} className={`h-2 w-2 rounded-full ${ok ? "bg-good" : "bg-line-strong"}`} />
+            ))}
         </span>
     );
 }
 
-function SpotManagementModal({
-    spot,
-    loading,
-    close,
-    updateStatus,
-    toggleVerified,
-    toggleFeatured,
-}: {
-    spot: Spot;
-    loading: boolean;
-    close: () => void;
-    updateStatus: (
-        spot: Spot,
-        status:
-            | "APPROVED"
-            | "PENDING"
-            | "REJECTED"
-    ) => Promise<void>;
-    toggleVerified: (
-        spot: Spot
-    ) => Promise<void>;
-    toggleFeatured: (
-        spot: Spot
-    ) => Promise<void>;
-}) {
+function PlacesList() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const params = useSearchParams();
+    const toast = useAdminToast();
+
+    const q = params.get("q") ?? "";
+    const [text, setText] = useState(q);
+    const [selected, setSelected] = useState<string[]>([]);
+    const [busy, setBusy] = useState(false);
+
+    const setParam = (changes: Record<string, string | null>) => {
+        const next = new URLSearchParams(params.toString());
+        for (const [key, value] of Object.entries(changes)) {
+            if (value) next.set(key, value);
+            else next.delete(key);
+        }
+        if (!("page" in changes)) next.delete("page");
+        router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    };
+
+    // Search as you type (debounced).
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            if (text !== q) setParam({ q: text || null });
+        }, 350);
+        return () => window.clearTimeout(timer);
+         
+    }, [text]);
+
+    const query = params.toString();
+    const { data, loading, error, reload } = useAdminData<{ rows: Row[]; total: number; pageSize: number }>(`places${query ? `?${query}` : ""}`);
+    const page = Number(params.get("page")) || 0;
+    const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
+
+     
+    useEffect(() => setSelected([]), [query]);
+
+    const allSelected = useMemo(() => Boolean(data?.rows.length) && data!.rows.every((row) => selected.includes(row.id)), [data, selected]);
+
+    const bulk = async (changes: Record<string, unknown>, label: string) => {
+        setBusy(true);
+        try {
+            const response = await fetch("/api/admin/places", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: selected, changes }),
+            });
+            const body = await response.json().catch(() => null);
+            if (!response.ok || !body?.ok) throw new Error(body?.message ?? "Échec.");
+            toast(`${body.updated} lieu${body.updated > 1 ? "x" : ""} : ${label}`);
+            setSelected([]);
+            await reload();
+        } catch (caught) {
+            toast((caught as Error).message, true);
+        } finally {
+            setBusy(false);
+        }
+    };
+
     return (
-        <div
-            className="nt-admin-modal-backdrop"
-            onClick={close}
-        >
-            <section
-                className="nt-admin-modal"
-                onClick={(event) =>
-                    event.stopPropagation()
-                }
-            >
-                <header className="nt-admin-modal-header">
-                    <div>
-                        <span>
-                            MANAGE SPOT
-                        </span>
-
-                        <h2>
-                            {spot.name}
-                        </h2>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={
-                            close
-                        }
-                        aria-label="Close"
-                    >
-                        <X
-                            size={
-                                19
-                            }
-                        />
-                    </button>
-                </header>
-
-                <div className="nt-admin-modal-content">
-                    <div className="nt-admin-modal-location">
-                        <MapPin
-                            size={
-                                16
-                            }
-                        />
-
-                        <span>
-                            {[
-                                spot.address,
-                                spot.neighborhood,
-                                spot.city,
-                            ]
-                                .filter(
-                                    Boolean
-                                )
-                                .join(
-                                    ", "
-                                ) ||
-                                "Location not provided"}
-                        </span>
-                    </div>
-
-                    <div className="nt-admin-modal-details">
-                        <Detail
-                            label="Category"
-                            value={
-                                spot.category ||
-                                "—"
-                            }
-                        />
-
-                        <Detail
-                            label="Cuisine"
-                            value={
-                                spot.cuisine ||
-                                "—"
-                            }
-                        />
-
-                        <Detail
-                            label="Rating"
-                            value={
-                                spot.rating !==
-                                    null
-                                    ? `${Number(
-                                        spot.rating
-                                    ).toFixed(
-                                        1
-                                    )} / 5`
-                                    : "No rating"
-                            }
-                        />
-
-                        <Detail
-                            label="Reviews"
-                            value={String(
-                                spot.review_count ??
-                                0
-                            )}
-                        />
-                    </div>
-
-                    <div className="nt-admin-modal-status">
-                        <span>
-                            Current status
-                        </span>
-
-                        <StatusBadge
-                            status={
-                                spot.status
-                            }
-                        />
-                    </div>
-
-                    <div className="nt-admin-modal-actions">
-                        <button
-                            type="button"
-                            disabled={
-                                loading ||
-                                spot.status ===
-                                "APPROVED"
-                            }
-                            onClick={() =>
-                                void updateStatus(
-                                    spot,
-                                    "APPROVED"
-                                )
-                            }
-                        >
-                            <CheckCircle2
-                                size={
-                                    16
-                                }
-                            />
-                            Publish
-                        </button>
-
-                        <button
-                            type="button"
-                            disabled={
-                                loading ||
-                                spot.status ===
-                                "PENDING"
-                            }
-                            onClick={() =>
-                                void updateStatus(
-                                    spot,
-                                    "PENDING"
-                                )
-                            }
-                        >
-                            <Clock3
-                                size={
-                                    16
-                                }
-                            />
-                            Set pending
-                        </button>
-
-                        <button
-                            type="button"
-                            className="danger"
-                            disabled={
-                                loading ||
-                                spot.status ===
-                                "REJECTED"
-                            }
-                            onClick={() =>
-                                void updateStatus(
-                                    spot,
-                                    "REJECTED"
-                                )
-                            }
-                        >
-                            <X
-                                size={
-                                    16
-                                }
-                            />
-                            Reject
-                        </button>
-                    </div>
-
-                    <div className="nt-admin-modal-secondary">
-                        <button
-                            type="button"
-                            disabled={
-                                loading
-                            }
-                            onClick={() =>
-                                void toggleVerified(
-                                    spot
-                                )
-                            }
-                        >
-                            <ShieldCheck
-                                size={
-                                    16
-                                }
-                            />
-
-                            {spot.verified
-                                ? "Remove verification"
-                                : "Mark as verified"}
-                        </button>
-
-                        <button
-                            type="button"
-                            disabled={
-                                loading
-                            }
-                            onClick={() =>
-                                void toggleFeatured(
-                                    spot
-                                )
-                            }
-                        >
-                            <Star
-                                size={
-                                    16
-                                }
-                                fill={
-                                    spot.featured
-                                        ? "currentColor"
-                                        : "none"
-                                }
-                            />
-
-                            {spot.featured
-                                ? "Remove from featured"
-                                : "Feature this spot"}
-                        </button>
-                    </div>
-
-                    {spot.slug && (
-                        <Link
-                            href={`/spots/${spot.slug}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="nt-admin-view-public"
-                        >
-                            <Eye
-                                size={
-                                    16
-                                }
-                            />
-                            View public page
-                            <ArrowRight
-                                size={
-                                    15
-                                }
-                            />
+        <>
+            <PageHeader
+                title="Lieux"
+                subtitle={data ? `${data.total.toLocaleString("fr-FR")} lieux correspondent` : "Chargement…"}
+                actions={
+                    <>
+                        { }
+                        <a href="/api/admin/places/export" download className="a-btn a-btn-soft">
+                            <Download size={16} />
+                            CSV
+                        </a>
+                        <Link href="/admin/spots/new" className="a-btn a-btn-primary">
+                            <Plus size={17} />
+                            Ajouter
                         </Link>
-                    )}
-                </div>
-            </section>
-        </div>
-    );
-}
+                    </>
+                }
+            />
 
-function Detail({
-    label,
-    value,
-}: {
-    label: string;
-    value: string;
-}) {
-    return (
-        <div>
-            <span>
-                {label}
-            </span>
-
-            <strong>
-                {value}
-            </strong>
-        </div>
-    );
-}
-
-function SpotsSkeleton() {
-    return (
-        <div className="nt-admin-spots-list">
-            {Array.from({
-                length: 7,
-            }).map(
-                (
-                    _,
-                    index
-                ) => (
-                    <div
-                        className="nt-admin-spot-row nt-admin-skeleton-spot"
-                        key={
-                            index
-                        }
-                    >
-                        <span />
-
-                        <div>
-                            <i />
-                            <i />
-                            <i />
-                        </div>
-
-                        <b />
+            {/* Filters */}
+            <div className="a-card mb-4 p-3">
+                <div className="flex flex-wrap gap-2">
+                    <div className="relative min-w-[200px] flex-1">
+                        <Search size={17} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted" />
+                        <input
+                            className="a-input pl-10"
+                            value={text}
+                            onChange={(event) => setText(event.target.value)}
+                            placeholder="Nom ou quartier…"
+                            type="search"
+                            aria-label="Chercher un lieu"
+                        />
                     </div>
-                )
+                    <select className="a-input w-auto min-w-[150px]" value={params.get("city") ?? ""} onChange={(event) => setParam({ city: event.target.value || null })} aria-label="Ville">
+                        <option value="">Toutes les villes</option>
+                        {CITIES.map((city) => (
+                            <option key={city.slug} value={city.slug}>
+                                {city.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {STATUS_FILTERS.map(([value, label]) => (
+                        <button key={label} type="button" className="a-chip" aria-pressed={(params.get("status") ?? "") === value} onClick={() => setParam({ status: value || null })}>
+                            {label}
+                        </button>
+                    ))}
+                    <span className="mx-1 w-px self-stretch bg-line" />
+                    {MISSING_FILTERS.map(([value, label]) => (
+                        <button
+                            key={value}
+                            type="button"
+                            className="a-chip"
+                            aria-pressed={params.get("missing") === value}
+                            onClick={() => setParam({ missing: params.get("missing") === value ? null : value })}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                    <button type="button" className="a-chip" aria-pressed={params.get("featured") === "1"} onClick={() => setParam({ featured: params.get("featured") === "1" ? null : "1" })}>
+                        <Star size={13} /> Coups de cœur
+                    </button>
+                </div>
+            </div>
+
+            {/* Bulk actions */}
+            {selected.length > 0 && (
+                <div className="sticky top-16 z-30 mb-3 flex flex-wrap items-center gap-2 rounded-2xl bg-ink p-2.5 pl-4 text-white shadow-lg md:top-3">
+                    <span className="mr-auto text-sm font-bold">{selected.length} sélectionné(s)</span>
+                    <button type="button" disabled={busy} onClick={() => bulk({ status: "APPROVED" }, "publié")} className="a-btn h-9 bg-white/10 text-white">
+                        Publier
+                    </button>
+                    <button type="button" disabled={busy} onClick={() => bulk({ status: "DRAFT" }, "dépublié")} className="a-btn h-9 bg-white/10 text-white">
+                        Dépublier
+                    </button>
+                    <button type="button" disabled={busy} onClick={() => bulk({ verified: true }, "vérifié")} className="a-btn h-9 bg-white/10 text-white">
+                        <BadgeCheck size={15} /> Vérifié
+                    </button>
+                    <button type="button" disabled={busy} onClick={() => bulk({ featured: true }, "coup de cœur")} className="a-btn h-9 bg-white/10 text-white">
+                        <Star size={15} /> Coup de cœur
+                    </button>
+                    <button type="button" onClick={() => setSelected([])} className="a-btn h-9 text-white/70">
+                        Annuler
+                    </button>
+                </div>
             )}
-        </div>
+
+            {error && <p className="mb-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-bad">{error}</p>}
+
+            {loading && !data ? (
+                <div className="flex flex-col gap-2">
+                    {Array.from({ length: 8 }, (_, index) => (
+                        <Skeleton key={index} className="h-16" />
+                    ))}
+                </div>
+            ) : data && data.rows.length === 0 ? (
+                <Empty title="Aucun lieu" body="Change les filtres, ou ajoute le lieu toi-même." action={<Link href="/admin/spots/new" className="a-btn a-btn-primary">Ajouter un lieu</Link>} />
+            ) : (
+                <div className={`a-card overflow-hidden transition-opacity ${loading ? "opacity-60" : ""}`}>
+                    <div className="flex items-center gap-3 border-b border-line px-4 py-2.5 text-xs font-bold text-muted">
+                        <input
+                            type="checkbox"
+                            className="h-4 w-4 accent-[#ff5b36]"
+                            checked={allSelected}
+                            onChange={() => setSelected(allSelected ? [] : (data?.rows ?? []).map((row) => row.id))}
+                            aria-label="Tout sélectionner"
+                        />
+                        <span className="flex-1">Lieu</span>
+                        <span className="hidden w-28 md:block">Infos</span>
+                        <span className="hidden w-24 md:block">Statut</span>
+                        <span className="hidden w-24 text-right md:block">Modifié</span>
+                    </div>
+                    <ul className="divide-y divide-line">
+                        {(data?.rows ?? []).map((row) => (
+                            <li key={row.id} className="flex items-center gap-3 px-4 py-3 transition hover:bg-soft/60">
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4 shrink-0 accent-[#ff5b36]"
+                                    checked={selected.includes(row.id)}
+                                    onChange={() => setSelected((current) => (current.includes(row.id) ? current.filter((id) => id !== row.id) : [...current, row.id]))}
+                                    aria-label={`Sélectionner ${row.name}`}
+                                />
+                                <Link href={`/admin/spots/${row.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                                    <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${row.photo_count ? "bg-green-50 text-good" : "bg-soft text-muted"}`}>
+                                        <ImageIcon size={17} />
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                        <span className="flex items-center gap-1.5">
+                                            <span className="truncate font-bold">{row.name}</span>
+                                            {row.verified && <VerifiedTick size={16} label="Vérifié" />}
+                                            {row.featured && <Star size={14} className="shrink-0 fill-amber-400 text-amber-400" />}
+                                        </span>
+                                        <span className="block truncate text-xs text-muted">
+                                            {[CATEGORIES[row.category as keyof typeof CATEGORIES]?.fr ?? row.category, row.neighborhood, row.city, SOURCE_LABELS[row.source]].filter(Boolean).join(" · ")}
+                                        </span>
+                                        <span className="mt-1 flex items-center gap-2 md:hidden">
+                                            <StatusBadge status={row.status} />
+                                            <Facts row={row} />
+                                        </span>
+                                    </span>
+                                    <span className="hidden w-28 md:block">
+                                        <Facts row={row} />
+                                    </span>
+                                    <span className="hidden w-24 md:block">
+                                        <StatusBadge status={row.status} />
+                                    </span>
+                                    <span className="hidden w-24 text-right text-xs text-muted md:block">{timeAgo(row.updated_at)}</span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {data && pages > 1 && (
+                <div className="mt-4 flex items-center justify-center gap-2">
+                    <button type="button" className="a-btn a-btn-soft h-10 w-10 px-0" disabled={page === 0} onClick={() => setParam({ page: String(page - 1) })} aria-label="Page précédente">
+                        <ChevronLeft size={18} />
+                    </button>
+                    <span className="text-sm font-bold tabular-nums">
+                        {page + 1} / {pages}
+                    </span>
+                    <button type="button" className="a-btn a-btn-soft h-10 w-10 px-0" disabled={page + 1 >= pages} onClick={() => setParam({ page: String(page + 1) })} aria-label="Page suivante">
+                        <ChevronRight size={18} />
+                    </button>
+                </div>
+            )}
+        </>
+    );
+}
+
+export default function PlacesPage() {
+    return (
+        <Suspense>
+            <PlacesList />
+        </Suspense>
     );
 }

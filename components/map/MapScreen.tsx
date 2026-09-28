@@ -100,6 +100,7 @@ export default function MapScreen({
         t,
         initialText: (params.get("q") ?? "").slice(0, 200),
         initialIntent: intentFromParam(params.get("i")),
+        city: city.slug,
     });
 
     const [selectedId, setSelectedId] = useState<string | null>(null);

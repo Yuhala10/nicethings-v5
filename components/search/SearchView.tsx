@@ -67,6 +67,7 @@ export default function SearchView({
         t,
         initialText: (params.get("q") ?? "").slice(0, 200),
         initialIntent: intentFromParam(params.get("i")),
+        city: city.slug,
     });
 
     const [visible, setVisible] = useState(PAGE);

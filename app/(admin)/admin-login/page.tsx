@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, KeyRound, ShieldCheck } from "lucide-react";
 import styles from "./login.module.css";
@@ -100,9 +101,9 @@ function Login() {
 
                     <p className={styles.foot}>Le code est vérifié sur le serveur, jamais dans le navigateur.</p>
                 </form>
-                <a href="/" className={styles.back}>
+                <Link href="/" className={styles.back}>
                     ← Retour au site
-                </a>
+                </Link>
             </div>
         </main>
     );

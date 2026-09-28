@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { buildRails } from "../concierge/discover";
 import { parseDiscoveryText } from "../concierge/parse";
 import { INTENTS, isEmptyQuery, mergeQueries, type DiscoveryQuery, type IntentKey } from "../concierge/query";
@@ -38,6 +38,7 @@ export function useDiscovery({
     t,
     initialText = "",
     initialIntent = null,
+    city,
 }: {
     places: PlaceSummary[];
     areas: readonly { name: string; lat: number; lng: number }[];
@@ -47,6 +48,7 @@ export function useDiscovery({
     t: Dictionary;
     initialText?: string;
     initialIntent?: IntentKey | null;
+    city?: string; // city slug, for the anonymous search log
 }) {
     const [text, setTextState] = useState(initialText);
     const deferredText = useDeferredValue(text);
@@ -110,6 +112,28 @@ export function useDiscovery({
         () => rankPlaces(places, query, { origin, now, areas }, sort),
         [places, query, origin, now, sort, areas]
     );
+
+    // Anonymous search log (words, city, result count) once typing settles:
+    // tells the team what people look for and what is missing.
+    const rankedCount = useRef(0);
+    useEffect(() => {
+        rankedCount.current = ranked.length;
+    });
+    const logged = useRef(new Set<string>());
+    useEffect(() => {
+        const query = deferredText.trim().toLowerCase();
+        if (query.length < 3 || !city || logged.current.has(query)) return;
+        const timer = window.setTimeout(() => {
+            logged.current.add(query);
+            fetch("/api/searches", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query, city, results: rankedCount.current }),
+                keepalive: true,
+            }).catch(() => {});
+        }, 1800);
+        return () => window.clearTimeout(timer);
+    }, [deferredText, city]);
 
     const pricedCount = useMemo(() => places.filter((place) => place.priceMin || place.priceMax).length, [places]);
     const openCount = useMemo(
