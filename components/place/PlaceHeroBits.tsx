@@ -7,7 +7,7 @@ import { Heart, Navigation, Share2 } from "lucide-react";
 import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { useSaved } from "@/lib/hooks/useSaved";
-import { sharePlace } from "../explore/SelectedCard";
+import { sharePlace } from "@/lib/share";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 

@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Compass, Heart, Home, Map as MapIcon, Plus } from "lucide-react";
+import { Heart, Home, Map as MapIcon, Plus, Search } from "lucide-react";
 import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
 import { useLocale } from "./LocaleProvider";
+import LocationHelp from "./LocationHelp";
+import NavProgress from "./NavProgress";
 import { OfflineBanner, ToastProvider } from "./Toast";
 
 type Layout = "landing" | "map" | "navigation" | "page";
@@ -18,7 +20,7 @@ type Layout = "landing" | "map" | "navigation" | "page";
 function layoutFor(pathname: string): Layout {
     if (/^\/(fr|en)\/?$/.test(pathname)) return "landing";
     if (/^\/(fr|en)\/y-aller\//.test(pathname)) return "navigation";
-    if (/^\/(fr|en)\/(carte|recherche)\/?$/.test(pathname) || /^\/(fr|en)\/[^/]+\/carte\/?$/.test(pathname)) return "map";
+    if (/^\/(fr|en)\/carte\/?$/.test(pathname) || /^\/(fr|en)\/[^/]+\/carte\/?$/.test(pathname)) return "map";
     return "page";
 }
 
@@ -76,7 +78,8 @@ function SiteHeader() {
     const city = useCurrentCity();
     const links = [
         { href: paths.home(locale), label: t.nav.home, exact: true },
-        { href: paths.map(locale), label: t.nav.map, match: "/carte" },
+        { href: paths.search(locale, city), label: t.nav.search, match: "/recherche" },
+        { href: paths.explore(locale, city), label: t.nav.map, match: "/carte" },
         { href: paths.city(locale, city), label: t.nav.guide },
         { href: paths.saved(locale), label: t.nav.saved },
     ];
@@ -87,7 +90,11 @@ function SiteHeader() {
                 <Logo />
                 <nav className="flex items-center gap-1 text-sm font-semibold">
                     {links.map((link) => {
-                        const active = link.exact ? pathname === link.href : link.match ? pathname.includes(link.match) : pathname.startsWith(link.href);
+                        const active = link.exact
+                            ? pathname === link.href
+                            : link.match
+                              ? pathname.includes(link.match)
+                              : pathname === link.href;
                         return (
                             <Link
                                 key={link.href}
@@ -117,6 +124,7 @@ export function FloatingNav() {
     const city = useCurrentCity();
     const links = [
         { href: paths.home(locale), label: t.nav.home },
+        { href: paths.search(locale, city), label: t.nav.search },
         { href: paths.city(locale, city), label: t.nav.guide },
         { href: paths.saved(locale), label: t.nav.saved },
     ];
@@ -141,14 +149,8 @@ export function TabBar() {
     const city = useCurrentCity();
     const tabs = [
         { key: "home", href: paths.home(locale), label: t.nav.home, icon: Home, active: pathname === paths.home(locale) },
-        { key: "map", href: paths.map(locale), label: t.nav.map, icon: MapIcon, active: pathname.includes("/carte") || pathname.includes("/recherche") },
-        {
-            key: "guide",
-            href: paths.city(locale, city),
-            label: t.nav.guide,
-            icon: Compass,
-            active: pathname.startsWith(paths.city(locale, city)) && !pathname.includes("/carte"),
-        },
+        { key: "search", href: paths.searchEntry(locale), label: t.nav.search, icon: Search, active: pathname.includes("/recherche") },
+        { key: "map", href: paths.map(locale), label: t.nav.map, icon: MapIcon, active: pathname.includes("/carte") },
         { key: "saved", href: paths.saved(locale), label: t.nav.saved, icon: Heart, active: pathname.startsWith(paths.saved(locale)) },
     ];
 
@@ -169,7 +171,7 @@ export function TabBar() {
                         )}
                         <Link
                             href={href}
-                            prefetch={key === "map" ? false : undefined}
+                            prefetch={key === "map" || key === "search" ? false : undefined}
                             className={`relative flex flex-col items-center gap-0.5 rounded-[1.2rem] py-1.5 text-[0.68rem] font-bold transition ${active ? "text-text" : "text-muted"}`}
                             aria-current={active ? "page" : undefined}
                         >
@@ -238,6 +240,8 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
     return (
         <ToastProvider>
             <OfflineBanner />
+            <LocationHelp />
+            <NavProgress />
             {layout === "page" && <SiteHeader />}
             {layout === "map" || layout === "navigation" ? (
                 children

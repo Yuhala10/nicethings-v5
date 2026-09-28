@@ -432,6 +432,42 @@ export const en: Dictionary = {
         ctaBody: "Open the map, say what you want, and let us guide you.",
         ctaMap: "Open the map",
     },
+    locationHelp: {
+        title: "Your location is blocked",
+        intro: "Your browser has blocked location for NiceThings. A website can't unblock it by itself, but it's quick:",
+        inAppIntro: "You opened NiceThings inside an app (WhatsApp, Instagram, Facebook…), which often blocks location.",
+        inApp: [
+            "Tap the ⋮ or ··· at the top right.",
+            "Choose “Open in Chrome” or “Open in Safari”.",
+            "Allow location when your browser asks.",
+        ],
+        ios: [
+            "Settings → Privacy & Security → Location Services: turn it on.",
+            "On the same page, “Safari Websites” → “While Using the App”.",
+            "In Safari, tap “aA” in the address bar → Website Settings → Location → Allow.",
+        ],
+        android: [
+            "Check that the phone's location (GPS) is on.",
+            "In Chrome, tap the icon left of the address → Permissions → Location → Allow.",
+            "Reload the page.",
+        ],
+        desktop: [
+            "Click the icon left of the site address.",
+            "Under “Location”, choose “Allow”.",
+            "Reload the page.",
+        ],
+        retry: "I've allowed it, try again",
+        later: "Later, I'll pick my neighbourhood",
+    },
+    searchPage: {
+        title: "Search {city}",
+        subtitle: "{count} places in {city}. Say what you want, or get inspired.",
+        showMap: "Show on the map",
+        guideLink: "The full {city} guide",
+    },
+    mapPage: {
+        list: "List",
+    },
     footer: {
         about: "NiceThings helps you discover Cameroon: where to eat, go out, relax and have fun in twenty cities, with turn-by-turn directions.",
         privacy: "Privacy",

@@ -56,14 +56,20 @@ export function cityBounds(city: City): [[number, number], [number, number]] {
     ];
 }
 
-// The city a coordinate belongs to, if any (used to pick the visitor's city).
+// The city a coordinate belongs to: generous, so the suburbs count too.
 export function cityAt(lat: number, lng: number) {
-    let best: { city: City; d: number } | null = null;
+    const nearest = nearestCity(lat, lng);
+    return nearest.distance <= nearest.city.radius * 2.5 ? nearest.city : null;
+}
+
+// Closest covered city, however far (to suggest a switch).
+export function nearestCity(lat: number, lng: number) {
+    let best = { city: CITIES[0], distance: Infinity };
     for (const city of CITIES) {
-        const d = Math.hypot(city.lat - lat, city.lng - lng);
-        if (d <= city.radius * 1.3 && (!best || d < best.d)) best = { city, d };
+        const distance = Math.hypot(city.lat - lat, (city.lng - lng) * Math.cos((lat * Math.PI) / 180));
+        if (distance < best.distance) best = { city, distance };
     }
-    return best?.city ?? null;
+    return best;
 }
 
 // Cameroon, for the national map on the landing page.

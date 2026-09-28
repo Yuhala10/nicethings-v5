@@ -39,6 +39,7 @@ type Props = {
     focus?: LatLng | null; // fly here when it changes
     route?: MapRoute | null;
     follow?: FollowCamera | null; // navigation camera
+    labels?: { name: string; lat: number; lng: number; count: number }[]; // neighbourhood names
     center?: LatLng;
     zoom?: number;
     bounds?: [[number, number], [number, number]]; // [[west, south], [east, north]]
@@ -75,6 +76,22 @@ function loadStyle(dark: boolean) {
                 .then((style) => {
                     // Quieter POI icons: our own pins are the stars of the map.
                     style.layers = style.layers.filter((layer) => !/^poi/.test(layer.id));
+                    for (const layer of style.layers) {
+                        if (layer.type !== "symbol") continue;
+                        // Quarter names (Bastos, Akwa…) and towns: bold and readable.
+                        if (layer.id === "label_other" || layer.id === "label_village" || layer.id === "label_town") {
+                            layer.minzoom = Math.min(layer.minzoom ?? 10, 10);
+                            layer.paint = {
+                                ...layer.paint,
+                                "text-color": dark ? "#f5e6d8" : "#3a2a1d",
+                                "text-halo-color": dark ? "rgba(14,11,9,0.9)" : "rgba(255,255,255,0.95)",
+                                "text-halo-width": 2,
+                            };
+                        }
+                        // Street names one zoom level earlier.
+                        if (layer.id === "highway-name-minor") layer.minzoom = 14;
+                        if (layer.id === "highway-name-path") layer.minzoom = 15;
+                    }
                     return style;
                 })
                 .catch((error) => {
@@ -208,12 +225,15 @@ async function addImages(map: MapLibreMap) {
             ];
         })
     );
+    // The map may have been closed while the icons were being drawn.
+    if (!map.style) return false;
     for (const [name, image] of images) {
         if (!map.hasImage(name)) map.addImage(name, image, { pixelRatio: PIXEL_RATIO });
     }
     if (!map.hasImage("puck")) map.addImage("puck", drawPuck(false), { pixelRatio: PIXEL_RATIO });
     if (!map.hasImage("puck-heading")) map.addImage("puck-heading", drawPuck(true), { pixelRatio: PIXEL_RATIO });
     if (!map.hasImage("flag")) map.addImage("flag", drawFlag(), { pixelRatio: PIXEL_RATIO });
+    return true;
 }
 
 function pinsToGeoJSON(pins: MapPin[]): FeatureCollection {
@@ -245,6 +265,31 @@ function addLayers(map: MapLibreMap, dark: boolean) {
     map.addSource("route", { type: "geojson", lineMetrics: true, data: EMPTY });
     map.addSource("markers", { type: "geojson", data: EMPTY });
     map.addSource("user", { type: "geojson", data: EMPTY });
+    map.addSource("areas", { type: "geojson", data: EMPTY });
+
+    // Neighbourhood names: how people in Cameroon find their way.
+    map.addLayer({
+        id: "area-labels",
+        type: "symbol",
+        source: "areas",
+        minzoom: 10.5,
+        maxzoom: 17.5,
+        layout: {
+            "text-field": ["upcase", ["get", "name"]],
+            "text-font": FONT,
+            "text-size": ["interpolate", ["linear"], ["zoom"], 10.5, ["+", 10.5, ["min", 3, ["/", ["get", "count"], 40]]], 15, 16],
+            "text-letter-spacing": 0.12,
+            "text-max-width": 8,
+            "symbol-sort-key": ["-", 0, ["get", "count"]],
+            "text-padding": 6,
+        },
+        paint: {
+            "text-color": dark ? "#fdba74" : "#9a3412",
+            "text-halo-color": dark ? "rgba(14,11,9,0.9)" : "rgba(255,255,255,0.95)",
+            "text-halo-width": 2.4,
+            "text-opacity": ["interpolate", ["linear"], ["zoom"], 10.5, 0.9, 16.5, 1, 17.5, 0],
+        },
+    });
 
     map.addLayer({
         id: "route-casing",
@@ -367,6 +412,7 @@ export default function MapView({
     focus = null,
     route = null,
     follow = null,
+    labels,
     center = { lat: 3.8667, lng: 11.5167 },
     zoom = 12.4,
     bounds,
@@ -432,8 +478,9 @@ export default function MapView({
 
             const onStyle = async () => {
                 if (!map || mapRef.current) return;
-                await addImages(map);
-                if (cancelled || !map) return;
+                if (cancelled) return;
+                const added = await addImages(map);
+                if (cancelled || !map || !added) return;
                 addLayers(map, dark);
                 mapRef.current = map;
                 setReady(true);
@@ -483,6 +530,18 @@ export default function MapView({
         if (!ready || !mapRef.current) return;
         (mapRef.current.getSource("places") as GeoJSONSource).setData(pinsToGeoJSON(pins));
     }, [pins, ready]);
+
+    useEffect(() => {
+        if (!ready || !mapRef.current) return;
+        (mapRef.current.getSource("areas") as GeoJSONSource).setData({
+            type: "FeatureCollection",
+            features: (labels ?? []).map((label) => ({
+                type: "Feature",
+                properties: { name: label.name, count: label.count },
+                geometry: { type: "Point", coordinates: [label.lng, label.lat] },
+            })),
+        });
+    }, [labels, ready]);
 
     // Selected pin: bigger, haloed, and gently brought into view.
     useEffect(() => {

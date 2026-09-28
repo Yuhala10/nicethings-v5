@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { cityAt, type City } from "../cities";
+import { cityAt, nearestCity, type City } from "../cities";
 import type { LatLng } from "../places/geo";
 import { useGeo } from "./useGeo";
 
@@ -28,8 +28,8 @@ export function useOrigin(city: City, areas: readonly AreaPoint[]) {
         } catch {}
     }, [key]);
 
-    const gpsCity = geo.position ? cityAt(geo.position.lat, geo.position.lng) : null;
-    const inCity = gpsCity?.slug === city.slug;
+    const gpsCity = geo.position ? cityAt(geo.position.lat, geo.position.lng) ?? nearestCity(geo.position.lat, geo.position.lng).city : null;
+    const inCity = geo.position ? cityAt(geo.position.lat, geo.position.lng)?.slug === city.slug : false;
 
     const origin = useMemo<Origin | null>(() => {
         if (geo.position && inCity) {

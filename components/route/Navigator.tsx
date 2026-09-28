@@ -52,7 +52,7 @@ import {
 } from "@/lib/route/navigation";
 import type { FollowCamera, MapRoute } from "../map/MapView";
 import AreaPicker from "../explore/AreaPicker";
-import { sharePlace } from "../explore/SelectedCard";
+import { sharePlace } from "@/lib/share";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
@@ -305,7 +305,7 @@ export default function Navigator({
     return (
         <div className="fixed inset-0 overflow-hidden bg-bg">
             <MapView
-                className={`absolute inset-0 ${phase === "preview" ? "md:left-[440px]" : ""}`}
+                className={`nt-fullmap absolute inset-0 ${phase === "preview" ? "md:left-[440px]" : ""}`}
                 pins={[]}
                 user={live ? { ...live, heading: phase === "navigating" ? null : geo.position?.heading ?? null } : null}
                 start={!live && origin?.kind === "area" ? origin.position : null}

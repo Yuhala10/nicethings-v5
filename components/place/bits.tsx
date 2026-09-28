@@ -168,7 +168,7 @@ export function SaveButton({ slug, className = "", onToggle }: { slug: string; c
             }}
             aria-pressed={saved}
             aria-label={saved ? t.spot.saved : t.spot.save}
-            className={`grid h-10 w-10 place-items-center rounded-full bg-surface/90 shadow-card backdrop-blur transition active:scale-90 ${className}`}
+            className={`grid h-10 w-10 place-items-center rounded-full bg-surface shadow-card transition active:scale-90 ${className}`}
         >
             <Heart
                 size={19}

@@ -383,9 +383,9 @@
 
     /* Bars that float over busy content need to stay readable. */
     .nt-glass-strong {
+        /* Solid on purpose: blurring what scrolls underneath is costly on
+           budget phones, and at this opacity nobody could see it anyway. */
         background: color-mix(in oklab, var(--nt-surface) 97%, transparent);
-        backdrop-filter: blur(24px) saturate(1.6);
-        -webkit-backdrop-filter: blur(24px) saturate(1.6);
     }
 
     .nt-glass {
@@ -468,11 +468,35 @@
 }
 
 .nt-open-dot {
+    position: relative;
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 999px;
     background: var(--color-open);
-    animation: nt-pulse 2s infinite;
+}
+
+/* The pulse is a separate layer animated with transform/opacity only, so
+   the browser never has to repaint the page for it. */
+.nt-open-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--color-open);
+    animation: nt-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    will-change: transform, opacity;
+}
+
+@keyframes nt-ping {
+    0% {
+        transform: scale(1);
+        opacity: 0.55;
+    }
+    75%,
+    100% {
+        transform: scale(2.6);
+        opacity: 0;
+    }
 }
 
 .nt-rise {
@@ -498,8 +522,8 @@
 }
 
 /* Map chrome in the brand style */
-.maplibregl-ctrl-top-left {
-    top: calc(env(safe-area-inset-top) + 4.4rem);
+.nt-fullmap .maplibregl-ctrl-top-left {
+    top: calc(env(safe-area-inset-top) + 9.5rem);
 }
 
 .maplibregl-ctrl-attrib {

@@ -20,6 +20,9 @@ export type GeoStatus = "idle" | "locating" | "active" | "denied" | "unavailable
 type State = { status: GeoStatus; position: GeoPosition | null };
 
 const GRANTED_KEY = "nt_geo_granted";
+
+// Fired when the visitor asks for location but the browser has blocked it.
+export const LOCATION_HELP_EVENT = "nt:location-help";
 let state: State = { status: "idle", position: null };
 let watchId: number | null = null;
 let autoChecked = false;
@@ -30,46 +33,65 @@ function emit(next: Partial<State>) {
     listeners.forEach((listener) => listener());
 }
 
-export function startGeo() {
+function accept(result: GeolocationPosition) {
+    try {
+        localStorage.setItem(GRANTED_KEY, "1");
+    } catch {}
+    const { latitude, longitude, accuracy, heading, speed } = result.coords;
+    // Keep the more precise fix when a rough one arrives late.
+    if (state.position && accuracy > state.position.accuracy * 3 && result.timestamp - state.position.at < 30000) return;
+    emit({
+        status: "active",
+        position: {
+            lat: latitude,
+            lng: longitude,
+            accuracy,
+            heading: heading !== null && !Number.isNaN(heading) && (speed ?? 0) > 0.5 ? heading : state.position?.heading ?? null,
+            speed,
+            at: result.timestamp,
+        },
+    });
+}
+
+function refuse(error: GeolocationPositionError, userInitiated: boolean) {
+    if (error.code === error.PERMISSION_DENIED) {
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        try {
+            localStorage.removeItem(GRANTED_KEY);
+        } catch {}
+        emit({ status: "denied" });
+        if (userInitiated) window.dispatchEvent(new Event(LOCATION_HELP_EVENT));
+    } else if (!state.position) {
+        // Timeout / no signal: keep watching, but say so.
+        emit({ status: "unavailable" });
+    }
+}
+
+export function startGeo(userInitiated = true) {
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
         emit({ status: "unavailable" });
         return;
     }
-    if (watchId !== null) return;
+    // Already tracking: a tap just re-announces the current position.
+    if (watchId !== null) {
+        if (state.position) emit({ status: "active", position: { ...state.position } });
+        return;
+    }
     if (!state.position) emit({ status: "locating" });
 
-    watchId = navigator.geolocation.watchPosition(
-        (result) => {
-            try {
-                localStorage.setItem(GRANTED_KEY, "1");
-            } catch {}
-            const { latitude, longitude, accuracy, heading, speed } = result.coords;
-            emit({
-                status: "active",
-                position: {
-                    lat: latitude,
-                    lng: longitude,
-                    accuracy,
-                    heading: heading !== null && !Number.isNaN(heading) && (speed ?? 0) > 0.5 ? heading : state.position?.heading ?? null,
-                    speed,
-                    at: result.timestamp,
-                },
-            });
-        },
-        (error) => {
-            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-            watchId = null;
-            if (error.code === error.PERMISSION_DENIED) {
-                try {
-                    localStorage.removeItem(GRANTED_KEY);
-                } catch {}
-                emit({ status: "denied" });
-            } else if (!state.position) {
-                emit({ status: "unavailable" });
-            }
-        },
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
-    );
+    // 1. A fast, rough fix (Wi-Fi / cell towers) so the map reacts at once.
+    navigator.geolocation.getCurrentPosition(accept, (error) => refuse(error, userInitiated), {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 300000,
+    });
+    // 2. Precise GPS tracking that refines it and follows the visitor.
+    watchId = navigator.geolocation.watchPosition(accept, (error) => refuse(error, userInitiated), {
+        enableHighAccuracy: true,
+        maximumAge: 5000,
+        timeout: 30000,
+    });
 }
 
 // Resume silently for visitors who already said yes (no prompt shown).
@@ -88,7 +110,7 @@ async function autoStart() {
             return;
         }
     } catch {}
-    if (granted) startGeo();
+    if (granted) startGeo(false);
 }
 
 function subscribe(listener: () => void) {
@@ -101,5 +123,5 @@ const SERVER: State = { status: "idle", position: null };
 
 export function useGeo() {
     const snapshot = useSyncExternalStore(subscribe, () => state, () => SERVER);
-    return { ...snapshot, start: startGeo };
+    return { ...snapshot, start: () => startGeo(true) };
 }

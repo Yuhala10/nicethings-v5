@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
-import { BadgeCheck, ChevronRight, Database, ExternalLink, Globe, MapPin, Navigation, Users } from "lucide-react";
+import { AtSign, BadgeCheck, ChevronRight, Clock3, Database, ExternalLink, Globe, MapPin, Navigation, Phone, Users, Wallet, type LucideIcon } from "lucide-react";
 import BackButton from "@/components/site/BackButton";
 import HoursTable from "@/components/place/HoursTable";
 import PlaceActions from "@/components/place/PlaceActions";
@@ -124,10 +124,46 @@ function jsonLd(place: PlaceDetail, locale: Locale, phone: string | null, cityNa
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
-        <section className="border-t border-line py-6">
+        <section className="mt-9">
             <h2 className="nt-section-title mb-3">{title}</h2>
             {children}
         </section>
+    );
+}
+
+// One fact in the practical-info card: icon, label, value; tappable when
+// it leads somewhere (call, website).
+function InfoRow({
+    icon: Icon,
+    label,
+    href,
+    external = false,
+    children,
+}: {
+    icon: LucideIcon;
+    label: string;
+    href?: string;
+    external?: boolean;
+    children: React.ReactNode;
+}) {
+    const content = (
+        <>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-700/25 dark:text-brand-200">
+                <Icon size={19} />
+            </span>
+            <span className="min-w-0 flex-1 text-sm">
+                <span className="nt-eyebrow mb-1 block">{label}</span>
+                {children}
+            </span>
+            {href && <ChevronRight size={18} className="mt-2.5 shrink-0 text-muted" />}
+        </>
+    );
+    const className = "flex items-start gap-3.5 px-4 py-4";
+    if (!href) return <div className={className}>{content}</div>;
+    return (
+        <a href={href} className={`${className} transition hover:bg-surface-2`} {...(external ? { target: "_blank", rel: "noopener noreferrer nofollow" } : {})}>
+            {content}
+        </a>
     );
 }
 
@@ -268,92 +304,69 @@ export default async function PlacePage({ params }: Props) {
             <div className="mx-auto max-w-3xl px-4 pt-5 md:px-6">
                 <PlaceActions slug={place.slug} name={place.name} phone={phone} whatsapp={whatsapp} />
 
+                {/* Practical info: one calm card, one row per fact. */}
+                <section className="mt-8">
+                    <h2 className="nt-section-title mb-3">{t.spot.details}</h2>
+                    <div className="divide-y divide-line overflow-hidden rounded-[1.6rem] border border-line bg-surface shadow-card">
+                        <InfoRow icon={Clock3} label={t.spot.hours}>
+                            {hasHours ? (
+                                <HoursTable hours={place.hours} />
+                            ) : (
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-muted">{t.spot.hoursUnknown}</span>
+                                    <ReportButton
+                                        slug={place.slug}
+                                        initialReason="hours"
+                                        label={t.spot.hoursHelp}
+                                        className="inline-flex w-fit items-center gap-1.5 text-sm font-bold text-brand-600 hover:underline"
+                                    />
+                                </div>
+                            )}
+                        </InfoRow>
+                        <InfoRow icon={Wallet} label={t.spot.price}>
+                            <PriceLabel min={place.priceMin} max={place.priceMax} showUnknown />
+                        </InfoRow>
+                        <InfoRow icon={MapPin} label={t.spot.address}>
+                            <span className="text-text">{[place.address, area, cityName].filter(Boolean).join(", ")}</span>
+                            {place.landmark && (
+                                <span className="mt-1 block text-muted">
+                                    {t.spot.howToFind} : {place.landmark}
+                                </span>
+                            )}
+                        </InfoRow>
+                        {phone && (
+                            <InfoRow icon={Phone} label={t.spot.call} href={`tel:${phone}`}>
+                                <span className="font-semibold text-text">{formatPhone(phone)}</span>
+                            </InfoRow>
+                        )}
+                        {place.website && (
+                            <InfoRow
+                                icon={Globe}
+                                label={t.spot.website}
+                                href={place.website.startsWith("http") ? place.website : `https://${place.website}`}
+                                external
+                            >
+                                <span className="font-semibold text-text">{place.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}</span>
+                            </InfoRow>
+                        )}
+                        {place.instagram && (
+                            <InfoRow
+                                icon={AtSign}
+                                label={t.spot.instagram}
+                                href={`https://instagram.com/${place.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "")}`}
+                                external
+                            >
+                                <span className="font-semibold text-text">@{place.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/$/, "")}</span>
+                            </InfoRow>
+                        )}
+                    </div>
+                </section>
+
                 {place.description && (
                     <Section title={t.spot.about}>
-                        <p className="leading-relaxed whitespace-pre-line text-text-2">{place.description}</p>
+                        <p className="text-[1.02rem] leading-relaxed whitespace-pre-line text-text-2">{place.description}</p>
                     </Section>
                 )}
-
-                <Section title={t.spot.details}>
-                    <dl className="grid gap-5">
-                        <div>
-                            <dt className="nt-eyebrow mb-1.5">{t.spot.hours}</dt>
-                            <dd>
-                                {hasHours ? (
-                                    <HoursTable hours={place.hours} />
-                                ) : (
-                                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                                        <span className="text-muted">{t.spot.hoursUnknown}</span>
-                                        <ReportButton
-                                            slug={place.slug}
-                                            initialReason="hours"
-                                            label={t.spot.hoursHelp}
-                                            className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 hover:underline"
-                                        />
-                                    </div>
-                                )}
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt className="nt-eyebrow mb-1.5">{t.spot.price}</dt>
-                            <dd className="text-sm">
-                                <PriceLabel min={place.priceMin} max={place.priceMax} showUnknown />
-                            </dd>
-                        </div>
-
-                        {(place.address || place.landmark || area) && (
-                            <div>
-                                <dt className="nt-eyebrow mb-1.5">{t.spot.address}</dt>
-                                <dd className="flex gap-2 text-sm text-text-2">
-                                    <MapPin size={16} className="mt-0.5 shrink-0 text-brand-500" />
-                                    <span>
-                                        {[place.address, area, cityName].filter(Boolean).join(", ")}
-                                        {place.landmark && (
-                                            <span className="mt-1 block text-muted">
-                                                {t.spot.howToFind} : {place.landmark}
-                                            </span>
-                                        )}
-                                    </span>
-                                </dd>
-                            </div>
-                        )}
-
-                        {(phone || place.website || place.instagram) && (
-                            <div>
-                                <dt className="nt-eyebrow mb-1.5">{t.spot.contact}</dt>
-                                <dd className="flex flex-col gap-2 text-sm font-semibold">
-                                    {phone && (
-                                        <a href={`tel:${phone}`} className="text-text-2 hover:text-brand-600">
-                                            {formatPhone(phone)}
-                                        </a>
-                                    )}
-                                    {place.website && (
-                                        <a
-                                            href={place.website.startsWith("http") ? place.website : `https://${place.website}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer nofollow"
-                                            className="inline-flex items-center gap-1.5 text-text-2 hover:text-brand-600"
-                                        >
-                                            <Globe size={15} />
-                                            {place.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                                        </a>
-                                    )}
-                                    {place.instagram && (
-                                        <a
-                                            href={`https://instagram.com/${place.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "")}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer nofollow"
-                                            className="text-text-2 hover:text-brand-600"
-                                        >
-                                            {t.spot.instagram}
-                                        </a>
-                                    )}
-                                </dd>
-                            </div>
-                        )}
-                    </dl>
-                </Section>
 
                 {place.vibes.length > 0 && (
                     <Section title={t.spot.vibes}>
@@ -411,8 +424,8 @@ export default async function PlacePage({ params }: Props) {
                 )}
 
                 {/* Where this information comes from, said plainly. */}
-                <section className="border-t border-line py-6">
-                    <div className="rounded-2xl bg-surface-2 p-4">
+                <section className="mt-9">
+                    <div className="rounded-[1.6rem] bg-surface-2 p-5">
                         <div className="mb-1.5 flex items-center gap-2 font-bold">
                             {place.verified ? (
                                 <BadgeCheck size={18} className="fill-brand-500 text-surface" />
@@ -476,7 +489,7 @@ export default async function PlacePage({ params }: Props) {
                 </Section>
 
                 {nearby.length > 0 && (
-                    <section className="border-t border-line py-6">
+                    <section className="mt-10">
                         <h2 className="nt-section-title mb-3">{t.spot.nearby}</h2>
                         <div className="nt-scroll-x -mx-4 gap-3 px-4 md:mx-0 md:px-0">
                             {nearby.map(({ place: item, distance }) => (
@@ -487,7 +500,7 @@ export default async function PlacePage({ params }: Props) {
                 )}
 
                 {similar.length > 0 && (
-                    <section className="border-t border-line py-6">
+                    <section className="mt-10">
                         <h2 className="nt-section-title mb-3">{t.spot.similar}</h2>
                         <div className="nt-scroll-x -mx-4 gap-3 px-4 md:mx-0 md:px-0">
                             {similar.map(({ place: item }) => (

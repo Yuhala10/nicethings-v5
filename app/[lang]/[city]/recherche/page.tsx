@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import MapScreen from "@/components/map/MapScreen";
+import SearchView from "@/components/search/SearchView";
 import { cityBySlug } from "@/lib/cities";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
 import { areasOf } from "@/lib/places/areas";
@@ -24,16 +24,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!isLocale(lang) || !city) return {};
     const t = getDictionary(lang);
     return {
-        title: fill(t.cities.mapTitle, { city: city.name }),
+        title: fill(t.searchPage.title, { city: city.name }),
         description: fill(t.cities.mapDescription, { city: city.name }),
-        alternates: {
-            canonical: paths.explore(lang, city.slug),
-            languages: { fr: paths.explore("fr", city.slug), en: paths.explore("en", city.slug), "x-default": paths.explore("fr", city.slug) },
-        },
+        alternates: { canonical: paths.search(lang, city.slug) },
+        // Result lists change with every query: the city guide is the page to index.
+        robots: { index: false, follow: true },
     };
 }
 
-export default async function CityMapPage({ params }: Props) {
+export default async function CitySearchPage({ params }: Props) {
     const { lang, city: slug } = await params;
     const city = cityBySlug(slug);
     if (!isLocale(lang) || !city) notFound();
@@ -42,12 +41,7 @@ export default async function CityMapPage({ params }: Props) {
     // The ?q= query is read in the browser, so this page stays cached.
     return (
         <Suspense>
-            <MapScreen
-                places={compactPlaces(places)}
-                city={city}
-                areas={areasOf(places, 2)}
-                cityCounts={counts}
-            />
+            <SearchView places={compactPlaces(places)} city={city} areas={areasOf(places, 2)} cityCounts={counts} />
         </Suspense>
     );
 }

@@ -434,6 +434,42 @@ export const fr = {
         ctaBody: "Ouvre la carte, dis ce que tu veux, et laisse-toi guider.",
         ctaMap: "Ouvrir la carte",
     },
+    locationHelp: {
+        title: "Ta position est bloquée",
+        intro: "Ton navigateur a bloqué la localisation pour NiceThings. Un site ne peut pas la débloquer tout seul, mais c'est rapide :",
+        inAppIntro: "Tu as ouvert NiceThings dans une application (WhatsApp, Instagram, Facebook…), qui bloque souvent la localisation.",
+        inApp: [
+            "Appuie sur les ⋮ ou ··· en haut à droite.",
+            "Choisis « Ouvrir dans Chrome » ou « Ouvrir dans Safari ».",
+            "Autorise la position quand ton navigateur te la demande.",
+        ],
+        ios: [
+            "Réglages → Confidentialité et sécurité → Service de localisation : active-le.",
+            "Dans la même page, « Sites Safari » → « Lorsque l'app est active ».",
+            "Dans Safari, touche « aA » dans la barre d'adresse → Réglages du site web → Position → Autoriser.",
+        ],
+        android: [
+            "Vérifie que la localisation (GPS) du téléphone est activée.",
+            "Dans Chrome, touche l'icône à gauche de l'adresse → Autorisations → Position → Autoriser.",
+            "Recharge la page.",
+        ],
+        desktop: [
+            "Clique sur l'icône à gauche de l'adresse du site.",
+            "Dans « Position », choisis « Autoriser ».",
+            "Recharge la page.",
+        ],
+        retry: "J'ai autorisé, réessayer",
+        later: "Plus tard, je choisis mon quartier",
+    },
+    searchPage: {
+        title: "Chercher à {city}",
+        subtitle: "{count} adresses à {city}. Dis ce que tu veux, ou laisse-toi inspirer.",
+        showMap: "Voir sur la carte",
+        guideLink: "Le guide complet de {city}",
+    },
+    mapPage: {
+        list: "Liste",
+    },
     footer: {
         about: "NiceThings t'aide à découvrir le Cameroun : où manger, sortir, te poser et t'amuser, dans vingt villes, avec l'itinéraire guidé.",
         privacy: "Confidentialité",

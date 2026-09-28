@@ -7,16 +7,17 @@ import { DEFAULT_CITY, cityAt, cityBySlug } from "@/lib/cities";
 import { paths } from "@/lib/places/paths";
 import { useLocale } from "../site/LocaleProvider";
 
-// /carte: open the map in the visitor's city — the one they were last in,
+// /carte and /recherche: open the map or search in the visitor's city — the one they were last in,
 // or where their GPS says they are, otherwise Yaoundé.
-export default function MapEntry() {
+export default function MapEntry({ target = "map" }: { target?: "map" | "search" }) {
     const router = useRouter();
     const search = useSearchParams();
     const { locale, t } = useLocale();
 
     useEffect(() => {
         const query = search.get("q") ?? undefined;
-        const go = (slug: string) => router.replace(paths.explore(locale, slug, query));
+        const go = (slug: string) =>
+            router.replace(target === "search" ? paths.search(locale, slug, query) : paths.explore(locale, slug, query));
         let saved: string | null = null;
         try {
             saved = localStorage.getItem("nt_city");
@@ -36,7 +37,7 @@ export default function MapEntry() {
             return;
         }
         go(DEFAULT_CITY.slug);
-    }, [locale, router, search]);
+    }, [locale, router, search, target]);
 
     return (
         <div className="fixed inset-0 grid place-items-center bg-bg">

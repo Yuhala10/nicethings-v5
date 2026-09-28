@@ -20,11 +20,13 @@ export default function CityPicker({
     open,
     current,
     counts,
+    target = "map",
     onClose,
 }: {
     open: boolean;
     current: string;
     counts: Record<string, number>;
+    target?: "map" | "search"; // which page of the chosen city to open
     onClose: () => void;
 }) {
     const { locale, t } = useLocale();
@@ -71,7 +73,7 @@ export default function CityPicker({
                                 return (
                                     <li key={city.slug}>
                                         <Link
-                                            href={paths.explore(locale, city.slug)}
+                                            href={target === "search" ? paths.search(locale, city.slug) : paths.explore(locale, city.slug)}
                                             onClick={() => {
                                                 rememberCity(city.slug);
                                                 onClose();

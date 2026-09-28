@@ -6,7 +6,8 @@ import type { Locale } from "../i18n/config";
 // localised for SEO):
 //   /fr                          landing page (all of Cameroon)
 //   /fr/carte                    opens the map in the visitor's city
-//   /fr/douala/carte             the map app for one city
+//   /fr/douala/carte             the map for one city
+//   /fr/douala/recherche         search for one city (/fr/recherche picks the city)
 //   /fr/p/le-petit-cafe-bastos   place page
 //   /fr/y-aller/<slug>           directions and navigation
 //   /fr/douala                   city guide
@@ -71,6 +72,9 @@ export function categoryFromSlug(slug: string): Category | null {
 export const paths = {
     home: (locale: Locale) => `/${locale}`,
     map: (locale: Locale, query?: string) => `/${locale}/carte${query ? `?q=${encodeURIComponent(query)}` : ""}`,
+    search: (locale: Locale, city: string, query?: string) =>
+        `/${locale}/${city}/recherche${query ? `?q=${encodeURIComponent(query)}` : ""}`,
+    searchEntry: (locale: Locale) => `/${locale}/recherche`,
     explore: (locale: Locale, city: string, query?: string) =>
         `/${locale}/${city}/carte${query ? `?q=${encodeURIComponent(query)}` : ""}`,
     place: (locale: Locale, slug: string) => `/${locale}/p/${slug}`,
