@@ -1,0 +1,195 @@
+.page {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: max(env(safe-area-inset-top), 20px) 20px max(env(safe-area-inset-bottom), 20px);
+    background:
+        radial-gradient(60% 45% at 80% 0%, rgba(255, 106, 43, 0.35), transparent 70%),
+        radial-gradient(50% 40% at 0% 100%, rgba(124, 58, 237, 0.25), transparent 70%),
+        #0b0806;
+    font-family: "DM Sans", system-ui, sans-serif;
+    color: #17120e;
+}
+
+.card {
+    width: 100%;
+    max-width: 400px;
+    background: #fffdfb;
+    border-radius: 28px;
+    padding: 32px 26px 26px;
+    box-shadow: 0 40px 90px -20px rgba(0, 0, 0, 0.6);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.mark {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #ff8a1f, #ff5b36 55%, #eb3a6f);
+    color: #fff;
+    box-shadow: 0 10px 24px -8px rgba(255, 91, 54, 0.7);
+}
+
+.brandName {
+    font-family: "Manrope", system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+}
+
+.brandSub {
+    font-size: 0.8rem;
+    color: #7a6c60;
+    font-weight: 600;
+}
+
+.title {
+    font-family: "Manrope", system-ui, sans-serif;
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
+}
+
+.lead {
+    margin: 0 0 24px;
+    color: #5c4f44;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+}
+
+.field {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.input {
+    width: 100%;
+    height: 54px;
+    padding: 0 52px 0 48px;
+    border: 1.5px solid #e2d8cc;
+    border-radius: 16px;
+    background: #fff;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    color: inherit;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.input::placeholder {
+    letter-spacing: normal;
+    font-size: 15px;
+    color: #a4968a;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #ff6a2b;
+    box-shadow: 0 0 0 4px rgba(255, 106, 43, 0.18);
+}
+
+.fieldIcon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a4968a;
+    pointer-events: none;
+}
+
+.eye {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #7a6c60;
+    cursor: pointer;
+}
+
+.eye:hover {
+    background: #f4eee7;
+}
+
+.error {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.submit {
+    width: 100%;
+    height: 54px;
+    border: 0;
+    border-radius: 16px;
+    background: linear-gradient(120deg, #ff8a1f, #ff5b36 52%, #eb3a6f);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1rem;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 12px 28px -10px rgba(255, 91, 54, 0.7);
+    transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.submit:active {
+    transform: scale(0.98);
+}
+
+.submit:disabled {
+    opacity: 0.55;
+    cursor: default;
+    box-shadow: none;
+}
+
+.foot {
+    margin: 18px 0 0;
+    font-size: 0.78rem;
+    color: #8a7b6e;
+    text-align: center;
+}
+
+.back {
+    display: block;
+    margin-top: 16px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.back:hover {
+    color: #fff;
+}

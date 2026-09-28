@@ -475,6 +475,7 @@ export const en: Dictionary = {
         privacy: "Privacy",
         terms: "Terms",
         madeIn: "Made with ❤️ in Yaoundé",
+        team: "Team area",
         osm: "Map data © OpenStreetMap contributors",
     },
     consent: {

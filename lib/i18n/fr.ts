@@ -477,6 +477,7 @@ export const fr = {
         privacy: "Confidentialité",
         terms: "Conditions",
         madeIn: "Fait avec ❤️ à Yaoundé",
+        team: "Espace équipe",
         osm: "Données cartographiques © contributeurs OpenStreetMap",
     },
     consent: {

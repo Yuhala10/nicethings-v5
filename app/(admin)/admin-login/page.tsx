@@ -1,21 +1,26 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
-import { useRouter } from "next/navigation";
-import BrandMark from "@/components/branding/BrandMark";
+import { Suspense, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowRight, Eye, EyeOff, KeyRound, ShieldCheck } from "lucide-react";
+import styles from "./login.module.css";
 
-export default function AdminLoginPage() {
+// Team sign-in: one PIN, checked on the server (never in the browser),
+// with a brute-force guard. Returns to the admin page you were heading to.
+function Login() {
     const router = useRouter();
-    const next = "/admin";
+    const params = useSearchParams();
+    const requested = params.get("next") ?? "";
+    const next = /^\/admin(\/[a-z0-9/_-]*)?(\?.*)?$/i.test(requested) ? requested : "/admin";
+
     const [pin, setPin] = useState("");
     const [showPin, setShowPin] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    async function submit(event: FormEvent<HTMLFormElement>) {
+    async function submit(event: FormEvent) {
         event.preventDefault();
-        if (loading || !pin.trim()) return;
+        if (!pin.trim() || loading) return;
         setLoading(true);
         setError(null);
         try {
@@ -24,44 +29,89 @@ export default function AdminLoginPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ pin }),
             });
-            const result = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(result.message || "Unable to sign in.");
+            const body = await response.json().catch(() => null);
+            if (response.status === 401) throw new Error("Code PIN incorrect.");
+            if (response.status === 429) throw new Error("Trop d'essais. Réessaie dans 15 minutes.");
+            if (!response.ok || !body?.ok) throw new Error(body?.message ?? "Connexion impossible. Réessaie.");
             router.replace(next);
             router.refresh();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Unable to sign in.");
-            setPin("");
-        } finally {
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : "Connexion impossible. Réessaie.");
             setLoading(false);
         }
     }
 
     return (
-        <main className="nt-admin-login-page">
-            <div className="nt-admin-login-glow" />
-            <section className="nt-admin-login-card" aria-labelledby="admin-login-title">
-                <div className="nt-admin-login-brand">
-                    <BrandMark size={58} />
-                    <div><span>NICE THINGS</span><strong>Admin Console</strong></div>
-                </div>
-                <div className="nt-admin-login-icon"><ShieldCheck size={22} /></div>
-                <p className="nt-admin-eyebrow">PRIVATE ACCESS</p>
-                <h1 id="admin-login-title">Welcome back.</h1>
-                <p className="nt-admin-login-copy">Enter the private admin PIN to manage NiceThings safely.</p>
-                <form onSubmit={submit} className="nt-admin-login-form">
-                    <label htmlFor="admin-pin">Admin PIN</label>
-                    <div className="nt-admin-pin-field">
-                        <LockKeyhole size={18} />
-                        <input id="admin-pin" value={pin} onChange={(e) => setPin(e.target.value)} type={showPin ? "text" : "password"} inputMode="numeric" autoComplete="current-password" placeholder="Enter your secret PIN" autoFocus />
-                        <button type="button" aria-label={showPin ? "Hide PIN" : "Show PIN"} onClick={() => setShowPin((v) => !v)}>{showPin ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+        <main className={styles.page}>
+            <div style={{ width: "100%", maxWidth: 400 }}>
+                <form className={styles.card} onSubmit={submit}>
+                    <div className={styles.brand}>
+                        <span className={styles.mark}>
+                            <ShieldCheck size={24} />
+                        </span>
+                        <span>
+                            <span className={styles.brandName}>NiceThings</span>
+                            <span className={styles.brandSub} style={{ display: "block" }}>
+                                Espace équipe
+                            </span>
+                        </span>
                     </div>
-                    {error && <div className="nt-admin-login-error" role="alert">{error}</div>}
-                    <button className="nt-admin-login-submit" type="submit" disabled={loading || !pin.trim()}>
-                        <span>{loading ? "Checking access…" : "Enter Admin"}</span><ArrowRight size={18} />
+
+                    <h1 className={styles.title}>Connexion</h1>
+                    <p className={styles.lead}>Entre le code PIN de l&apos;équipe pour gérer les lieux, les photos et les signalements.</p>
+
+                    <label className={styles.label} htmlFor="admin-pin">
+                        Code PIN
+                    </label>
+                    <div className={styles.field}>
+                        <KeyRound size={19} className={styles.fieldIcon} />
+                        <input
+                            id="admin-pin"
+                            className={styles.input}
+                            type={showPin ? "text" : "password"}
+                            inputMode="numeric"
+                            autoComplete="current-password"
+                            autoFocus
+                            value={pin}
+                            onChange={(event) => setPin(event.target.value)}
+                            placeholder="••••••"
+                            aria-invalid={Boolean(error)}
+                        />
+                        <button
+                            type="button"
+                            className={styles.eye}
+                            onClick={() => setShowPin(!showPin)}
+                            aria-label={showPin ? "Masquer le code" : "Afficher le code"}
+                        >
+                            {showPin ? <EyeOff size={19} /> : <Eye size={19} />}
+                        </button>
+                    </div>
+
+                    {error && (
+                        <p className={styles.error} role="alert">
+                            {error}
+                        </p>
+                    )}
+
+                    <button type="submit" className={styles.submit} disabled={!pin.trim() || loading}>
+                        {loading ? "Vérification…" : "Entrer"}
+                        {!loading && <ArrowRight size={19} />}
                     </button>
+
+                    <p className={styles.foot}>Le code est vérifié sur le serveur, jamais dans le navigateur.</p>
                 </form>
-                <p className="nt-admin-login-note">Your PIN is checked on the server and is never exposed to the browser.</p>
-            </section>
+                <a href="/" className={styles.back}>
+                    ← Retour au site
+                </a>
+            </div>
         </main>
+    );
+}
+
+export default function AdminLoginPage() {
+    return (
+        <Suspense>
+            <Login />
+        </Suspense>
     );
 }

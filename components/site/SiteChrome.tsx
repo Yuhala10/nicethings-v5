@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Heart, Home, Map as MapIcon, Plus, Search } from "lucide-react";
+import { Heart, Home, Lock, Map as MapIcon, Plus, Search } from "lucide-react";
 import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
@@ -223,7 +223,14 @@ function SiteFooter() {
                     <LanguageSwitch className="mt-2 w-fit border-white/20 bg-white/10 text-white hover:text-white" />
                 </nav>
                 <div className="flex flex-col gap-1 border-t border-white/10 pt-6 text-xs text-white/45 md:col-span-3 md:flex-row md:justify-between">
-                    <span>{t.footer.madeIn}</span>
+                    <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        {t.footer.madeIn}
+                        {/* Discreet way in for the NiceThings team (PIN-protected). */}
+                        <a href="/admin-login" className="inline-flex items-center gap-1 text-white/45 hover:text-white" rel="nofollow">
+                            <Lock size={12} />
+                            {t.footer.team}
+                        </a>
+                    </span>
                     <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:text-white">
                         {t.footer.osm}
                     </a>
