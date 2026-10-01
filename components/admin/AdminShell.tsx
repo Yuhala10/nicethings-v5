@@ -14,9 +14,13 @@ const NAV: { href: string; label: string; short: string; icon: LucideIcon; badge
     { href: "/admin/spots", label: "Lieux", short: "Lieux", icon: MapPin },
     { href: "/admin/submissions", label: "Propositions", short: "Propos.", icon: Inbox, badge: "submissions" },
     { href: "/admin/reports", label: "Signalements", short: "Signal.", icon: Flag, badge: "reports" },
+    { href: "/admin/audience", label: "Audience", short: "Audience", icon: BarChart3 },
     { href: "/admin/recherches", label: "Recherches", short: "Recherches", icon: Search },
     { href: "/admin/terrain", label: "Terrain", short: "Terrain", icon: Camera },
 ];
+
+// Reached from the top bar on phone, to keep the bottom tabs to five.
+const TOP_BAR = ["/admin/audience", "/admin/recherches"];
 
 // The team console frame: sidebar on computer, top bar + bottom tabs on
 // phone. Badges show what is waiting, refreshed on every page change.
@@ -104,9 +108,11 @@ export default function AdminShell({ children }: { children: ReactNode }) {
                         <span className="font-display font-extrabold">Espace équipe</span>
                     </Link>
                     <div className="flex items-center gap-1">
-                        <Link href="/admin/recherches" className="grid h-10 w-10 place-items-center rounded-full text-white/75" aria-label="Recherches">
-                            <BarChart3 size={19} />
-                        </Link>
+                        {NAV.filter((item) => TOP_BAR.includes(item.href)).map((item) => (
+                            <Link key={item.href} href={item.href} className={`grid h-10 w-10 place-items-center rounded-full ${active(item) ? "text-brand-500" : "text-white/75"}`} aria-label={item.label}>
+                                <item.icon size={19} />
+                            </Link>
+                        ))}
                         <button type="button" onClick={signOut} className="grid h-10 w-10 place-items-center rounded-full text-white/75" aria-label="Se déconnecter">
                             <LogOut size={19} />
                         </button>
@@ -120,7 +126,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
                 {/* Bottom tabs (phone) */}
                 <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/97 px-1 pt-1 pb-[max(env(safe-area-inset-bottom),0.4rem)] md:hidden">
                     <ul className="flex">
-                        {NAV.filter((item) => item.href !== "/admin/recherches").map((item) => (
+                        {NAV.filter((item) => !TOP_BAR.includes(item.href)).map((item) => (
                             <li key={item.href} className="flex-1">
                                 <Link
                                     href={item.href}

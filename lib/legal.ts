@@ -8,7 +8,7 @@ type Doc = { title: string; updated: string; sections: { heading: string; body: 
 export const PRIVACY: Record<Locale, Doc> = {
     fr: {
         title: "Confidentialité",
-        updated: "Mise à jour : 28 septembre 2026",
+        updated: "Mise à jour : 1er octobre 2026",
         sections: [
             {
                 heading: "En bref",
@@ -37,6 +37,13 @@ export const PRIVACY: Record<Locale, Doc> = {
                 ],
             },
             {
+                heading: "Mesure d'audience",
+                body: [
+                    "Pour savoir combien de personnes utilisent NiceThings et lesquelles reviennent, on compte les pages vues : la page, la ville, la langue, le type d'appareil (téléphone ou ordinateur) et le site d'où tu arrives.",
+                    "Ton navigateur garde un identifiant tiré au hasard, qui sert seulement à reconnaître un retour. Il ne contient ni ton nom, ni ton numéro, ni ta position, et ton adresse IP n'est pas enregistrée dans ces statistiques. Effacer les données du site le remet à zéro, et le réglage « Ne pas me pister » de ton navigateur arrête ce comptage.",
+                ],
+            },
+            {
                 heading: "Hébergement",
                 body: ["Le site est hébergé par Vercel et les données des lieux par Supabase."],
             },
@@ -44,7 +51,7 @@ export const PRIVACY: Record<Locale, Doc> = {
     },
     en: {
         title: "Privacy",
-        updated: "Updated: 28 September 2026",
+        updated: "Updated: 1 October 2026",
         sections: [
             {
                 heading: "In short",
@@ -68,6 +75,13 @@ export const PRIVACY: Record<Locale, Doc> = {
                 body: [
                     "When you suggest a place or report an error, we store what you write (and your position if you add it) to check and update the listing. Please don't include personal information.",
                     "Words typed in search are stored anonymously (not linked to you or your position) so we know which places to add.",
+                ],
+            },
+            {
+                heading: "Audience measurement",
+                body: [
+                    "To know how many people use NiceThings and how many come back, we count page views: the page, the city, the language, the type of device (phone or computer) and the site you arrive from.",
+                    "Your browser keeps a random identifier, used only to recognise a return visit. It holds no name, phone number or position, and your IP address is not stored in these statistics. Clearing the site's data resets it, and your browser's “Do Not Track” setting stops this counting.",
                 ],
             },
             {

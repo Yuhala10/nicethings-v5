@@ -8,6 +8,7 @@ import { Heart, Home, Lock, Map as MapIcon, Plus, Search } from "lucide-react";
 import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
+import Analytics from "./Analytics";
 import { useLocale } from "./LocaleProvider";
 import LocationHelp from "./LocationHelp";
 import NavProgress from "./NavProgress";
@@ -249,6 +250,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             <OfflineBanner />
             <LocationHelp />
             <NavProgress />
+            <Analytics />
             {layout === "page" && <SiteHeader />}
             {layout === "map" || layout === "navigation" ? (
                 children
