@@ -61,6 +61,8 @@ CITIES = [
 # most specific label first. Anything else (banks, schools, churches,
 # pharmacies…) is not imported.
 CATEGORY_RULES = [
+    # Shops selling beauty products are shops, not salons.
+    ("Shopping", ["beauty supply", "cosmetic and beauty supply", "cosmetics store", "jewelry store", "jewelry", "jewellery", "jewelry and watches store"]),
     ("Club", ["night club", "nightclub", "dance club", "disco", "discotheque"]),
     ("Bakery", ["bakery", "bakeries", "patisserie", "pastry shop", "cake shop", "dessert shop", "boulangerie", "donut shop"]),
     ("Cafe", ["cafe", "coffee", "coffee shop", "tea room", "tea house", "juice bar", "ice cream", "ice cream shop", "smoothie"]),
@@ -75,6 +77,21 @@ CATEGORY_RULES = [
     ("Shopping", ["shopping mall", "mall", "shopping center", "supermarket", "market", "boutique", "clothing store", "fashion", "shoe store", "jewelry", "jewellery", "gift shop", "department store"]),
 ]
 RULES = [(category, [re.compile(r"\b" + re.escape(word) + r"\b") for word in words]) for category, words in CATEGORY_RULES]
+
+# Never imported, whatever else the labels say: places people do not "go
+# out" to, and look-alikes ("internet cafe" is not a café).
+EXCLUDED_LABELS = re.compile(
+    r"\b(internet cafe|cyber cafe|cybercafe|travel|agency|agent|school|academy|college|university|training|education|"
+    r"hospital|clinic|medical|doctor|dentist|pharmacy|drugstore|church|mosque|religious|bank|atm|insurance|real estate|"
+    r"automotive|car dealer|car rental|car wash|auto repair|gas station|fuel|office|consulting|lawyer|legal|accountant|"
+    r"government|embassy|wholesale|warehouse|printing|telecommunication|mobile phone|electronics|hardware|construction|"
+    r"logistics|transport|bus station|taxi|funeral)\b"
+)
+EXCLUDED_NAMES = re.compile(
+    r"\b(academie|académie|academy|ecole|école|school|institut|institute|formation|centre de formation|agence|agency|"
+    r"cyber|pharmacie|pharmacy|clinique|hopital|hôpital|eglise|église|church|banque|bank|assurance)\b",
+    re.IGNORECASE,
+)
 
 FILLER = {
     "a", "and", "au", "aux", "bar", "boulangerie", "cabaret", "cafe", "chez", "club", "d", "de", "des", "du", "et", "hotel", "l", "la",
@@ -137,12 +154,42 @@ def metres(lat1, lng1, lat2, lng2):
     return 2 * 6_371_000 * math.asin(math.sqrt(h))
 
 
-def category_for(labels):
-    """`labels`: most specific first ("african_restaurant", "Cocktail Bar")."""
-    for label in labels:
-        text = re.sub(r"[^a-z]+", " ", (label or "").lower()).strip()
-        if not text:
+def phone_key(phone):
+    """Last 9 digits: "+237 6 79 82 36 92" and "679823692" are the same line."""
+    digits = re.sub(r"\D", "", phone or "")
+    return digits[-9:] if len(digits) >= 8 else None
+
+
+def twin_of(name, lat, lng, phone, rows):
+    """The place already listed under this one's name, if any. Stricter than
+    lib/places/similar.ts because nobody is there to confirm: the same
+    phone number, the same name nearby, or a close name at the same spot."""
+    key = phone_key(phone)
+    for row in rows:
+        d = metres(lat, lng, row["latitude"], row["longitude"])
+        if d > 3000:
             continue
+        if key and key == phone_key(row.get("phone")):
+            return row
+        if d > 500:
+            continue
+        score = similarity(name, row["name"])
+        if score >= 0.95 or (d <= 150 and score >= 0.75) or (d <= 25 and score >= 0.5):
+            return row
+    return None
+
+
+def category_for(labels, name=""):
+    """`labels`: the place's own categories, most specific first
+    ("african_restaurant", "Cocktail Bar"). Broad parent groups are never
+    passed in: "beauty and spa" says nothing about one shop."""
+    if EXCLUDED_NAMES.search(name or ""):
+        return None
+    texts = [re.sub(r"[^a-z]+", " ", (label or "").lower()).strip() for label in labels]
+    texts = [text for text in texts if text]
+    if not texts or EXCLUDED_LABELS.search(texts[0]):
+        return None
+    for text in texts:
         for category, patterns in RULES:
             if any(pattern.search(text) for pattern in patterns):
                 return category
@@ -191,7 +238,7 @@ class Supabase:
     def all_spots(self):
         rows = []
         while True:
-            page = self.request("GET", f"/nt_spots?select=id,slug,name,city,neighborhood,latitude,longitude,source,source_ref&order=id&limit=1000&offset={len(rows)}")
+            page = self.request("GET", f"/nt_spots?select=id,slug,name,city,neighborhood,latitude,longitude,phone,source,source_ref&order=id&limit=1000&offset={len(rows)}")
             rows += page
             if len(page) < 1000:
                 return rows
@@ -227,16 +274,8 @@ def latest_overture_release():
 
 
 def columns(db, source):
-    """Column names of a remote dataset (they change between releases)."""
-    return {row[0] for row in db.execute(f"DESCRIBE SELECT * FROM {source} LIMIT 0").fetchall()}
-
-
-def overture_labels(text):
-    """The primary category first, then everything else, from the text form of
-    Overture's category fields."""
-    text = text or ""
-    primary = re.search(r"primary['\"]?\s*[:=]\s*['\"]?([A-Za-z_]+)", text)
-    return ([primary.group(1)] if primary else []) + [text]
+    """Column names and types of a remote dataset (they change between releases)."""
+    return {row[0]: str(row[1]) for row in db.execute(f"DESCRIBE SELECT * FROM {source} LIMIT 0").fetchall()}
 
 
 def overture_places(db, city):
@@ -246,25 +285,36 @@ def overture_places(db, city):
     if not hasattr(overture_places, "cols"):
         overture_places.cols = columns(db, source)
     cols = overture_places.cols
-    # Category fields were renamed over time: read whichever exist, as text.
-    labels = " || ' ' || ".join(f"coalesce(CAST({col} AS VARCHAR), '')" for col in ("categories", "basic_category", "taxonomy") if col in cols) or "''"
+    # The place's own category, from whichever field this release has
+    # (`taxonomy` replaced `categories`), plus Overture's simplified
+    # `basic_category`. Parent groups and alternates are left out on purpose.
+    if "primary" in cols.get("taxonomy", ""):
+        primary = "taxonomy.primary"
+    elif "primary" in cols.get("categories", ""):
+        primary = "categories.primary"
+    else:
+        primary = "NULL"
+    basic = "CAST(basic_category AS VARCHAR)" if "basic_category" in cols else "NULL"
     phone = "phones[1]" if "phones" in cols else "NULL"
     website = "websites[1]" if "websites" in cols else "NULL"
     country = "addresses[1].country" if "addresses" in cols else "NULL"
+    status = "CAST(operating_status AS VARCHAR)" if "operating_status" in cols else "NULL"
     query = f"""
-        SELECT id, names.primary, {labels}, confidence, bbox.ymin, bbox.xmin, {phone}, {website}, {country}
+        SELECT id, names.primary, {primary}, {basic}, confidence, bbox.ymin, bbox.xmin, {phone}, {website}, {country}, {status}
         FROM {source}
         WHERE bbox.xmin BETWEEN {lng - radius} AND {lng + radius}
           AND bbox.ymin BETWEEN {lat - radius} AND {lat + radius}
     """
     for row in db.execute(query).fetchall():
-        place_id, place_name, label_text, confidence, p_lat, p_lng, p_phone, p_website, p_country = row
+        place_id, place_name, p_primary, p_basic, confidence, p_lat, p_lng, p_phone, p_website, p_country, p_status = row
         if p_country and p_country != "CM":
+            continue
+        if p_status and "closed" in p_status.lower():
             continue
         yield {
             "ref": place_id,
             "name": place_name,
-            "labels": overture_labels(label_text),
+            "labels": [label for label in (p_primary, p_basic) if label],
             "confidence": confidence or 0,
             "lat": p_lat,
             "lng": p_lng,
@@ -370,6 +420,7 @@ def main():
         raise SystemExit("No dataset available, nothing to do.")
 
     totals = {"seen": 0, "kept": 0, "duplicate": 0, "category": 0, "published": 0}
+    unmatched = {}  # source categories we skipped, to tune the rules
     new_rows = []
     for city in cities:
         slug, city_name = city[0], city[1]
@@ -388,20 +439,13 @@ def main():
                 if (source, place["ref"]) in known_refs:
                     continue
                 name = clean_name(place["name"])
-                category = category_for(place["labels"])
+                category = category_for(place["labels"], place["name"])
                 if not name or not category or place["lat"] is None:
                     totals["category"] += 1
+                    if place["labels"]:
+                        unmatched[place["labels"][0]] = unmatched.get(place["labels"][0], 0) + 1
                     continue
-                twin = next(
-                    (
-                        row
-                        for row in nearby
-                        if (d := metres(place["lat"], place["lng"], row["latitude"], row["longitude"])) <= 150
-                        and (similarity(name, row["name"]) >= 0.75 or (d <= 25 and similarity(name, row["name"]) >= 0.5))
-                    ),
-                    None,
-                )
-                if twin:
+                if twin_of(name, place["lat"], place["lng"], clean_phone(place.get("phone")), nearby):
                     totals["duplicate"] += 1
                     continue
                 # Neighbourhood of the closest known place, when close enough.
@@ -441,8 +485,15 @@ def main():
         f"\nSeen {totals['seen']} · new {totals['kept']} (published {totals['published']}, drafts {totals['kept'] - totals['published']})"
         f" · already in NiceThings {totals['duplicate']} · not our kind of place {totals['category']}"
     )
+    by_category = {}
+    for row in new_rows:
+        by_category[row["category"]] = by_category.get(row["category"], 0) + 1
+    print("New places by kind: " + ", ".join(f"{name} {count}" for name, count in sorted(by_category.items(), key=lambda item: -item[1])))
+    print("Most common skipped kinds: " + ", ".join(f"{name} {count}" for name, count in sorted(unmatched.items(), key=lambda item: -item[1])[:30]))
     if args.dry_run:
-        for row in new_rows[:25]:
+        # A spread sample (every Nth place) rather than the first city only.
+        step = max(1, len(new_rows) // 40)
+        for row in new_rows[::step][:40]:
             print(f"  + [{row['status']}] {row['name']} · {row['category']} · {row['neighborhood'] or '?'} · {row['city']} ({row['source']})")
         print("Dry run: nothing written.")
         return

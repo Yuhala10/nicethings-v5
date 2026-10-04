@@ -1,0 +1,692 @@
+[
+ {
+  "hidden": "be5f9b56-4ea6-4649-a1bc-b2d5b7769ea1",
+  "slug": "hotel-des-anges-bonadouma-ii-douala-2",
+  "kept": "209cbd94-ebd2-4ea1-9fc1-baa58d410c23",
+  "kept_slug": "hotel-des-anges-bonadouma-ii-douala"
+ },
+ {
+  "hidden": "bbcbd0e1-bfab-47b1-a873-36b3a52e88fa",
+  "slug": "maa-nina-nkolbisson",
+  "kept": "a315227d-57eb-43ff-a508-bd53bc2b592d",
+  "kept_slug": "chez-maa-nina-nkolbisson"
+ },
+ {
+  "hidden": "e80c6bb5-6973-4884-9030-b2006299c491",
+  "slug": "republique-hotel-essos-2",
+  "kept": "a1ce9c54-0604-4856-9bfe-2a8c796f3055",
+  "kept_slug": "republique-hotel-essos"
+ },
+ {
+  "hidden": "85acc830-ead2-42be-9eb0-0e56a542c748",
+  "slug": "zad-s-snack-et-mask-s-bar-bastos",
+  "kept": "725ba161-976a-47e2-9615-6c89bf260d68",
+  "kept_slug": "mask-bar-bastos"
+ },
+ {
+  "hidden": "87730c87-34d7-426c-ab63-732b751f51c9",
+  "slug": "safana-village-douala",
+  "kept": "3ecd9fe1-410c-48f3-9e75-c56e1359e523",
+  "kept_slug": "saffana-hotel-village-douala"
+ },
+ {
+  "hidden": "526d6fae-4024-4c4e-a5a4-59b82f1ed865",
+  "slug": "les-delices-de-la-cote-limbe",
+  "kept": "16b21931-2f16-4f8b-9f19-00098b6da023",
+  "kept_slug": "la-cote-limbe"
+ },
+ {
+  "hidden": "d162f192-6ad8-4686-9e57-c4a891c1075d",
+  "slug": "palm-springs-bed-and-breakfast-limbe-2",
+  "kept": "21c80c32-9ff9-4e91-bda0-e4bcdca5f1b8",
+  "kept_slug": "palm-springs-bed-and-breakfast-limbe"
+ },
+ {
+  "hidden": "6b728d94-4d62-4204-8306-507d82772ac7",
+  "slug": "walde-kossam-daouda-ngaoundere",
+  "kept": "21133ae4-2742-41ac-ab9f-ed3d95d48a84",
+  "kept_slug": "walde-kossam-daouda-ngaoundere-2"
+ },
+ {
+  "hidden": "aafdf35d-8e81-4440-ad64-cbd613f38122",
+  "slug": "flore-mokolo",
+  "kept": "1aa45d97-e841-40db-99f4-ff74b6eeee03",
+  "kept_slug": "flore-mokolo-2"
+ },
+ {
+  "hidden": "d4b1fd07-9098-41ca-ad69-f63aca8dca79",
+  "slug": "restaurant-senegalais-mokolo",
+  "kept": "30945602-a160-485f-b4fc-4fdb78fd7bdf",
+  "kept_slug": "restaurant-senegalais-moderne-mokolo"
+ },
+ {
+  "hidden": "807b40f4-185e-4585-974b-e6c0e7ab7bc0",
+  "slug": "bili-bili-omnisport",
+  "kept": "7392ecaf-a49d-4277-845b-df1499e17e06",
+  "kept_slug": "bili-bili-omnisport-2"
+ },
+ {
+  "hidden": "9a845d37-1c69-452e-bfb2-404d9876ea07",
+  "slug": "smile-centre-ville",
+  "kept": "59238868-049d-4ec8-9502-1c34a60d9a1d",
+  "kept_slug": "smiley-centre-ville"
+ },
+ {
+  "hidden": "d255048f-b538-4138-9884-7afc482e59f3",
+  "slug": "tchop-et-yamo-bastos",
+  "kept": "ae21048d-03df-4584-85da-99c56084cf8a",
+  "kept_slug": "tchopetyamo-bastos"
+ },
+ {
+  "hidden": "d483f500-60fd-43e4-8b0c-092533afbf4f",
+  "slug": "matango-ngousso-2",
+  "kept": "2e10e8bb-cdd1-44b4-bc46-f77e882beb7e",
+  "kept_slug": "matango-ngousso"
+ },
+ {
+  "hidden": "deeaffc9-2f0f-4763-9aae-b3bb5f0f12cb",
+  "slug": "casino-golden-cash-bastos",
+  "kept": "aabdf783-83f0-4f4c-8f44-8105f97ed3c8",
+  "kept_slug": "casino-golden-cash-bastos-2"
+ },
+ {
+  "hidden": "e153cda0-d9e9-49fa-8c8e-cc07656bdc6c",
+  "slug": "girafe-hotel-elig-essono",
+  "kept": "b183d530-3cc0-44c8-af16-8d3005041031",
+  "kept_slug": "girafe-hotel-elig-essono-2"
+ },
+ {
+  "hidden": "e7ba2d3d-855b-4a7f-a511-d1329e93ffd7",
+  "slug": "all-star-sportsbar-bastos",
+  "kept": "2096d796-3aa5-4359-9710-a6e647abb57a",
+  "kept_slug": "all-stars-sports-lounge-bastos"
+ },
+ {
+  "hidden": "833d7bb4-dc96-4c27-8bb2-501e4f4e10f0",
+  "slug": "pele-bar-essos-2",
+  "kept": "9133e010-dc72-46ea-80f6-c3b13e024f09",
+  "kept_slug": "pele-bar-essos"
+ },
+ {
+  "hidden": "8c02284e-8219-401d-9159-eb8cd6fbe6e9",
+  "slug": "club-betise-bar-nkolbisson",
+  "kept": "05cfda1c-4259-429d-8784-8f2982ea58d0",
+  "kept_slug": "club-betis-resto-nkolbisson"
+ },
+ {
+  "hidden": "a80fb696-dd84-4a4f-be50-79426c6f5ca2",
+  "slug": "saint-monaco-mokolo-2",
+  "kept": "10f7fff9-f3cd-4081-bccc-d043a4439c40",
+  "kept_slug": "saint-monaco-mokolo"
+ },
+ {
+  "hidden": "d0bcbc98-c500-489e-9ad1-e0914691384f",
+  "slug": "complexe-237-nkolbisson-2",
+  "kept": "73fef3d2-5d08-4538-92c4-93d38fa91785",
+  "kept_slug": "complexe-237-nkolbisson"
+ },
+ {
+  "hidden": "e8da2140-ccc0-4f4a-9ac2-5fc8b5f3201a",
+  "slug": "la-joie-de-vivre-mokolo",
+  "kept": "53c3e4c8-3401-4b74-b9b5-3f7fb1655b2a",
+  "kept_slug": "la-joie-de-vivre-mokolo-2"
+ },
+ {
+  "hidden": "e8f42476-2c1a-4f67-9778-64069727c3ae",
+  "slug": "maitre-nseng-essos",
+  "kept": "33da56f9-ddb3-40d4-bd65-45b3b403d4bc",
+  "kept_slug": "nseng-essos"
+ },
+ {
+  "hidden": "09ab6ef7-ac8d-44bd-b241-207941437484",
+  "slug": "the-drunken-bar-ngousso-2",
+  "kept": "0182927b-ba69-4aff-81a8-30ac1e97c763",
+  "kept_slug": "the-drunken-bar-ngousso"
+ },
+ {
+  "hidden": "862c5c8b-304e-48bd-a119-b2d61219e5f2",
+  "slug": "hotel-jouvence-2000-elig-essono",
+  "kept": "02606849-b0a5-4142-a7d8-976d1b323646",
+  "kept_slug": "hotel-jouvence-2000-elig-essono-2"
+ },
+ {
+  "hidden": "913a2c28-8d93-4bf1-9ce8-52e7d40d2efa",
+  "slug": "socropole-ngousso",
+  "kept": "f841bb70-d408-484f-bcc0-abfb7034bfae",
+  "kept_slug": "socropole-ngousso-2"
+ },
+ {
+  "hidden": "b1fe5250-df30-4a9a-90d2-991a4a7a8ce3",
+  "slug": "chez-guy-marcel-centre-ville-2",
+  "kept": "5ff74632-6987-4991-94e4-eacc07db2cba",
+  "kept_slug": "chez-guy-marcel-centre-ville"
+ },
+ {
+  "hidden": "b4a56639-5a4e-424d-aa98-ce003ff2c648",
+  "slug": "fiaga-city-bar-ngousso-2",
+  "kept": "7e86aded-334e-408b-a221-4003c04a36e5",
+  "kept_slug": "fiaga-city-bar-ngousso"
+ },
+ {
+  "hidden": "cbb3e1af-0122-44b7-b811-011a10b07494",
+  "slug": "city-center-bar-omnisport",
+  "kept": "417b125d-2102-48a5-9bcf-4a065734a0cc",
+  "kept_slug": "city-center-snack-bar-restaurant-omnisport"
+ },
+ {
+  "hidden": "da331ac6-b81f-45f8-a005-ef85027c4494",
+  "slug": "le-prince-etoudi",
+  "kept": "badca5f7-b704-4fd9-90f1-9941722e7203",
+  "kept_slug": "le-prince-etoudi-2"
+ },
+ {
+  "hidden": "f8780f42-d949-4dc6-863e-f45bb997353e",
+  "slug": "chez-minou-essos-2",
+  "kept": "15e34bde-b2bc-4387-a1f7-f62be00db786",
+  "kept_slug": "chez-minou-essos"
+ },
+ {
+  "hidden": "39f13b55-c05f-473b-a374-1ab130c299cd",
+  "slug": "restaurant-taro-essos",
+  "kept": "b6ce4158-3985-4448-9d6f-b9acf4b17941",
+  "kept_slug": "taro-essos-omnisport"
+ },
+ {
+  "hidden": "6c51abfe-e269-4dd2-ad23-508c9dd60435",
+  "slug": "the-outsiders-snack-bar-restaurant-omnisport",
+  "kept": "0e9f57d3-9cb3-4099-b05d-dbce3f3303f1",
+  "kept_slug": "the-outsiders-omnisport"
+ },
+ {
+  "hidden": "96686faa-01eb-4789-b984-e8d8d7602f8b",
+  "slug": "soneco-omnisport-2",
+  "kept": "e8038654-d60d-479b-8c49-f83d56481d68",
+  "kept_slug": "soneco-omnisport"
+ },
+ {
+  "hidden": "97c9f7bf-d21e-49b1-b77c-03f4b60c608a",
+  "slug": "le-doublon-ngousso-2",
+  "kept": "f05400d2-018a-40d1-8c1c-18af83fd4c4e",
+  "kept_slug": "le-doublon-ngousso"
+ },
+ {
+  "hidden": "a6311f9f-f517-4780-99ef-eed4e7738c88",
+  "slug": "texas-grill-ngousso",
+  "kept": "4aa6122f-c5cb-4542-bde6-5463413e3754",
+  "kept_slug": "texas-ngousso"
+ },
+ {
+  "hidden": "af362322-0f20-426b-85dc-8b940ad5e6b7",
+  "slug": "source-bar-omnisport-2",
+  "kept": "2926dd3f-840f-4589-b3c0-e7a9c7b50218",
+  "kept_slug": "source-bar-omnisport"
+ },
+ {
+  "hidden": "b58d5775-363d-4687-9364-dfb8b3607628",
+  "slug": "nostalgie-bar-de-nkanda-omnisport",
+  "kept": "85f3f174-ae1b-4627-a5d0-9a6dfa9acac0",
+  "kept_slug": "nkanda-bar-omnisport"
+ },
+ {
+  "hidden": "1d1ec1ae-4b19-4ac0-b9d8-b785a5c10ce3",
+  "slug": "hotel-kamthe-mendong",
+  "kept": "0bab644f-82aa-4201-8822-0f18af1bed35",
+  "kept_slug": "kamthe-hotel-mendong"
+ },
+ {
+  "hidden": "6deeb432-bcde-43d7-8f13-4e1e59548fbd",
+  "slug": "chez-uncle-sam-mokolo",
+  "kept": "309a7e62-413f-4a81-897c-b653756f7d45",
+  "kept_slug": "snack-bar-ucle-sam-mokolo"
+ },
+ {
+  "hidden": "b37d5d6f-ecd6-4a50-9783-f33f00f9eadd",
+  "slug": "batiment-mokolo-2",
+  "kept": "0b3ac8d6-dd5f-4249-be84-b868ac7ae630",
+  "kept_slug": "batiment-mokolo-4"
+ },
+ {
+  "hidden": "dc6cc43a-b179-48eb-ae25-6616e9c1576b",
+  "slug": "batiment-mokolo",
+  "kept": "81cc92df-27f5-4d76-bfb6-8dfecd09159c",
+  "kept_slug": "batiment-mokolo-3"
+ },
+ {
+  "hidden": "deda6488-e44d-4afe-8dc5-2d7e6a68a954",
+  "slug": "restaurant-chez-uncle-sam-mokolo",
+  "kept": "309a7e62-413f-4a81-897c-b653756f7d45",
+  "kept_slug": "snack-bar-ucle-sam-mokolo"
+ },
+ {
+  "hidden": "fd460e79-36af-45fb-addc-cff1a54b1f33",
+  "slug": "local-food-vendor-mokolo-2",
+  "kept": "92e6727b-c0b4-4569-b941-1e3163632de0",
+  "kept_slug": "local-food-vendor-mokolo"
+ },
+ {
+  "hidden": "343d2cdf-2fb4-4dd9-b775-cd9392a8ef88",
+  "slug": "casino-poste-centre-ville",
+  "kept": "c202e1bd-457b-4577-ba0f-29a8975b04a5",
+  "kept_slug": "casino-centre-ville"
+ },
+ {
+  "hidden": "57ef35dc-1607-4480-99ee-ca3fa240f127",
+  "slug": "residence-hoteliere-papyrus-omnisport",
+  "kept": "dbe16658-f286-4fbc-b9b0-6721b07c82f8",
+  "kept_slug": "le-papyrus-omnisport"
+ },
+ {
+  "hidden": "708002c9-5a74-46e6-bdc7-fa77a2f5ebb2",
+  "slug": "poulet-mayo-mokolo-2",
+  "kept": "d9a8bceb-ba15-40bc-8288-6dce3af99957",
+  "kept_slug": "poulet-mayo-mokolo"
+ },
+ {
+  "hidden": "74bbb50c-880e-4519-b651-251f5bf88d19",
+  "slug": "le-colisee-bastos",
+  "kept": "164fb669-1cb1-4f68-95a7-b6f0e309ef13",
+  "kept_slug": "le-colisee-bastos-2"
+ },
+ {
+  "hidden": "b938a5da-1591-441f-8f04-566060286060",
+  "slug": "l-orient-rouge-bastos-2",
+  "kept": "c922cecb-6442-47d9-aab5-c35cf431b635",
+  "kept_slug": "l-orient-rouge-bastos"
+ },
+ {
+  "hidden": "c5c18693-86f7-4728-b894-8bd351451d2d",
+  "slug": "hotel-la-fleur-mokolo-2",
+  "kept": "5201d672-5640-48b3-a929-752b7a140d0e",
+  "kept_slug": "hotel-la-fleur-mokolo"
+ },
+ {
+  "hidden": "c60f8745-aca5-4221-8b6a-eac47dd09d75",
+  "slug": "restaurant-mahima-elig-essono",
+  "kept": "abff0793-b427-4557-b816-4c8754958eca",
+  "kept_slug": "mahima-restaurant-elig-essono"
+ },
+ {
+  "hidden": "d9c657f8-371f-4486-abb8-5ce86a7210de",
+  "slug": "supermarche-mahima-elig-essono",
+  "kept": "e7de424f-ff56-4785-b2c7-37bbf6bb91e7",
+  "kept_slug": "mahima-supermarche-elig-essono"
+ },
+ {
+  "hidden": "ddfef0eb-e3cf-4e54-870a-b1fc9574dc3a",
+  "slug": "mahima-centre-ville-2",
+  "kept": "84366a89-7546-441d-841e-32be40a092fc",
+  "kept_slug": "mahima-centre-ville"
+ },
+ {
+  "hidden": "fbd00feb-ab82-480e-b24d-b6b14223355a",
+  "slug": "niki-central-centre-ville",
+  "kept": "0e5f63e4-3eca-4c07-af37-41d895f308e6",
+  "kept_slug": "niki-centre-ville"
+ },
+ {
+  "hidden": "1998ff8a-af4a-4735-888f-c24c3178a685",
+  "slug": "dovv-mendong-mendong-2",
+  "kept": "415fb54b-f0be-4b0f-b4d2-55e7d90a7305",
+  "kept_slug": "dovv-mendong-mendong"
+ },
+ {
+  "hidden": "866f6434-c807-44fb-83bd-3acb631509e8",
+  "slug": "socropole-centre-ville-2",
+  "kept": "b6b0c8dd-5ff3-445d-bcfc-40f1556f0044",
+  "kept_slug": "socropole-centre-ville"
+ },
+ {
+  "hidden": "da9f6302-3a6f-4018-91a4-328fefe65ed9",
+  "slug": "hotel-la-roche-ngousso-2",
+  "kept": "fd68e8ab-f13a-452c-afd9-edf2f9df05cc",
+  "kept_slug": "hotel-la-roche-ngousso"
+ },
+ {
+  "hidden": "8d3d1164-0f84-4dc3-9e5c-ce43ae4f8cbe",
+  "slug": "appart-mokolo",
+  "kept": "ffe2d083-c6e7-4656-a1c3-d23e6e740678",
+  "kept_slug": "appart-hotel-mokolo"
+ },
+ {
+  "hidden": "dd1c5f0c-5900-4c4c-b17a-12ab5979ab01",
+  "slug": "motel-chat-blanc-ngousso",
+  "kept": "43be10ba-18dd-4694-97e8-8fd733db320a",
+  "kept_slug": "le-chat-blanc-ngousso"
+ },
+ {
+  "hidden": "ec419894-e814-4065-99d7-8fffac9375bd",
+  "slug": "motel-la-griffe-essos",
+  "kept": "ca6116e8-8437-49b5-ad23-fffb28772a5a",
+  "kept_slug": "motel-la-griffe-essos-2"
+ },
+ {
+  "hidden": "eead79d4-7de4-4c86-a12d-f9a80b4b85bb",
+  "slug": "le-marseillais-essos",
+  "kept": "ba4ba7fa-cb4c-4199-8824-300f81a1a5d3",
+  "kept_slug": "motel-le-marseillais-plus-essos"
+ },
+ {
+  "hidden": "7e0e9210-c15c-4962-9c29-076ad5a747c5",
+  "slug": "boulangerie-du-rail-ngwele-douala-2",
+  "kept": "d053ff2e-f31e-48c7-8feb-fb0d6594e7a6",
+  "kept_slug": "boulangerie-du-rail-ngwele-douala"
+ },
+ {
+  "hidden": "9a5be4b3-e726-495e-b3ff-57e960c229ae",
+  "slug": "saker-ndokoti-douala",
+  "kept": "f3ed7ecd-f0e3-44ed-8532-aa2ca8242721",
+  "kept_slug": "boulangerie-saker-ndokoti-douala"
+ },
+ {
+  "hidden": "ac0fe821-d82a-464b-90ad-ca801df8ad00",
+  "slug": "hila-hotel-camp-yabassi-douala-2",
+  "kept": "d06fb1e9-e72c-4936-9ff5-bd1184b2f3c1",
+  "kept_slug": "hila-hotel-camp-yabassi-douala"
+ },
+ {
+  "hidden": "42681c11-258f-4167-b6ce-129f5e30bdc9",
+  "slug": "royal-palace-bonaminkano-douala",
+  "kept": "ad180891-a885-4224-8d7f-300f41c78097",
+  "kept_slug": "hotel-royal-bonaminkano-douala"
+ },
+ {
+  "hidden": "4bcc9c2d-8e87-48b7-ba4b-48b18164e3e0",
+  "slug": "le-majestic-akwa-akwa-douala",
+  "kept": "b0a5594d-cc04-49e3-a940-471f4c76d70e",
+  "kept_slug": "le-majestic-d-akwa-akwa-douala"
+ },
+ {
+  "hidden": "5c4b6604-152a-40c8-8a0a-de95dffa777c",
+  "slug": "boulangerie-saker-village-douala",
+  "kept": "0c2cc946-98af-4e5b-b826-5c64a03a6714",
+  "kept_slug": "saker-village-douala"
+ },
+ {
+  "hidden": "7da08178-1a57-4528-94cc-25bf6eb812e5",
+  "slug": "grand-mall-douala-bonadiwoto-douala",
+  "kept": "6ddfb754-a4fc-431b-b2b7-4e7b84c374c7",
+  "kept_slug": "douala-grand-mall-bonadiwoto-douala"
+ },
+ {
+  "hidden": "7e39620e-a23b-4ca9-9960-a296935e9097",
+  "slug": "kmc-bonatene-douala",
+  "kept": "54ba485c-ce17-487c-a501-dc9ba283c880",
+  "kept_slug": "kmc-bonatene-douala-2"
+ },
+ {
+  "hidden": "80eaad96-3934-4f17-868b-9b8c35af5f9f",
+  "slug": "kado-bonadouma-douala",
+  "kept": "76273e53-4107-43e9-bc77-667111d6f7fc",
+  "kept_slug": "supermarche-kado-bonadouma-douala"
+ },
+ {
+  "hidden": "85afdb3f-fa32-45a3-80ec-5ab1ca07b8fd",
+  "slug": "serena-palace-bali-douala",
+  "kept": "b6742f53-6ef1-491c-8fb1-68eaff390067",
+  "kept_slug": "serena-palace-bali-douala-2"
+ },
+ {
+  "hidden": "8ca26db1-6b42-4a52-8baa-772dfc21fa80",
+  "slug": "hotel-doris-akwa-douala-2",
+  "kept": "f70a06e9-f55e-4a4d-9659-cb57c0015eb7",
+  "kept_slug": "hotel-doris-akwa-douala"
+ },
+ {
+  "hidden": "907723ef-032d-4b67-83bb-9a5f0d5aa1ba",
+  "slug": "doual-art-bonanjo-douala",
+  "kept": "d946eb54-36dc-4a36-9a34-2c8c5cbfec0c",
+  "kept_slug": "doual-art-bonanjo-douala-2"
+ },
+ {
+  "hidden": "ac12f593-cdde-49e3-ba1c-0e9ba5f3616c",
+  "slug": "china-mall-ndoghem-douala",
+  "kept": "4d225894-0294-4318-8bca-51f362be5f93",
+  "kept_slug": "china-mall-pk13-ndoghem-douala"
+ },
+ {
+  "hidden": "e3ba1f8f-0d47-410a-a30c-f19bca553532",
+  "slug": "chez-papa-martin-bonamoudourou-douala",
+  "kept": "a4a7a2cb-90ac-43f7-918f-e02f91922844",
+  "kept_slug": "chez-papa-chounfack-martin-bonamoudourou-douala"
+ },
+ {
+  "hidden": "801a1d64-138b-4f16-b458-3c0d4da4278e",
+  "slug": "ruccotel-songbikako-douala-2",
+  "kept": "e043d4fa-576c-41c2-bf22-487391d44b16",
+  "kept_slug": "ruccotel-songbikako-douala"
+ },
+ {
+  "hidden": "8b444685-0cb0-44f5-baea-f77413ce0d4b",
+  "slug": "boulangerie-saker-makepe-ii-bonamoussadi-douala",
+  "kept": "11706130-850b-4e80-9b02-1e5a80c2625d",
+  "kept_slug": "saker-makepe-ii-bonamoussadi-douala"
+ },
+ {
+  "hidden": "95c7b4ab-1c79-47fb-b502-ada97244e6aa",
+  "slug": "venus-makepe-ii-bonamoussadi-douala-2",
+  "kept": "52270acb-a64b-4017-9d20-9a305d124a21",
+  "kept_slug": "venus-makepe-ii-bonamoussadi-douala"
+ },
+ {
+  "hidden": "d5b979d6-6a30-45e0-8b07-b6b9bc36ce4c",
+  "slug": "boulangerie-joedi-bonamoussadi-douala-2",
+  "kept": "7937687d-7a75-4376-8400-05e67bce6d7f",
+  "kept_slug": "boulangerie-joedi-bonamoussadi-douala"
+ },
+ {
+  "hidden": "7e8e8ad8-286d-4c0f-880e-b0b5450bf80f",
+  "slug": "hotel-marseillais-lol-petit-paris-kribi",
+  "kept": "0da2d695-49c0-4b95-9801-6f52a213e086",
+  "kept_slug": "le-marseillais-petit-paris-kribi"
+ },
+ {
+  "hidden": "8b27f180-16df-494d-9004-33aa1042c315",
+  "slug": "hotel-panoramique-petit-paris-kribi",
+  "kept": "7bc3f533-f1e6-4044-a820-da6648d1373f",
+  "kept_slug": "le-panoramique-petit-paris-kribi"
+ },
+ {
+  "hidden": "2e41bc46-d271-4b86-a6c0-3e737d18144d",
+  "slug": "supermarche-mcg-petit-paris-kribi",
+  "kept": "28a421bb-3c3d-4834-8f4d-1e93b9088ec0",
+  "kept_slug": "supermarche-mcg-petit-paris-kribi-2"
+ },
+ {
+  "hidden": "353a0cd3-42d2-464f-9654-2598c541421c",
+  "slug": "hotel-de-l-ocean-mokolo-kribi",
+  "kept": "eddfec47-c475-4172-8c30-19ed3a05b822",
+  "kept_slug": "hotel-de-l-ocean-mokolo-kribi-2"
+ },
+ {
+  "hidden": "eec76b76-f96a-4a75-a2cb-79fbacb56089",
+  "slug": "gael-hotel-ngoye-plage-kribi",
+  "kept": "34bf3697-6a50-48a4-9a55-80d43ce56e67",
+  "kept_slug": "gael-hotel-ngoye-plage-kribi-2"
+ },
+ {
+  "hidden": "f79ce63d-e9d5-4639-9446-acf907946dea",
+  "slug": "marina-de-kribi-mokolo-kribi",
+  "kept": "b9a1dbda-6c3c-4b1a-8e1e-aea201a7d85e",
+  "kept_slug": "marina-mokolo-kribi"
+ },
+ {
+  "hidden": "238073ad-a9a6-4547-93fb-7c8a5cc43cfe",
+  "slug": "the-neptune-ambas-bay-limbe",
+  "kept": "58b3b9f7-e8e1-4ee3-aadb-037e623a7c53",
+  "kept_slug": "neptune-ambas-bay-limbe"
+ },
+ {
+  "hidden": "2d8675c7-09f0-456a-bc4d-cbc11f3a0838",
+  "slug": "victoria-royal-ambas-bay-limbe",
+  "kept": "19359195-4507-44ed-95b8-88dc545e752c",
+  "kept_slug": "victoria-royal-ambas-bay-limbe-2"
+ },
+ {
+  "hidden": "e710cd60-55bd-4186-a5c8-903b9b806d2b",
+  "slug": "fako-bakery-ambas-bay-limbe-2",
+  "kept": "3fb8e916-941c-467c-b5ac-d48d62902baf",
+  "kept_slug": "fako-bakery-ambas-bay-limbe"
+ },
+ {
+  "hidden": "e96f996a-fe29-4f1e-a8ad-9a513575892f",
+  "slug": "coastal-bakery-ambas-bay-limbe-2",
+  "kept": "354995c6-aca1-4367-97a6-135a9dbfa618",
+  "kept_slug": "coastal-bakery-ambas-bay-limbe"
+ },
+ {
+  "hidden": "3e57924b-443b-4bbf-86a4-ccada7202c97",
+  "slug": "iya-small-soppo-buea",
+  "kept": "2602045c-2733-4dd2-9565-41ea52d9d0a2",
+  "kept_slug": "restaurant-iya-small-soppo-buea"
+ },
+ {
+  "hidden": "832ef469-f9fa-4aed-8a95-2539b8aeb10e",
+  "slug": "njeiforbi-small-soppo-buea",
+  "kept": "5aef542a-8fa6-4f4d-9112-ef11f2981f1d",
+  "kept_slug": "njeiforbi-bakery-small-soppo-buea"
+ },
+ {
+  "hidden": "a5baa6f2-fd2a-4cab-919e-8c911519b99f",
+  "slug": "hotel-sekem-oukaha-bafoussam",
+  "kept": "59c61ca2-d55b-44d7-be99-87541f9267aa",
+  "kept_slug": "sekem-oukaha-bafoussam"
+ },
+ {
+  "hidden": "ae56bd32-ecdd-414b-b416-8be00c0b3eb4",
+  "slug": "hotel-sekem-oukaha-bafoussam-2",
+  "kept": "59c61ca2-d55b-44d7-be99-87541f9267aa",
+  "kept_slug": "sekem-oukaha-bafoussam"
+ },
+ {
+  "hidden": "bea2cb19-fb77-488d-9104-ae6135ec05fc",
+  "slug": "boulangerie-le-peuple-banengo-bafoussam-2",
+  "kept": "ac542aa0-884f-4346-82bf-b4e449a5d4e4",
+  "kept_slug": "boulangerie-le-peuple-banengo-bafoussam"
+ },
+ {
+  "hidden": "db602053-4894-4360-8723-b8add86e61c9",
+  "slug": "snack-bar-facebooke-famla-bafoussam",
+  "kept": "8a4cea51-e387-4b18-a925-d128136ff8b9",
+  "kept_slug": "face-booke-sarl-famla-bafoussam"
+ },
+ {
+  "hidden": "5d040333-67aa-4fe8-8ebb-85945e85c50c",
+  "slug": "mother-care-cafe-restaurant-ntarinkon-bamenda-2",
+  "kept": "08702360-9d31-40ba-aaf1-12f90f7e01b1",
+  "kept_slug": "mother-care-cafe-restaurant-ntarinkon-bamenda"
+ },
+ {
+  "hidden": "8a84f20b-6875-4774-9d8c-eda6f6a90c97",
+  "slug": "walde-kossam-1a-ngaoundere-3",
+  "kept": "9ebce413-02c0-49b1-9e65-83c19e4ffaa7",
+  "kept_slug": "walde-kossam-1a-ngaoundere-2"
+ },
+ {
+  "hidden": "b7dad7f4-e398-4a7d-90f6-01b73515fd0c",
+  "slug": "marhaba-norvegien-ngaoundere-2",
+  "kept": "2cf6f65f-19d0-40cc-8105-2e39d857730f",
+  "kept_slug": "marhaba-norvegien-ngaoundere"
+ },
+ {
+  "hidden": "8562806d-cae5-40ce-b4a9-3224a1c5f6d9",
+  "slug": "marhaba-norvegien-ngaoundere-3",
+  "kept": "2cf6f65f-19d0-40cc-8105-2e39d857730f",
+  "kept_slug": "marhaba-norvegien-ngaoundere"
+ },
+ {
+  "hidden": "34815b5b-b419-45fb-b2f6-96646e25eddc",
+  "slug": "boulnagerie-patisseria-africaine-garoua",
+  "kept": "2dab0baf-5b37-45ca-aead-42f4eb120adb",
+  "kept_slug": "boulnagerie-patisseria-africaine-garoua-2"
+ },
+ {
+  "hidden": "d5b8a24d-65cc-4573-bf04-877034c8cda9",
+  "slug": "ndancy-hotel-jungle-ebolowa-2",
+  "kept": "614dc487-d9f5-45cc-9e77-9ebb92e80109",
+  "kept_slug": "ndancy-hotel-jungle-ebolowa"
+ },
+ {
+  "hidden": "e2d55976-b612-4784-ab53-2111cf6c38af",
+  "slug": "mrinette-hotel-kribi",
+  "kept": "a311eb9c-cf9c-4855-b56d-7778e77ce78f",
+  "kept_slug": "chez-marinette-kribi"
+ },
+ {
+  "hidden": "7bdbfe47-26f8-4ee4-b086-2f883642fbeb",
+  "slug": "ub-market-buea-5",
+  "kept": "530b17b1-b098-4cf2-8ff4-fd9a7066c7c4",
+  "kept_slug": "ub-market-buea-2"
+ },
+ {
+  "hidden": "bb733e96-7132-4fbb-a97d-bd126431ab55",
+  "slug": "bit-restau-buea-2",
+  "kept": "ce9e875b-dd17-4dc2-88e9-1566e350ad5a",
+  "kept_slug": "bit-restau-buea"
+ },
+ {
+  "hidden": "c3e989ff-3d35-4f0d-95a4-918101b2d9b3",
+  "slug": "ub-market-buea",
+  "kept": "530b17b1-b098-4cf2-8ff4-fd9a7066c7c4",
+  "kept_slug": "ub-market-buea-2"
+ },
+ {
+  "hidden": "d471887c-cda0-4c32-b263-70e372221077",
+  "slug": "ub-market-buea-3",
+  "kept": "530b17b1-b098-4cf2-8ff4-fd9a7066c7c4",
+  "kept_slug": "ub-market-buea-2"
+ },
+ {
+  "hidden": "e433250e-f459-4c0a-86a5-837732498907",
+  "slug": "ub-market-buea-4",
+  "kept": "530b17b1-b098-4cf2-8ff4-fd9a7066c7c4",
+  "kept_slug": "ub-market-buea-2"
+ },
+ {
+  "hidden": "e529b803-471d-400a-abcb-70d15b73a6ce",
+  "slug": "snack-bar-dream-lounge-molykoe-buea",
+  "kept": "7339858e-2c32-4360-ad73-18990d0cf4ed",
+  "kept_slug": "dream-lounge-cabaret-buea"
+ },
+ {
+  "hidden": "cb38f06b-7ff9-4c63-b52d-61c6634d4bb4",
+  "slug": "hotel-la-parade-bafoussam",
+  "kept": "ca4487b3-f833-45e3-bb3d-81cd9f2075a4",
+  "kept_slug": "hit-parade-hotel-bafoussam"
+ },
+ {
+  "hidden": "cb3ae27f-8fd5-4c0a-8235-618cd871cef2",
+  "slug": "centre-climatique-de-bandjoun-bafoussam-2",
+  "kept": "034a4189-3df1-4fd2-a9df-1ecd601ceb2c",
+  "kept_slug": "centre-climatique-de-bandjoun-bafoussam"
+ },
+ {
+  "hidden": "eb53063d-061e-42e9-8914-048d18c4172b",
+  "slug": "boulangerie-patisserie-ideale-ngaoundere",
+  "kept": "66226e2e-29b1-4219-beb5-5dfc0e46aa37",
+  "kept_slug": "boulangerie-patisserie-ideale-ngaoundere-2"
+ },
+ {
+  "hidden": "61b948d6-5b42-4854-adc7-95a1d4a89e56",
+  "slug": "le-flambeau-garoua-2",
+  "kept": "168bd003-b9eb-40d3-9469-6d201371786d",
+  "kept_slug": "le-flambeau-garoua"
+ },
+ {
+  "hidden": "d379d868-a914-4dc3-9dc8-b64f649acec3",
+  "slug": "dreamland-hotel-garoua",
+  "kept": "12047ede-19ea-4752-8e05-d5fc8b528ee1",
+  "kept_slug": "dreamland-garoua"
+ },
+ {
+  "hidden": "e67d208f-c830-420f-b654-aac96c22b0ed",
+  "slug": "boulnagerie-patisserie-du-petit-marche-yelwa-garoua",
+  "kept": "064a0284-c03b-4ccc-8e2f-e1e42fe0d4ac",
+  "kept_slug": "boulnagerie-patisserie-du-petit-marche-yelwa-garoua-2"
+ },
+ {
+  "hidden": "e2e477e1-ebaf-4d08-b30e-6cd00814a80a",
+  "slug": "hotel-savano-maroua",
+  "kept": "0b5aada4-46a1-4c3d-abbb-01ebe30b720d",
+  "kept_slug": "hotel-savano-maroua-2"
+ }
+]
