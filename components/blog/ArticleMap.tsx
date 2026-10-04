@@ -40,7 +40,7 @@ export default function ArticleMap({ places }: { places: PlaceSummary[] }) {
                     <MapPinned size={20} />
                 </span>
                 <div>
-                    <h2 id="article-map" className="font-display text-lg font-extrabold">
+                    <h2 id="article-map" className="nt-serif text-[1.6rem]">
                         {t.blog.mapTitle}
                     </h2>
                     <p className="text-sm text-muted">{fill(t.blog.mapHint, { count: places.length })}</p>

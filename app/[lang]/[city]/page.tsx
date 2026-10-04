@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
+import EditorialSection from "@/components/editorial/EditorialSection";
 import GuideView, { CategoryIcon, countBy, plural, sortForGuide } from "@/components/guide/GuideView";
 import PinCard from "@/components/place/PinCard";
 import { cityBySlug } from "@/lib/cities";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
 import { areasOf } from "@/lib/places/areas";
+import { availableCollections } from "@/lib/places/collections";
+import { editorialRails } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
 import { getCityPlaces } from "@/lib/places/server";
 
@@ -43,17 +46,22 @@ export default async function CityPage({ params }: Props) {
 
     const categories = countBy(places, (place) => place.category).filter(([category]) => category !== "Other");
     const areas = areasOf(places, 2);
-    // Photos first: they make the board.
-    const picks = sortForGuide(places)
-        .slice(0, 24)
-        .sort((a, b) => Number(Boolean(b.cover)) - Number(Boolean(a.cover)))
-        .slice(0, 12);
+    const rails = editorialRails(places, city, lang, { limit: 6 });
+    const collections = availableCollections(places);
+    // Small towns without enough for sections still get a board of places.
+    const picks =
+        rails.length < 2
+            ? sortForGuide(places)
+                  .slice(0, 24)
+                  .sort((a, b) => Number(Boolean(b.cover)) - Number(Boolean(a.cover)))
+                  .slice(0, 12)
+            : [];
 
     return (
         <GuideView
             locale={lang}
             city={city.slug}
-            eyebrow={`${city.name} · ${city.region[lang]}`}
+            eyebrow={`${city.region[lang]}`}
             title={fill(t.cities.guideTitle, { city: city.name })}
             intro={`${city.tagline[lang]}. ${fill(t.cities.guideLead, { count: places.length })}`}
             stats={[
@@ -64,21 +72,47 @@ export default async function CityPage({ params }: Props) {
             crumbs={[{ label: t.nav.home, href: paths.home(lang) }, { label: city.name }]}
             places={null}
             mapQuery=""
+            editorial={
+                rails.length > 0 && (
+                    <div className="pt-6">
+                        {rails.map((rail, index) => (
+                            <EditorialSection key={rail.key} rail={rail} locale={lang} priority={index === 0} />
+                        ))}
+                    </div>
+                )
+            }
             filters={
                 <>
+                    {collections.length > 0 && (
+                        <section className="nt-reveal mt-6">
+                            <h2 className="nt-section-title">{fill(t.city.collectionsIn, { city: city.name })}</h2>
+                            <p className="mt-1.5 text-[0.92rem] text-muted">{t.city.collectionsLead}</p>
+                            <ul className="mt-5 flex flex-wrap gap-2">
+                                {collections.map(({ collection, count }) => (
+                                    <li key={collection.key}>
+                                        <Link href={paths.collection(lang, city.slug, collection)} className="nt-chip">
+                                            {collection.name[lang]}
+                                            <span className="font-normal text-muted">{count}</span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+
                     {categories.length > 0 && (
-                        <section className="nt-reveal mt-4">
-                            <h2 className="nt-section-title mb-4">{t.city.categories}</h2>
-                            <ul className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+                        <section className="nt-reveal mt-14">
+                            <h2 className="nt-section-title mb-5">{t.city.categories}</h2>
+                            <ul className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
                                 {categories.map(([category, count]) => (
                                     <li key={category}>
                                         <Link
                                             href={paths.category(lang, city.slug, category)}
-                                            className="nt-pressable flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-card"
+                                            className="nt-pressable flex items-center gap-3 rounded-[1.1rem] border border-line bg-surface p-3"
                                         >
                                             <CategoryIcon category={category} />
                                             <span className="min-w-0">
-                                                <span className="block truncate text-sm font-bold">{plural(category, lang)}</span>
+                                                <span className="block truncate text-[0.9rem] font-semibold">{plural(category, lang)}</span>
                                                 <span className="text-xs text-muted">{fill(t.city.placesCount, { count })}</span>
                                             </span>
                                         </Link>
@@ -89,22 +123,15 @@ export default async function CityPage({ params }: Props) {
                     )}
 
                     {areas.length > 0 && (
-                        <section className="nt-reveal mt-12">
-                            <h2 className="nt-section-title mb-4">{t.city.neighborhoods}</h2>
-                            <ul className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+                        <section className="nt-reveal mt-14">
+                            <h2 className="nt-section-title mb-5">{t.city.neighborhoods}</h2>
+                            <ul className="flex flex-wrap gap-2">
                                 {areas.map((area) => (
                                     <li key={area.name}>
-                                        <Link
-                                            href={paths.neighborhood(lang, city.slug, area.name)}
-                                            className="nt-pressable flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-card"
-                                        >
-                                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-700/25 dark:text-brand-200">
-                                                <MapPin size={18} />
-                                            </span>
-                                            <span className="min-w-0">
-                                                <span className="block truncate text-sm font-bold">{area.name}</span>
-                                                <span className="text-xs text-muted">{fill(t.city.placesCount, { count: area.count })}</span>
-                                            </span>
+                                        <Link href={paths.neighborhood(lang, city.slug, area.name)} className="nt-chip">
+                                            <MapPin size={14} className="text-muted" />
+                                            {area.name}
+                                            <span className="font-normal text-muted">{area.count}</span>
                                         </Link>
                                     </li>
                                 ))}
@@ -115,8 +142,8 @@ export default async function CityPage({ params }: Props) {
             }
         >
             {picks.length > 0 && (
-                <section className="nt-reveal mt-12">
-                    <h2 className="nt-section-title mb-4">{t.city.ideas}</h2>
+                <section className="nt-reveal mt-14">
+                    <h2 className="nt-section-title mb-5">{t.city.ideas}</h2>
                     <ul className="nt-masonry columns-2 md:columns-4">
                         {picks.map((place, index) => (
                             <li key={place.id}>
@@ -126,6 +153,17 @@ export default async function CityPage({ params }: Props) {
                     </ul>
                 </section>
             )}
+
+            <Link
+                href={paths.search(lang, city.slug)}
+                className="nt-reveal nt-pressable group mt-14 flex items-center justify-between gap-4 rounded-[1.25rem] border border-line bg-surface p-5"
+            >
+                <span>
+                    <span className="nt-serif block text-[1.6rem]">{fill(t.searchPage.title, { city: city.name })}</span>
+                    <span className="mt-1 block text-[0.9rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</span>
+                </span>
+                <ArrowRight size={20} className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
         </GuideView>
     );
 }

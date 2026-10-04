@@ -14,6 +14,7 @@ import type { Locale } from "../i18n/config";
 //   /fr/douala/akwa              neighbourhood guide
 //   /fr/douala/restaurants       category guide
 //   /fr/douala/akwa/bars         neighbourhood × category
+//   /fr/douala/selection/ouvert-tard   editorial collection (lib/places/collections)
 //   /fr/blog, /fr/blog/<slug>    articles
 //   /fr/pro                      business space (claim and manage a listing)
 
@@ -86,6 +87,9 @@ export const paths = {
     category: (locale: Locale, city: string, category: string) => `/${locale}/${city}/${categorySlug(category, locale)}`,
     neighborhoodCategory: (locale: Locale, city: string, name: string, category: string) =>
         `/${locale}/${city}/${slugify(name)}/${categorySlug(category, locale)}`,
+    collections: (locale: Locale, city: string) => `/${locale}/${city}/selection`,
+    collection: (locale: Locale, city: string, collection: { slug: Record<Locale, string> }) =>
+        `/${locale}/${city}/selection/${collection.slug[locale]}`,
     saved: (locale: Locale) => `/${locale}/favoris`,
     submit: (locale: Locale) => `/${locale}/ajouter`,
     privacy: (locale: Locale) => `/${locale}/confidentialite`,

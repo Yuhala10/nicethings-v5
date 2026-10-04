@@ -34,12 +34,12 @@ export default function PlaceRow({
                 category={place.category}
                 name={place.name}
                 sizes="72px"
-                className="h-[4.5rem] w-[4.5rem] shrink-0 rounded-2xl"
+                className="h-[4.5rem] w-[4.5rem] shrink-0 rounded-[0.9rem]"
                 iconSize={22}
             />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                    <h3 className="min-w-0 truncate font-display text-[0.97rem] font-bold text-text">{place.name}</h3>
+                    <h3 className="min-w-0 truncate text-[0.97rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
                     <VerifiedMark verified={place.verified} />
                     <span className="ml-auto">
                         <Rating rating={place.rating} count={place.reviewCount} />

@@ -56,7 +56,7 @@ export default function ArticleBody({ blocks, places, t }: { blocks: Block[]; pl
                         if (!list.length) return null;
                         return (
                             <section key={index} className="my-10">
-                                {block.title && <h3 className="mb-4 font-display text-xl font-extrabold">{block.title}</h3>}
+                                {block.title && <h3 className="nt-serif mb-4 text-[1.7rem]">{block.title}</h3>}
                                 <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3">
                                     {list.map((place) => (
                                         <PlaceCard key={place.slug} place={place} className="w-full" />
@@ -69,7 +69,7 @@ export default function ArticleBody({ blocks, places, t }: { blocks: Block[]; pl
                         return (
                             <blockquote key={index} className="relative my-10 rounded-[1.75rem] bg-surface-2 px-6 pt-10 pb-6 md:px-8">
                                 <Quote size={30} className="absolute top-4 left-5 text-brand-500" />
-                                <p className="font-display text-[1.35rem] leading-snug font-bold text-text md:text-[1.55rem]">
+                                <p className="nt-serif text-[1.75rem] leading-[1.2] text-text italic md:text-[2.1rem]">
                                     <Inline text={block.text} />
                                 </p>
                                 {block.cite && <footer className="mt-3 text-sm font-semibold text-muted">— {block.cite}</footer>}

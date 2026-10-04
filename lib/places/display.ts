@@ -20,26 +20,40 @@ import {
 // `tone` is the ink colour; the tint is mixed from it in CSS so dark mode
 // gets a deep version automatically.
 
-export type CategoryStyle = { icon: LucideIcon; tone: string };
+// `deep` is the printed colour of the category's poster (places without a
+// photo): dark, warm and quiet enough for cream serif type to sit on.
+export type CategoryStyle = { icon: LucideIcon; tone: string; deep: string };
 
 export const CATEGORY_STYLE: Record<string, CategoryStyle> = {
-    Restaurant: { icon: UtensilsCrossed, tone: "#ea580c" },
-    Cafe: { icon: Coffee, tone: "#a0522d" },
-    Bar: { icon: Wine, tone: "#db2777" },
-    Club: { icon: Music, tone: "#7c3aed" },
-    Hotel: { icon: BedDouble, tone: "#2563eb" },
-    Bakery: { icon: Croissant, tone: "#d97706" },
-    Shopping: { icon: ShoppingBag, tone: "#9333ea" },
-    Beauty: { icon: Scissors, tone: "#e11d48" },
-    Wellness: { icon: Dumbbell, tone: "#059669" },
-    Entertainment: { icon: Ticket, tone: "#0891b2" },
-    Culture: { icon: Landmark, tone: "#b7791f" },
-    Nature: { icon: Trees, tone: "#16a34a" },
-    Other: { icon: MapPin, tone: "#57534e" },
+    Restaurant: { icon: UtensilsCrossed, tone: "#ea580c", deep: "#8a3a1e" },
+    Cafe: { icon: Coffee, tone: "#a0522d", deep: "#5e3b28" },
+    Bar: { icon: Wine, tone: "#db2777", deep: "#5d2340" },
+    Club: { icon: Music, tone: "#7c3aed", deep: "#35265c" },
+    Hotel: { icon: BedDouble, tone: "#2563eb", deep: "#1f3a58" },
+    Bakery: { icon: Croissant, tone: "#d97706", deep: "#80541e" },
+    Shopping: { icon: ShoppingBag, tone: "#9333ea", deep: "#4a2f5c" },
+    Beauty: { icon: Scissors, tone: "#e11d48", deep: "#7a2d3d" },
+    Wellness: { icon: Dumbbell, tone: "#059669", deep: "#22524a" },
+    Entertainment: { icon: Ticket, tone: "#0891b2", deep: "#1e4d5c" },
+    Culture: { icon: Landmark, tone: "#b7791f", deep: "#6b5321" },
+    Nature: { icon: Trees, tone: "#16a34a", deep: "#2e4c2c" },
+    Other: { icon: MapPin, tone: "#57534e", deep: "#48413b" },
 };
 
 export function categoryStyle(category: string) {
     return CATEGORY_STYLE[category] ?? CATEGORY_STYLE.Other;
+}
+
+// Printed colours for posters. Most places are restaurants and bars, so the
+// category colour alone would paint a board in one tone: each place draws
+// its own from this deep, warm range (the category keeps its icon). Same
+// slug, same colour, on the card and on the place page.
+const POSTER_INKS = ["#8a3a1e", "#5d2340", "#1f3a58", "#2e4c2c", "#6b5321", "#35265c", "#22524a", "#7a2d3d", "#5e3b28", "#3d4450"];
+
+export function posterInk(slug: string) {
+    let hash = 7;
+    for (const char of slug) hash = (hash * 31 + char.charCodeAt(0)) | 0;
+    return POSTER_INKS[Math.abs(hash) % POSTER_INKS.length];
 }
 
 // schema.org type for structured data, so Google knows what each place is.

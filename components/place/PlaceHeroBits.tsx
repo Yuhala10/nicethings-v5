@@ -11,13 +11,17 @@ import { sharePlace } from "@/lib/share";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
-// Share and save, as glass buttons over the place hero.
-export function HeroActions({ slug, name, preview }: { slug: string; name: string; preview: string }) {
+// Share and save, at the top of the place page (glass over a photo, plain
+// on paper).
+export function HeroActions({ slug, name, preview, tone = "plain" }: { slug: string; name: string; preview: string; tone?: "plain" | "glass" }) {
     const { locale, t } = useLocale();
     const toast = useToast();
     const { isSaved, toggle } = useSaved();
     const saved = isSaved(slug);
-    const glass = "grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-black/25 text-white backdrop-blur-md transition active:scale-90";
+    const glass =
+        tone === "glass"
+            ? "grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/25 text-white backdrop-blur-md transition active:scale-90"
+            : "grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-text transition hover:border-line-strong active:scale-90";
 
     return (
         <div className="flex gap-2">
@@ -31,7 +35,7 @@ export function HeroActions({ slug, name, preview }: { slug: string; name: strin
                     if (result === "copied") toast(t.common.copied);
                 }}
             >
-                <Share2 size={19} />
+                <Share2 size={18} />
             </button>
             <button
                 type="button"
@@ -40,7 +44,7 @@ export function HeroActions({ slug, name, preview }: { slug: string; name: strin
                 aria-label={saved ? t.spot.saved : t.spot.save}
                 onClick={() => toast(toggle(slug) ? t.spot.savedToast : t.spot.removedToast)}
             >
-                <Heart size={19} className={saved ? "nt-pop fill-white" : ""} />
+                <Heart size={18} className={saved ? `nt-pop ${tone === "glass" ? "fill-white" : "fill-brand-500 text-brand-500"}` : ""} />
             </button>
         </div>
     );
@@ -70,7 +74,7 @@ export function StickyPlaceBar({ slug, name }: { slug: string; name: string }) {
                     className="nt-glass fixed inset-x-0 top-0 z-40 border-b border-line pt-[env(safe-area-inset-top)] md:top-16"
                 >
                     <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4 md:px-6">
-                        <p className="min-w-0 flex-1 truncate font-display text-[1.02rem] font-extrabold">{name}</p>
+                        <p className="nt-serif min-w-0 flex-1 truncate text-[1.35rem]">{name}</p>
                         <Link href={paths.directions(locale, slug)} className="nt-btn nt-btn-primary h-10 px-4 text-sm">
                             <Navigation size={16} />
                             {t.spot.directions}

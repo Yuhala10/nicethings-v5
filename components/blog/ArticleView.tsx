@@ -120,7 +120,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                                 </span>
                                 {city && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur-md">{city.name}</span>}
                             </div>
-                            <h1 className="mt-4 font-display text-[2.1rem] leading-[1.04] font-extrabold tracking-tight md:text-[3.4rem]">{title}</h1>
+                            <h1 className="nt-serif mt-4 text-[2.6rem] leading-[1.02] md:text-[4.2rem]">{title}</h1>
                             {excerpt && <p className="mt-4 text-lg leading-relaxed text-white/80 md:text-xl">{excerpt}</p>}
                             <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold text-white/75">
                                 <span>{fill(t.blog.by, { author: post.author })}</span>
@@ -168,7 +168,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                     {places.length >= 2 && <ArticleMap places={places} />}
 
                     <div className="mt-10 flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="font-display text-lg font-extrabold">{t.blog.share}</p>
+                        <p className="nt-serif text-[1.6rem]">{t.blog.share}</p>
                         <ShareBar title={title} path={paths.post(lang, slug)} preview={shareImage} />
                     </div>
                 </div>

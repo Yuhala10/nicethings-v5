@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Landing from "@/components/landing/Landing";
 import { parseDiscoveryText } from "@/lib/concierge/parse";
-import { CITIES } from "@/lib/cities";
+import { CITIES, DEFAULT_CITY } from "@/lib/cities";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { formatPriceShort } from "@/lib/i18n/format";
 import { areasOf } from "@/lib/places/areas";
+import { MIN_COLLECTION, rankForEditorial } from "@/lib/places/collections";
 import { knownFacts } from "@/lib/places/display";
+import { editorialRails } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
 import { getAllPlaces } from "@/lib/places/server";
 import { getPosts } from "@/lib/blog/server";
@@ -81,21 +83,45 @@ export default async function HomePage({ params }: Props) {
         return { name: city.name, x, y, count: cityCounts[city.slug] };
     });
 
-    // Standout places across the country: photos first (they make the
-    // pins), then verified and complete listings, a few per city.
-    const perCity = new Map<string, number>();
+    // Standout places across the country for the hero collage: photos first
+    // (they make the pins), then verified and complete listings, one per city.
+    const perCity = new Set<string>();
     const picks = [...places]
         .sort((a, b) => Number(Boolean(b.cover)) - Number(Boolean(a.cover)) || Number(b.verified) - Number(a.verified) || knownFacts(b) - knownFacts(a))
         .filter((place) => {
-            const count = perCity.get(place.city) ?? 0;
-            if (count >= 3) return false;
-            perCity.set(place.city, count + 1);
+            if (perCity.has(place.city)) return false;
+            perCity.add(place.city);
             return true;
         })
-        .slice(0, 12);
+        .slice(0, 4);
 
-    const yaoundeAreas = areasOf(places.filter((place) => place.city === "yaounde"));
-    const demos = t.landing.demoPhrases.map((phrase) => ({ phrase, chips: demoChips(phrase, lang, yaoundeAreas) }));
+    // The editorial sections, from the biggest city's real data.
+    const home = DEFAULT_CITY;
+    const homePlaces = places.filter((place) => place.city === home.slug);
+    const rails = editorialRails(homePlaces, home, lang, { limit: 5 });
+
+    // The coast: beaches, hotels and tables in Kribi, Limbé and around.
+    const coastCities = new Set(["kribi", "limbe", "tiko"]);
+    const coast = rankForEditorial(
+        places.filter((place) => coastCities.has(place.city) && ["Nature", "Hotel", "Restaurant", "Culture"].includes(place.category))
+    );
+    const coastRail =
+        coast.length >= MIN_COLLECTION
+            ? {
+                  key: "coast",
+                  title: t.landing.coastTitle,
+                  blurb: t.landing.coastBlurb,
+                  href: paths.city(lang, "kribi"),
+                  count: coast.length,
+                  // Alternate the towns so both show up.
+                  items: [...coast.filter((place) => place.city === "kribi").slice(0, 4), ...coast.filter((place) => place.city !== "kribi").slice(0, 4)]
+                      .sort((a, b) => coast.indexOf(a) - coast.indexOf(b))
+                      .slice(0, 8),
+              }
+            : null;
+
+    const homeAreas = areasOf(homePlaces);
+    const demos = t.landing.demoPhrases.map((phrase) => ({ phrase, chips: demoChips(phrase, lang, homeAreas) }));
 
     return (
         <Landing
@@ -105,6 +131,10 @@ export default async function HomePage({ params }: Props) {
             cityCounts={cityCounts}
             areaCount={areaCount}
             picks={picks}
+            rails={rails}
+            coastRail={coastRail}
+            homeCity={home}
+            homeAreas={homeAreas.slice(0, 12)}
             posts={await getPosts().catch(() => [])}
             demos={demos}
         />

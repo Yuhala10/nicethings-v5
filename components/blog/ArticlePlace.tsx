@@ -40,7 +40,7 @@ export default function ArticlePlace({ place, note, number }: { place: PlaceSumm
                 <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold tracking-wide text-brand-600 uppercase">{kind}</p>
-                        <h3 className="mt-1 flex min-w-0 items-center gap-1.5 font-display text-[1.35rem] leading-tight font-extrabold">
+                        <h3 className="nt-serif mt-1 flex min-w-0 items-center gap-1.5 text-[1.75rem] leading-tight">
                             <Link href={paths.place(locale, place.slug)} title={place.name} className="min-w-0 truncate hover:text-brand-600">
                                 {place.name}
                             </Link>

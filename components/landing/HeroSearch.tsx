@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LocateFixed, Search } from "lucide-react";
 import { startGeo } from "@/lib/hooks/useGeo";
 import { paths } from "@/lib/places/paths";
+import { INTENT_ICONS, INTENT_ORDER } from "../explore/intents";
 import { useLocale } from "../site/LocaleProvider";
 
-// The big search on the landing page. Its placeholder types out real
-// requests the Concierge understands, so people see what they can ask.
+// The home search: one field whose placeholder types out real requests the
+// search understands, then the moods people reach for most. Everything
+// leads to the search page; the map comes after a place is chosen.
 export default function HeroSearch() {
     const { locale, t } = useLocale();
     const router = useRouter();
@@ -43,19 +46,21 @@ export default function HeroSearch() {
         return () => window.clearTimeout(timer);
     }, [t]);
 
+    const searchHref = (params: string) => `${paths.searchEntry(locale)}${params ? `?${params}` : ""}`;
+
     return (
-        <div className="w-full max-w-xl">
+        <div className="w-full">
             <form
                 role="search"
                 onSubmit={(event) => {
                     event.preventDefault();
-                    router.push(paths.map(locale, value.trim() || undefined));
+                    const query = value.trim();
+                    router.push(searchHref(query ? `q=${encodeURIComponent(query)}` : ""));
                 }}
-                className="group relative"
+                className="max-w-xl"
             >
-                <div className="nt-sunset pointer-events-none absolute -inset-[1.5px] rounded-[1.4rem] opacity-60 blur-[2px] transition group-focus-within:opacity-100" />
-                <div className="relative flex items-center rounded-[1.35rem] bg-white p-1.5 pl-4 shadow-[0_20px_60px_-15px_rgba(255,91,54,0.5)]">
-                    <Search size={20} className="shrink-0 text-brand-500" />
+                <div className="flex items-center rounded-[1.15rem] border border-line-strong bg-surface p-1.5 pl-4 shadow-card transition-[border-color,box-shadow] duration-200 focus-within:border-text-2 focus-within:shadow-float">
+                    <Search size={19} className="shrink-0 text-muted" />
                     <input
                         type="search"
                         value={value}
@@ -64,25 +69,41 @@ export default function HeroSearch() {
                         aria-label={t.search.shortPlaceholder}
                         enterKeyHint="search"
                         autoComplete="off"
-                        className="h-12 min-w-0 flex-1 bg-transparent px-3 text-base text-[#17120e] outline-none placeholder:text-[#8a7b6e] [&::-webkit-search-cancel-button]:hidden"
+                        className="h-12 min-w-0 flex-1 bg-transparent px-3 text-base text-text outline-none placeholder:text-muted [&::-webkit-search-cancel-button]:hidden"
                     />
-                    <button type="submit" className="nt-btn nt-btn-primary h-12 shrink-0 rounded-[1.05rem] px-4" aria-label={t.search.submit}>
+                    <button type="submit" className="nt-btn nt-btn-primary h-12 shrink-0 rounded-[0.85rem] px-4" aria-label={t.search.submit}>
                         <span className="hidden sm:inline">{t.search.submit}</span>
-                        <ArrowRight size={19} />
+                        <ArrowRight size={18} />
                     </button>
                 </div>
             </form>
-            <button
-                type="button"
-                onClick={() => {
-                    startGeo();
-                    router.push(paths.map(locale));
-                }}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white/85 transition hover:text-white"
-            >
-                <LocateFixed size={16} className="text-brand-400" />
-                {t.landing.aroundMe}
-            </button>
+
+            <ul className="nt-scroll-x -mx-4 mt-4 gap-2 px-4 md:mx-0 md:flex-wrap md:px-0">
+                <li className="shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            startGeo();
+                            router.push(searchHref(""));
+                        }}
+                        className="nt-chip"
+                    >
+                        <LocateFixed size={15} className="text-brand-600" />
+                        {t.landing.aroundMe}
+                    </button>
+                </li>
+                {INTENT_ORDER.map((key) => {
+                    const Icon = INTENT_ICONS[key];
+                    return (
+                        <li key={key} className="shrink-0">
+                            <Link href={searchHref(`i=${key}`)} prefetch={false} className="nt-chip">
+                                <Icon size={15} strokeWidth={1.9} />
+                                {t.intents[key]}
+                            </Link>
+                        </li>
+                    );
+                })}
+            </ul>
         </div>
     );
 }

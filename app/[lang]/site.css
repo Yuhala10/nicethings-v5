@@ -3,77 +3,95 @@
    MapLibre's own `.maplibregl-map { position: relative }`. */
 @import "maplibre-gl/dist/maplibre-gl.css" layer(base);
 
-/* NiceThings design system — "Cameroon after dark": warm charcoal, a
-   sunset gradient (orange → coral → pink) for everything that moves you
-   forward, and vivid category colours. Surfaces are variables so dark mode
-   is one switch. */
+/* NiceThings design system v2 — "a city guide on good paper".
+   Warm paper and ink, one terracotta accent used sparingly (the action that
+   moves you forward), an editorial serif for headlines and a clean sans for
+   everything you operate. Category colours live in the place artwork, not
+   in the interface. Surfaces are variables so dark mode is one switch.
+
+   Scale (use these, not one-off values):
+   type     serif display 2.4–4.4rem · serif title 1.55–2rem · ui title 1rem/600
+            body 0.95–1.05rem · meta 0.8rem · eyebrow 0.7rem caps
+   space    4 · 8 · 12 · 16 · 24 · 32 · 48 · 72 px (gutters 16 phone, 24 desktop)
+   radius   chip pill · button 0.95rem · card 1.25rem · media 1.1rem · sheet 1.6rem
+   shadow   --nt-shadow (resting) · --nt-shadow-lg (floating only)
+   motion   160ms press · 240ms state · 420ms enter, ease-out; nothing bounces
+   images   pins 4:5 / 3:4 / 1:1 · rails 4:5 · place hero 4:3 phone, 16:9 desk
+   breakpoints  sm 640 · md 768 (tab bar → header) · lg 1024 */
 
 :root {
-    --nt-bg: #fbf8f4;
+    --nt-bg: #faf7f2;
     --nt-surface: #ffffff;
-    --nt-surface-2: #f4efe8;
-    --nt-surface-3: #e9e2d8;
-    --nt-text: #17120e;
-    --nt-text-2: #45392f;
-    --nt-muted: #7a6c60;
-    --nt-line: #ece5dc;
-    --nt-line-strong: #ddd3c6;
-    --nt-overlay: rgba(23, 18, 14, 0.5);
-    --nt-glass: rgba(255, 252, 248, 0.78);
-    --nt-shadow: 0 1px 2px rgba(40, 24, 10, 0.05), 0 10px 30px -8px rgba(40, 24, 10, 0.14);
-    --nt-shadow-lg: 0 2px 8px rgba(40, 24, 10, 0.06), 0 30px 70px -12px rgba(40, 24, 10, 0.28);
-    --nt-sunset: linear-gradient(120deg, #ff8a1f 0%, #ff5b36 52%, #eb3a6f 100%);
-    --nt-glow: 0 10px 30px -8px rgba(255, 91, 54, 0.55);
+    --nt-surface-2: #f3eee6;
+    --nt-surface-3: #e8e1d6;
+    --nt-text: #1b1612;
+    --nt-text-2: #4a4038;
+    --nt-muted: #776a5f;
+    --nt-line: #ebe4da;
+    --nt-line-strong: #dcd2c5;
+    --nt-overlay: rgba(27, 22, 18, 0.5);
+    --nt-glass: rgba(250, 247, 242, 0.82);
+    --nt-shadow: 0 1px 2px rgba(27, 22, 18, 0.04), 0 8px 22px -12px rgba(27, 22, 18, 0.16);
+    --nt-shadow-lg: 0 2px 6px rgba(27, 22, 18, 0.05), 0 24px 48px -18px rgba(27, 22, 18, 0.26);
+    --nt-sunset: linear-gradient(120deg, #ec8a3f 0%, #d9572b 55%, #c2416a 100%);
+    --nt-glow: 0 6px 18px -10px rgba(192, 71, 27, 0.55);
+    --nt-ink: #1b1612;
+    --nt-on-ink: #faf7f2;
     color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --nt-bg: #0e0b09;
-        --nt-surface: #17130f;
-        --nt-surface-2: #211b16;
-        --nt-surface-3: #2d251e;
-        --nt-text: #f7f1ea;
-        --nt-text-2: #ddd2c6;
-        --nt-muted: #a8998b;
-        --nt-line: #2a221b;
-        --nt-line-strong: #3a3027;
+        --nt-bg: #100d0b;
+        --nt-surface: #191512;
+        --nt-surface-2: #231d18;
+        --nt-surface-3: #2e2620;
+        --nt-text: #f5efe7;
+        --nt-text-2: #d9cec2;
+        --nt-muted: #a5978a;
+        --nt-line: #2b231d;
+        --nt-line-strong: #3b3129;
         --nt-overlay: rgba(0, 0, 0, 0.62);
-        --nt-glass: rgba(23, 19, 15, 0.78);
-        --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -8px rgba(0, 0, 0, 0.6);
-        --nt-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.4), 0 30px 70px -12px rgba(0, 0, 0, 0.75);
+        --nt-glass: rgba(16, 13, 11, 0.82);
+        --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 22px -12px rgba(0, 0, 0, 0.6);
+        --nt-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 24px 48px -18px rgba(0, 0, 0, 0.75);
+        --nt-ink: #f5efe7;
+        --nt-on-ink: #17120e;
         color-scheme: dark;
     }
 }
 
 :root[data-theme="dark"] {
-    --nt-bg: #0e0b09;
-    --nt-surface: #17130f;
-    --nt-surface-2: #211b16;
-    --nt-surface-3: #2d251e;
-    --nt-text: #f7f1ea;
-    --nt-text-2: #ddd2c6;
-    --nt-muted: #a8998b;
-    --nt-line: #2a221b;
-    --nt-line-strong: #3a3027;
+    --nt-bg: #100d0b;
+    --nt-surface: #191512;
+    --nt-surface-2: #231d18;
+    --nt-surface-3: #2e2620;
+    --nt-text: #f5efe7;
+    --nt-text-2: #d9cec2;
+    --nt-muted: #a5978a;
+    --nt-line: #2b231d;
+    --nt-line-strong: #3b3129;
     --nt-overlay: rgba(0, 0, 0, 0.62);
-    --nt-glass: rgba(23, 19, 15, 0.78);
-    --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -8px rgba(0, 0, 0, 0.6);
-    --nt-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.4), 0 30px 70px -12px rgba(0, 0, 0, 0.75);
+    --nt-glass: rgba(16, 13, 11, 0.82);
+    --nt-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 22px -12px rgba(0, 0, 0, 0.6);
+    --nt-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 24px 48px -18px rgba(0, 0, 0, 0.75);
+    --nt-ink: #f5efe7;
+    --nt-on-ink: #17120e;
     color-scheme: dark;
 }
 
 @theme inline {
-    --color-brand-50: #fff4ec;
-    --color-brand-100: #ffe6d4;
-    --color-brand-200: #ffc9a3;
-    --color-brand-400: #ff8a4c;
-    --color-brand-500: #ff6a2b;
-    --color-brand-600: #ea4f16;
-    --color-brand-700: #c23b0c;
-    --color-coral: #ff5b36;
-    --color-rose: #eb3a6f;
-    --color-ink: #17120e;
+    /* Terracotta: deep enough that white text on it passes AA. */
+    --color-brand-50: #fbf1ea;
+    --color-brand-100: #f7e0d1;
+    --color-brand-200: #efc0a3;
+    --color-brand-400: #e2804f;
+    --color-brand-500: #d4592a;
+    --color-brand-600: #c0471b;
+    --color-brand-700: #9c3815;
+    --color-coral: #d9572b;
+    --color-rose: #c2416a;
+    --color-ink: #1b1612;
 
     --color-bg: var(--nt-bg);
     --color-surface: var(--nt-surface);
@@ -89,8 +107,14 @@
     --color-closing: #d97706;
     --color-closed: #dc2626;
 
+    /* Ink that flips with the theme: dark on paper, cream at night. */
+    --color-contrast: var(--nt-ink);
+    --color-on-contrast: var(--nt-on-ink);
+
     --font-sans: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-display: var(--font-heading), var(--font-body), system-ui, sans-serif;
+    /* Interface headings stay in the sans; the serif is the editorial voice. */
+    --font-display: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-serif: var(--font-editorial), Georgia, "Times New Roman", serif;
 
     --shadow-card: var(--nt-shadow);
     --shadow-float: var(--nt-shadow-lg);
@@ -120,7 +144,7 @@
     h2,
     h3 {
         font-family: var(--font-display);
-        letter-spacing: -0.025em;
+        letter-spacing: -0.02em;
         text-wrap: balance;
     }
 
@@ -145,43 +169,44 @@
 }
 
 @layer components {
+    /* Chips: quiet until chosen, then ink. Colour is never the only sign:
+       a chosen chip also changes weight and shows its state to readers. */
     .nt-chip {
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
-        height: 2.5rem;
-        padding: 0 1rem;
+        height: 2.4rem;
+        padding: 0 0.95rem;
         border-radius: 999px;
-        border: 1px solid var(--nt-line);
+        border: 1px solid var(--nt-line-strong);
         background: var(--nt-surface);
-        color: var(--nt-text);
-        font-size: 0.875rem;
-        font-weight: 650;
+        color: var(--nt-text-2);
+        font-size: 0.86rem;
+        font-weight: 600;
         white-space: nowrap;
-        box-shadow: 0 1px 2px rgba(40, 24, 10, 0.04);
         transition:
-            background 200ms ease,
-            border-color 200ms ease,
-            color 200ms ease,
-            box-shadow 200ms ease,
-            transform 220ms var(--ease-spring);
+            background 240ms var(--ease-out),
+            border-color 240ms var(--ease-out),
+            color 240ms var(--ease-out),
+            transform 160ms var(--ease-out);
     }
 
     .nt-chip:active {
-        transform: scale(0.95);
+        transform: scale(0.97);
     }
 
     @media (hover: hover) {
         .nt-chip:hover {
-            border-color: var(--nt-line-strong);
+            border-color: var(--nt-text-2);
+            color: var(--nt-text);
         }
     }
 
     .nt-chip[aria-pressed="true"] {
-        background: var(--nt-sunset);
-        border-color: transparent;
-        color: #fff;
-        box-shadow: var(--nt-glow);
+        background: var(--nt-ink);
+        border-color: var(--nt-ink);
+        color: var(--nt-on-ink);
+        font-weight: 650;
     }
 
     .nt-btn {
@@ -190,49 +215,44 @@
         justify-content: center;
         gap: 0.5rem;
         height: 3rem;
-        padding: 0 1.3rem;
-        border-radius: 1.1rem;
-        font-weight: 750;
-        font-size: 0.95rem;
+        padding: 0 1.25rem;
+        border-radius: 0.95rem;
+        font-weight: 650;
+        font-size: 0.94rem;
         letter-spacing: -0.005em;
         transition:
-            transform 220ms var(--ease-spring),
-            background 200ms ease,
-            box-shadow 200ms ease,
-            opacity 200ms ease,
-            filter 200ms ease;
+            transform 160ms var(--ease-out),
+            background 240ms var(--ease-out),
+            box-shadow 240ms var(--ease-out),
+            opacity 240ms var(--ease-out),
+            filter 240ms var(--ease-out);
     }
 
     .nt-btn:active {
-        transform: scale(0.96);
+        transform: scale(0.97);
     }
 
+    /* The one loud thing on a screen: the action that moves you forward. */
     .nt-btn-primary {
-        background: var(--nt-sunset);
+        background: var(--color-brand-600);
         color: #fff;
         box-shadow: var(--nt-glow);
     }
 
     @media (hover: hover) {
         .nt-btn-primary:hover {
-            filter: brightness(1.06) saturate(1.05);
+            background: var(--color-brand-700);
         }
     }
 
     .nt-btn-dark {
-        background: #17120e;
-        color: #fff;
+        background: var(--nt-ink);
+        color: var(--nt-on-ink);
     }
 
-    :root[data-theme="dark"] .nt-btn-dark {
-        background: #f7f1ea;
-        color: #17120e;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root:not([data-theme="light"]) .nt-btn-dark {
-            background: #f7f1ea;
-            color: #17120e;
+    @media (hover: hover) {
+        .nt-btn-dark:hover {
+            filter: brightness(1.15);
         }
     }
 
@@ -247,10 +267,22 @@
         }
     }
 
+    .nt-btn-outline {
+        border: 1px solid var(--nt-line-strong);
+        background: var(--nt-surface);
+        color: var(--nt-text);
+    }
+
+    @media (hover: hover) {
+        .nt-btn-outline:hover {
+            border-color: var(--nt-text-2);
+        }
+    }
+
     .nt-btn-glass {
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.14);
         color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
     }
@@ -258,8 +290,45 @@
     .nt-card {
         background: var(--nt-surface);
         border: 1px solid var(--nt-line);
-        border-radius: 1.6rem;
+        border-radius: 1.25rem;
         box-shadow: var(--nt-shadow);
+    }
+
+    /* Editorial headlines: the serif is drawn at one weight, never bolded. */
+    .nt-serif {
+        font-family: var(--font-serif);
+        font-weight: 400;
+        letter-spacing: -0.012em;
+        line-height: 1.04;
+    }
+
+    .nt-serif em,
+    .nt-serif i {
+        font-style: italic;
+    }
+
+    /* A thin rule between editorial blocks. */
+    .nt-rule {
+        height: 1px;
+        background: var(--nt-line);
+        border: 0;
+    }
+
+    /* Links that read as text until you reach them. */
+    .nt-link {
+        font-weight: 600;
+        color: var(--nt-text);
+        text-decoration: underline;
+        text-decoration-color: var(--nt-line-strong);
+        text-underline-offset: 0.22em;
+        text-decoration-thickness: 1px;
+        transition: text-decoration-color 240ms var(--ease-out);
+    }
+
+    @media (hover: hover) {
+        .nt-link:hover {
+            text-decoration-color: currentColor;
+        }
     }
 
     .nt-scroll-x {
@@ -301,15 +370,23 @@
         color: transparent;
     }
 
-    /* Photo stand-in: the category colour as a rich gradient with its icon
-       in white — bold enough to make a list feel alive. */
+    /* Photo stand-in: the category colour deepened towards ink, like a
+       printed colour block, with a soft light from the top corner. */
     .nt-art {
-        background-color: var(--tone);
+        background-color: color-mix(in oklab, var(--tone) 46%, #1b1612);
         background:
-            radial-gradient(90% 70% at 18% 12%, rgba(255, 255, 255, 0.32), transparent 62%),
-            radial-gradient(70% 60% at 100% 100%, rgba(0, 0, 0, 0.22), transparent 70%),
-            linear-gradient(150deg, color-mix(in oklab, var(--tone) 72%, #ffb56b) 0%, var(--tone) 55%, color-mix(in oklab, var(--tone) 78%, #1a0a05) 100%);
-        color: #fff;
+            radial-gradient(110% 80% at 12% 0%, rgba(255, 244, 228, 0.14), transparent 60%),
+            linear-gradient(160deg, color-mix(in oklab, var(--tone) 54%, #1b1612) 0%, color-mix(in oklab, var(--tone) 38%, #1b1612) 100%);
+        color: #f6efe4;
+    }
+
+    /* Typeset poster for places without a photo (see PinCard). */
+    .nt-poster {
+        background:
+            radial-gradient(120% 70% at 0% 0%, rgba(255, 244, 228, 0.14), transparent 55%),
+            radial-gradient(90% 60% at 100% 100%, rgba(0, 0, 0, 0.22), transparent 70%),
+            var(--poster);
+        color: #f6efe4;
     }
 
     .nt-art-soft {
@@ -319,41 +396,50 @@
 
     .nt-pressable {
         transition:
-            transform 240ms var(--ease-spring),
-            box-shadow 240ms ease,
-            background 200ms ease;
+            transform 240ms var(--ease-out),
+            box-shadow 240ms var(--ease-out),
+            background 240ms var(--ease-out),
+            opacity 160ms var(--ease-out);
     }
 
-    /* Mouse: lift on hover, press on click. Touch: only a gentle dim, so
-       swiping across cards while scrolling never makes them jump. */
+    /* Mouse: a quiet lift on hover. Touch: only a gentle dim, so swiping
+       across cards while scrolling never makes them jump. */
     @media (hover: hover) {
         .nt-pressable:hover {
             transform: translateY(-2px);
         }
 
         .nt-pressable:active {
-            transform: scale(0.975);
+            transform: scale(0.985);
         }
     }
 
     @media (hover: none) {
         .nt-pressable:active {
-            opacity: 0.85;
+            opacity: 0.82;
         }
     }
 
+    /* Section titles speak in the editorial serif. */
     .nt-section-title {
-        font-family: var(--font-display);
-        font-size: 1.15rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-weight: 400;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
         color: var(--nt-text);
     }
 
+    @media (min-width: 768px) {
+        .nt-section-title {
+            font-size: 1.9rem;
+        }
+    }
+
     .nt-eyebrow {
-        font-size: 0.72rem;
-        font-weight: 750;
-        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+        font-weight: 650;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--nt-muted);
     }
@@ -362,7 +448,7 @@
         width: 100%;
         height: 3.1rem;
         padding: 0 1rem;
-        border-radius: 1rem;
+        border-radius: 0.95rem;
         border: 1px solid var(--nt-line-strong);
         background: var(--nt-surface);
         color: var(--nt-text);
@@ -381,8 +467,8 @@
 
     .nt-input:focus {
         outline: none;
-        border-color: var(--color-brand-500);
-        box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-brand-500) 20%, transparent);
+        border-color: var(--nt-text-2);
+        box-shadow: 0 0 0 4px color-mix(in oklab, var(--nt-text) 8%, transparent);
     }
 
     .nt-input[aria-invalid="true"] {
@@ -427,7 +513,7 @@
 @keyframes nt-rise {
     from {
         opacity: 0;
-        transform: translateY(14px);
+        transform: translateY(10px);
     }
     to {
         opacity: 1;
@@ -460,7 +546,7 @@
 @keyframes nt-reveal {
     from {
         opacity: 0.001;
-        transform: translateY(28px) scale(0.985);
+        transform: translateY(18px);
     }
     to {
         opacity: 1;
@@ -531,24 +617,21 @@
 
 .nt-article > p:first-child::first-letter {
     float: left;
-    margin: 0.32rem 0.6rem 0 0;
-    font-family: var(--font-display);
-    font-size: 3.6rem;
-    font-weight: 800;
-    line-height: 0.8;
-    background: var(--nt-sunset);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    margin: 0.38rem 0.55rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 4.2rem;
+    font-weight: 400;
+    line-height: 0.72;
+    color: var(--color-brand-600);
 }
 
 .nt-article > h2 {
     margin: 2.8rem 0 0.9rem;
-    font-family: var(--font-display);
-    font-size: clamp(1.55rem, 4.5vw, 2rem);
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 5vw, 2.3rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
     color: var(--nt-text);
     scroll-margin-top: 6rem;
 }
@@ -556,9 +639,9 @@
 .nt-article > h3 {
     margin: 2rem 0 0.6rem;
     font-family: var(--font-display);
-    font-size: 1.3rem;
-    font-weight: 800;
-    line-height: 1.25;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.3;
     color: var(--nt-text);
 }
 
@@ -579,11 +662,11 @@
     content: "";
     position: absolute;
     left: -1.1rem;
-    top: 0.72em;
-    width: 0.45rem;
-    height: 0.45rem;
+    top: 0.75em;
+    width: 0.4rem;
+    height: 0.4rem;
     border-radius: 999px;
-    background: var(--nt-sunset);
+    background: var(--color-brand-500);
 }
 
 .nt-article > ol {
@@ -599,14 +682,96 @@
     margin-top: 0.45rem;
 }
 
-/* Pinterest-style columns: cards keep their own height and flow down. */
-.nt-masonry {
-    column-gap: 0.9rem;
-}
+/* In the components layer so Tailwind utilities can still adjust them. */
+@layer components {
+    /* Pinterest-style columns: cards keep their own height and flow down. */
+    .nt-masonry {
+        column-gap: 0.85rem;
+    }
 
-.nt-masonry > * {
-    break-inside: avoid;
-    margin-bottom: 1.1rem;
+    .nt-masonry > * {
+        break-inside: avoid;
+        margin-bottom: 1.4rem;
+    }
+
+    @media (min-width: 768px) {
+        .nt-masonry {
+            column-gap: 1.25rem;
+        }
+
+        .nt-masonry > * {
+            margin-bottom: 1.75rem;
+        }
+    }
+
+    /* Horizontal editorial rails: cards snap, the edge shows there is more. */
+    .nt-rail {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 64%;
+        gap: 0.85rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: 1rem;
+        padding-inline: 1rem;
+        scrollbar-width: none;
+        overscroll-behavior-x: contain;
+    }
+
+    .nt-rail::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nt-rail > * {
+        scroll-snap-align: start;
+        min-width: 0;
+    }
+
+    @media (min-width: 640px) {
+        .nt-rail {
+            grid-auto-columns: 40%;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .nt-rail {
+            grid-auto-flow: row;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-auto-columns: auto;
+            gap: 1.25rem;
+            overflow: visible;
+            padding-inline: 0;
+        }
+
+        .nt-rail > :nth-child(n + 5) {
+            display: none;
+        }
+    }
+
+    /* The mobile tab bar: separate tiles that float above the page. */
+    .nt-tab {
+        background: var(--nt-surface);
+        border: 1px solid var(--nt-line);
+        color: var(--nt-muted);
+        box-shadow:
+            0 1px 2px rgba(27, 22, 18, 0.05),
+            0 10px 24px -12px rgba(27, 22, 18, 0.28);
+        transition:
+            background 240ms var(--ease-out),
+            color 240ms var(--ease-out),
+            border-color 240ms var(--ease-out),
+            transform 160ms var(--ease-out);
+    }
+
+    .nt-tab:active {
+        transform: scale(0.95);
+    }
+
+    .nt-tab[aria-current="page"] {
+        background: var(--nt-ink);
+        border-color: var(--nt-ink);
+        color: var(--nt-on-ink);
+    }
 }
 
 /* A slow glow behind the "I'm there now" icon, inviting the tap. */

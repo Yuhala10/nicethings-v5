@@ -17,13 +17,13 @@ function Action({ icon: Icon, label, primary = false, active = false }: { icon: 
     return (
         <>
             <span
-                className={`grid h-14 w-full place-items-center rounded-[1.2rem] transition duration-200 group-active:scale-95 ${
-                    primary ? "nt-sunset text-white shadow-[var(--nt-glow)]" : "bg-surface-2 text-text group-hover:bg-surface-3"
+                className={`grid h-[3.4rem] w-full place-items-center rounded-[1rem] transition duration-200 group-active:scale-[0.96] ${
+                    primary ? "bg-brand-600 text-white shadow-[var(--nt-glow)] group-hover:bg-brand-700" : "border border-line-strong bg-surface text-text group-hover:border-text-2"
                 }`}
             >
-                <Icon size={22} strokeWidth={2.2} className={active ? "nt-pop fill-brand-500 text-brand-500" : ""} />
+                <Icon size={21} strokeWidth={primary ? 2.1 : 1.8} className={active ? "nt-pop fill-brand-500 text-brand-500" : ""} />
             </span>
-            <span className={`mt-1.5 block truncate text-center text-[0.75rem] font-bold ${primary ? "text-brand-600" : "text-text-2"}`}>{label}</span>
+            <span className={`mt-1.5 block truncate text-center text-[0.74rem] font-semibold ${primary ? "text-text" : "text-text-2"}`}>{label}</span>
         </>
     );
 }

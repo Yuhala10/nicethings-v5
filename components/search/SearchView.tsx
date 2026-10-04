@@ -24,7 +24,7 @@ import CityPicker, { rememberCity } from "../explore/CityPicker";
 import PlaceRow from "../explore/PlaceRow";
 import Rail from "../explore/Rail";
 import { INTENT_ICONS, INTENT_ORDER } from "../explore/intents";
-import PlaceCard, { PlaceCardSkeleton } from "../place/PlaceCard";
+import PinCard from "../place/PinCard";
 import { useLocale } from "../site/LocaleProvider";
 
 const PAGE = 30;
@@ -141,19 +141,19 @@ export default function SearchView({
         <div className="pb-32">
             {/* Title */}
             <div className="mx-auto max-w-5xl px-4 pt-[max(env(safe-area-inset-top),1.25rem)] md:px-6 md:pt-10">
-                <p className="min-h-[1.3em] text-sm font-semibold text-muted">{greeting ? t.greeting[greeting.hello] : ""}</p>
-                <h1 className="mt-0.5 text-[2rem] leading-[1.05] font-extrabold md:text-5xl">
+                <p className="nt-eyebrow min-h-[1.3em]">{greeting ? `${t.greeting[greeting.hello]} · ${city.name}` : city.name}</p>
+                <h1 className="nt-serif mt-2 text-[2.5rem] leading-[1.02] md:text-[3.6rem]">
                     {greeting ? t.greeting[greeting.question] : t.meta.tagline}
                 </h1>
-                <p className="mt-2 text-sm text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</p>
+                <p className="mt-3 text-[0.95rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</p>
             </div>
 
             {/* Sticky search */}
-            <div className="nt-glass-strong sticky top-0 z-30 mt-5 border-b border-line md:top-16">
+            <div className="nt-glass sticky top-0 z-30 mt-6 border-b border-line md:top-16">
                 <div className="mx-auto max-w-5xl px-4 pt-3 pb-3 md:px-6">
                     <div className="mb-3 flex items-center gap-2">
                         <button type="button" onClick={() => setCityPickerOpen(true)} className={pill} aria-haspopup="dialog">
-                            <span className="nt-sunset h-2 w-2 rounded-full" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
                             {city.name}
                             <ChevronDown size={14} />
                         </button>
@@ -162,7 +162,7 @@ export default function SearchView({
                             <span className="truncate">{locationLabel}</span>
                         </button>
                         {/* Carry the search over to the map, in place: never floating over results. */}
-                        <Link href={mapHref} className={`${pill} ml-auto bg-ink text-white`} aria-label={t.searchPage.showMap}>
+                        <Link href={mapHref} className={`${pill} ml-auto border border-line-strong !bg-surface`} aria-label={t.searchPage.showMap}>
                             <MapIcon size={15} />
                             <span className="hidden sm:inline">{t.searchPage.showMap}</span>
                             <span className="sm:hidden">{t.nav.map}</span>
@@ -176,7 +176,7 @@ export default function SearchView({
                         }}
                         className="relative"
                     >
-                        <Search size={19} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-brand-500" />
+                        <Search size={19} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted" />
                         <input
                             ref={searchRef}
                             type="search"
@@ -188,7 +188,7 @@ export default function SearchView({
                             spellCheck={false}
                             placeholder={fill(t.search.placeholder, { area: areas[0]?.name ?? city.name })}
                             aria-label={t.search.shortPlaceholder}
-                            className="h-14 w-full rounded-[1.2rem] border border-line bg-surface pr-12 pl-12 text-base text-text shadow-card outline-none transition placeholder:text-muted focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(255,106,43,0.15)] [&::-webkit-search-cancel-button]:hidden"
+                            className="h-14 w-full rounded-[1.1rem] border border-line-strong bg-surface pr-12 pl-12 text-base text-text shadow-card outline-none transition placeholder:text-muted focus:border-text-2 focus:shadow-float [&::-webkit-search-cancel-button]:hidden"
                         />
                         {d.text && (
                             <button
@@ -216,13 +216,13 @@ export default function SearchView({
 
                     {d.understood.length > 0 && (
                         <div className="nt-scroll-x mt-2.5 items-center gap-1.5" aria-live="polite">
-                            <span className="shrink-0 text-[0.72rem] font-bold tracking-wide text-brand-600 uppercase">{t.search.understood}</span>
+                            <span className="nt-eyebrow shrink-0">{t.search.understood}</span>
                             {d.understood.map((token) => (
                                 <button
                                     key={token.key}
                                     type="button"
                                     onClick={() => d.removeToken(token.key)}
-                                    className="nt-rise inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-brand-50 px-2.5 text-xs font-bold text-brand-700 dark:bg-brand-700/25 dark:text-brand-200"
+                                    className="nt-rise inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-line-strong bg-surface px-2.5 text-xs font-semibold text-text-2"
                                 >
                                     {token.label}
                                     <X size={12} />
@@ -278,15 +278,12 @@ export default function SearchView({
                 <AnimatePresence>
                     {showPrimer && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden px-4">
-                            <div className="relative mt-5 overflow-hidden rounded-[1.6rem] bg-ink p-5 text-white">
-                                <div className="nt-sunset pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full opacity-40 blur-2xl" />
-                                <div className="relative flex items-start gap-3">
-                                    <span className="nt-sunset grid h-12 w-12 shrink-0 place-items-center rounded-2xl shadow-[var(--nt-glow)]">
-                                        <LocateFixed size={22} />
-                                    </span>
+                            <div className="relative mt-5 overflow-hidden rounded-[1.25rem] border border-line bg-surface p-5">
+                                <div className="relative flex items-start gap-3.5">
+                                    <LocateFixed size={22} strokeWidth={1.8} className="mt-1 shrink-0 text-brand-600" />
                                     <div>
-                                        <p className="font-display text-lg font-bold">{t.explore.primerTitle}</p>
-                                        <p className="mt-0.5 text-sm text-white/75">{t.explore.primerBody}</p>
+                                        <p className="nt-serif text-[1.55rem]">{t.explore.primerTitle}</p>
+                                        <p className="mt-1 text-sm text-muted">{t.explore.primerBody}</p>
                                     </div>
                                 </div>
                                 <div className="relative mt-4 flex gap-2">
@@ -300,7 +297,7 @@ export default function SearchView({
                                     >
                                         {t.explore.primerCta}
                                     </button>
-                                    <button type="button" onClick={closePrimer} className="nt-btn nt-btn-glass h-11 px-4 text-sm">
+                                    <button type="button" onClick={closePrimer} className="nt-btn nt-btn-outline h-11 px-4 text-sm">
                                         {t.explore.later}
                                     </button>
                                 </div>
@@ -313,27 +310,25 @@ export default function SearchView({
                     <>
                         {d.rails
                             ? d.rails.map((rail, index) => (
-                                  <div key={rail.key} className="pt-4">
-                                      <Rail title={railTitle(rail)} onSeeAll={() => openRail(rail)}>
-                                          {rail.items.map(({ place, distance }) => (
-                                              <PlaceCard key={place.id} place={place} distance={distance} priority={index === 0} />
-                                          ))}
-                                      </Rail>
-                                  </div>
+                                  <Rail key={rail.key} title={railTitle(rail)} onSeeAll={() => openRail(rail)}>
+                                      {rail.items.map(({ place, distance }, position) => (
+                                          <PinCard key={place.id} place={place} distance={distance} shape="portrait" priority={index === 0 && position < 2} />
+                                      ))}
+                                  </Rail>
                               ))
                             : [0, 1].map((index) => (
-                                  <div key={index} className="pt-8" aria-hidden>
-                                      <div className="nt-skeleton mx-4 mb-3 h-5 w-40 rounded" />
+                                  <div key={index} className="pt-10" aria-hidden>
+                                      <div className="nt-skeleton mx-4 mb-4 h-6 w-44 rounded" />
                                       <div className="flex gap-3 overflow-hidden px-4">
-                                          <PlaceCardSkeleton />
-                                          <PlaceCardSkeleton />
+                                          <div className="nt-skeleton aspect-[4/5] w-[68%] shrink-0 rounded-[1.1rem] sm:w-[40%] md:w-[23%]" />
+                                          <div className="nt-skeleton aspect-[4/5] w-[68%] shrink-0 rounded-[1.1rem] sm:w-[40%] md:w-[23%]" />
                                       </div>
                                   </div>
                               ))}
 
                         {categoryTiles.length > 0 && (
-                            <section className="px-4 pt-10">
-                                <h2 className="nt-section-title mb-4">{t.city.categories}</h2>
+                            <section className="px-4 pt-14">
+                                <h2 className="nt-section-title mb-5">{t.city.categories}</h2>
                                 <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4">
                                     {categoryTiles.map(([category, total]) => {
                                         const style = categoryStyle(category);
@@ -347,14 +342,14 @@ export default function SearchView({
                                                         d.setCategories([category]);
                                                         window.scrollTo({ top: 0, behavior: "smooth" });
                                                     }}
-                                                    className="nt-art nt-pressable relative flex h-24 w-full flex-col justify-end overflow-hidden rounded-[1.3rem] p-3.5 text-left shadow-card"
+                                                    className="nt-art nt-pressable relative flex h-24 w-full flex-col justify-end overflow-hidden rounded-[1.1rem] p-3.5 text-left"
                                                     style={{ "--tone": style.tone } as React.CSSProperties}
                                                 >
-                                                    <Icon size={64} strokeWidth={1.2} className="absolute -top-2 -right-2 opacity-25" />
-                                                    <span className="relative text-[0.95rem] leading-tight font-bold">
+                                                    <Icon size={64} strokeWidth={1} className="absolute -top-2 -right-2 opacity-20" />
+                                                    <span className="relative text-[0.95rem] leading-tight font-semibold">
                                                         {CATEGORY_PLURALS[category as Category]?.[locale] ?? category}
                                                     </span>
-                                                    <span className="relative text-xs text-white/80">{fill(t.city.placesCount, { count: total })}</span>
+                                                    <span className="relative text-xs text-white/70">{fill(t.city.placesCount, { count: total })}</span>
                                                 </button>
                                             </li>
                                         );
@@ -364,8 +359,8 @@ export default function SearchView({
                         )}
 
                         {areas.length > 0 && (
-                            <section className="px-4 pt-10">
-                                <h2 className="nt-section-title mb-4">{t.discover.byArea}</h2>
+                            <section className="px-4 pt-14">
+                                <h2 className="nt-section-title mb-5">{t.discover.byArea}</h2>
                                 <ul className="flex flex-wrap gap-2">
                                     {areas.slice(0, 30).map((area) => (
                                         <li key={area.name}>
@@ -378,9 +373,9 @@ export default function SearchView({
                                                 }}
                                                 className="nt-chip"
                                             >
-                                                <MapPin size={14} className="text-brand-500" />
+                                                <MapPin size={14} className="text-muted" />
                                                 {area.name}
-                                                <span className="font-medium text-muted">{area.count}</span>
+                                                <span className="font-normal text-muted">{area.count}</span>
                                             </button>
                                         </li>
                                     ))}
@@ -388,7 +383,7 @@ export default function SearchView({
                             </section>
                         )}
 
-                        <section className="px-4 pt-10">
+                        <section className="px-4 pt-14">
                             <p className="nt-eyebrow mb-3">{t.search.examplesTitle}</p>
                             <div className="flex flex-wrap gap-2">
                                 {t.search.examples.map((example) => (
@@ -399,13 +394,13 @@ export default function SearchView({
                                             d.setText(example);
                                             window.scrollTo({ top: 0, behavior: "smooth" });
                                         }}
-                                        className="rounded-full border border-dashed border-line-strong px-3.5 py-2 text-left text-sm font-semibold text-text-2 transition hover:border-brand-500"
+                                        className="rounded-full border border-dashed border-line-strong px-3.5 py-2 text-left text-sm text-text-2 transition hover:border-text-2 hover:text-text"
                                     >
                                         « {example} »
                                     </button>
                                 ))}
                             </div>
-                            <Link href={paths.city(locale, city.slug)} className="mt-8 inline-flex items-center gap-1.5 text-sm font-bold text-brand-600">
+                            <Link href={paths.city(locale, city.slug)} className="nt-link mt-8 inline-flex items-center gap-1.5 text-sm">
                                 {fill(t.searchPage.guideLink, { city: city.name })} →
                             </Link>
                         </section>
@@ -413,17 +408,17 @@ export default function SearchView({
                 ) : (
                     <section className="pt-4">
                         <div className="flex items-center justify-between gap-2 px-4 pb-2">
-                            <h2 className="text-base font-bold" aria-live="polite">
+                            <h2 className="nt-serif text-[1.6rem]" aria-live="polite">
                                 {count}
                             </h2>
                             <div className="flex items-center gap-3">
-                                <button type="button" onClick={d.clearAll} className="text-sm font-bold text-brand-600">
+                                <button type="button" onClick={d.clearAll} className="nt-link text-sm">
                                     {t.filters.reset}
                                 </button>
                                 <select
                                     value={d.sort}
                                     onChange={(event) => d.setSort(event.target.value as typeof d.sort)}
-                                    className="h-9 rounded-full border border-line bg-surface px-3 text-sm font-bold text-text"
+                                    className="h-9 rounded-full border border-line-strong bg-surface px-3 text-sm font-semibold text-text"
                                     aria-label={t.filters.sort}
                                 >
                                     <option value="best">{t.filters.sortBest}</option>
@@ -436,14 +431,17 @@ export default function SearchView({
                             </div>
                         </div>
                         {d.ranked.length === 0 ? (
-                            <div className="px-6 py-16 text-center">
-                                <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-surface-2 text-muted">
-                                    <Search size={26} />
+                            <div className="mx-4 mt-4 rounded-[1.6rem] border border-dashed border-line-strong px-6 py-14 text-center">
+                                <p className="nt-serif text-[1.9rem]">{t.search.noResultsTitle}</p>
+                                <p className="mx-auto mt-2 mb-6 max-w-xs text-text-2">{t.search.noResults}</p>
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    <button type="button" onClick={d.clearAll} className="nt-btn nt-btn-dark">
+                                        {t.filters.reset}
+                                    </button>
+                                    <Link href={paths.city(locale, city.slug)} className="nt-btn nt-btn-outline">
+                                        {fill(t.searchPage.guideLink, { city: city.name })}
+                                    </Link>
                                 </div>
-                                <p className="mx-auto mb-5 max-w-xs text-text-2">{t.search.noResults}</p>
-                                <button type="button" onClick={d.clearAll} className="nt-btn nt-btn-dark">
-                                    {t.filters.reset}
-                                </button>
                             </div>
                         ) : (
                             <ul className="grid gap-1 px-2 md:grid-cols-2 md:gap-x-4">

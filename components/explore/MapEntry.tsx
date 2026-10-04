@@ -15,9 +15,10 @@ export default function MapEntry({ target = "map" }: { target?: "map" | "search"
     const { locale, t } = useLocale();
 
     useEffect(() => {
-        const query = search.get("q") ?? undefined;
+        // The query string travels along (?q= typed words, ?i= a mood chip).
+        const rest = search.toString();
         const go = (slug: string) =>
-            router.replace(target === "search" ? paths.search(locale, slug, query) : paths.explore(locale, slug, query));
+            router.replace(`${target === "search" ? paths.search(locale, slug) : paths.explore(locale, slug)}${rest ? `?${rest}` : ""}`);
         let saved: string | null = null;
         try {
             saved = localStorage.getItem("nt_city");

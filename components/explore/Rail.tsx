@@ -19,8 +19,8 @@ export default function Rail({
 }) {
     const { t } = useLocale();
     return (
-        <section className="pt-6 first:pt-3">
-            <div className="mb-3 flex items-end justify-between gap-3 px-4">
+        <section className="pt-10 first:pt-5">
+            <div className="mb-4 flex items-end justify-between gap-3 px-4">
                 <div className="min-w-0">
                     <h2 className="nt-section-title truncate">{title}</h2>
                     {subtitle && <p className="truncate text-[0.8rem] text-muted">{subtitle}</p>}
@@ -29,15 +29,15 @@ export default function Rail({
                     <button
                         type="button"
                         onClick={onSeeAll}
-                        className="-mr-2 inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[0.82rem] font-bold text-brand-600 transition hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-700/20"
+                        className="-mr-1 inline-flex shrink-0 items-center gap-0.5 rounded-full px-2 py-1 text-[0.85rem] font-semibold text-text transition hover:bg-surface-2"
                     >
                         {t.discover.seeAll}
                         <ChevronRight size={16} />
                     </button>
                 )}
             </div>
-            <div className="nt-scroll-x gap-3 px-4 pb-1">
-                {children}
+            <div className="md:px-4">
+                <div className="nt-rail">{children}</div>
             </div>
         </section>
     );

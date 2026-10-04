@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Map as MapIcon, Plus } from "lucide-react";
+import { ChevronRight, Map as MapIcon, Plus, Search } from "lucide-react";
 import PinCard from "@/components/place/PinCard";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { categoryStyle, knownFacts } from "@/lib/places/display";
@@ -32,21 +32,18 @@ export function countBy<T extends string>(places: PlaceSummary[], key: (place: P
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
-function Breadcrumbs({ items, light = false }: { items: { label: string; href?: string }[]; light?: boolean }) {
+function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
     return (
-        <nav
-            aria-label="Breadcrumb"
-            className={`mb-4 flex flex-wrap items-center gap-1 text-[0.8rem] font-semibold ${light ? "text-white/60" : "text-muted"}`}
-        >
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1 text-[0.8rem] text-muted">
             {items.map((item, index) => (
                 <span key={item.label} className="inline-flex items-center gap-1">
-                    {index > 0 && <ChevronRight size={13} />}
+                    {index > 0 && <ChevronRight size={13} className="opacity-60" />}
                     {item.href ? (
-                        <Link href={item.href} className={light ? "hover:text-white" : "hover:text-text"}>
+                        <Link href={item.href} className="transition-colors hover:text-text">
                             {item.label}
                         </Link>
                     ) : (
-                        <span className={light ? "text-white/90" : "text-text-2"}>{item.label}</span>
+                        <span className="text-text-2">{item.label}</span>
                     )}
                 </span>
             ))}
@@ -59,11 +56,11 @@ export function CategoryIcon({ category, size = 18 }: { category: string; size?:
     const Icon = style.icon;
     return (
         <span
-            className="nt-art grid h-10 w-10 shrink-0 place-items-center rounded-2xl"
+            className="nt-art grid h-10 w-10 shrink-0 place-items-center rounded-[0.8rem]"
             style={{ "--tone": style.tone } as React.CSSProperties}
             aria-hidden
         >
-            <Icon size={size} strokeWidth={2} />
+            <Icon size={size} strokeWidth={1.8} />
         </span>
     );
 }
@@ -71,14 +68,14 @@ export function CategoryIcon({ category, size = 18 }: { category: string; size?:
 export function LinkChips({ title, links }: { title: string; links: { href: string; label: string; count: number }[] }) {
     if (!links.length) return null;
     return (
-        <section className="nt-reveal mt-12">
-            <h2 className="nt-section-title mb-3">{title}</h2>
+        <section className="nt-reveal mt-14">
+            <h2 className="nt-section-title mb-4">{title}</h2>
             <ul className="flex flex-wrap gap-2">
                 {links.map((link) => (
                     <li key={link.href}>
                         <Link href={link.href} className="nt-chip">
                             {link.label}
-                            <span className="font-medium text-muted">{link.count}</span>
+                            <span className="font-normal text-muted">{link.count}</span>
                         </Link>
                     </li>
                 ))}
@@ -87,7 +84,8 @@ export function LinkChips({ title, links }: { title: string; links: { href: stri
     );
 }
 
-// Dark, glowing page header shared by guides and the city hub.
+// The editorial page header shared by guides, collections and the city hub:
+// paper, a serif title, the facts in quiet numbers.
 function GuideHero({
     crumbs,
     eyebrow,
@@ -104,31 +102,22 @@ function GuideHero({
     stats?: { value: string; label: string }[];
 }) {
     return (
-        <header className="relative overflow-hidden bg-ink text-white">
-            <div className="nt-sunset pointer-events-none absolute -top-40 -right-32 h-[26rem] w-[26rem] rounded-full opacity-35 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-[#7c3aed] opacity-20 blur-3xl" />
-            <div
-                className="pointer-events-none absolute inset-0 opacity-[0.07]"
-                style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)", backgroundSize: "22px 22px" }}
-            />
-            <div className="relative mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1.5rem)] pb-10 md:px-6 md:pt-12 md:pb-14">
-                <Breadcrumbs items={crumbs} light />
-                {eyebrow && <p className="mb-2 text-[0.78rem] font-bold tracking-[0.12em] text-brand-400 uppercase">{eyebrow}</p>}
-                <h1 className="max-w-3xl text-[2.2rem] leading-[1.02] font-extrabold md:text-6xl">{title}</h1>
-                <p className="mt-4 max-w-2xl text-[1rem] text-white/75 md:text-lg">{intro}</p>
-                {stats && stats.length > 0 && (
-                    <dl className="mt-6 flex flex-wrap gap-2.5">
-                        {stats.map((stat) => (
-                            <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur">
-                                <dt className="sr-only">{stat.label}</dt>
-                                <dd className="font-display text-xl leading-none font-extrabold">{stat.value}</dd>
-                                <dd className="mt-1 text-[0.72rem] font-semibold text-white/60">{stat.label}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                )}
-                {actions && <div className="mt-7 flex flex-wrap gap-2.5">{actions}</div>}
-            </div>
+        <header className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1.25rem)] md:px-6 md:pt-12">
+            <Breadcrumbs items={crumbs} />
+            {eyebrow && <p className="nt-eyebrow">{eyebrow}</p>}
+            <h1 className="nt-rise nt-serif mt-2 max-w-4xl text-[2.6rem] leading-[1] sm:text-[3.2rem] md:text-[4.2rem]">{title}</h1>
+            <p className="mt-4 max-w-2xl text-[1rem] leading-relaxed text-text-2 md:text-[1.08rem]">{intro}</p>
+            {stats && stats.length > 0 && (
+                <dl className="mt-7 flex flex-wrap gap-x-10 gap-y-4">
+                    {stats.map((stat) => (
+                        <div key={stat.label}>
+                            <dd className="nt-serif text-[2rem] leading-none">{stat.value}</dd>
+                            <dt className="mt-1 text-[0.75rem] text-muted">{stat.label}</dt>
+                        </div>
+                    ))}
+                </dl>
+            )}
+            {actions && <div className="mt-7 flex flex-wrap gap-2.5">{actions}</div>}
         </header>
     );
 }
@@ -144,6 +133,8 @@ export default function GuideView({
     mapQuery,
     filters,
     stats,
+    editorial,
+    presorted = false,
     children,
 }: {
     locale: Locale;
@@ -156,10 +147,12 @@ export default function GuideView({
     mapQuery: string;
     filters?: React.ReactNode;
     stats?: { value: string; label: string }[];
+    editorial?: React.ReactNode; // full-width sections under the header
+    presorted?: boolean; // keep the order given (collections)
     children?: React.ReactNode;
 }) {
     const t = getDictionary(locale);
-    const shown = places ? sortForGuide(places).slice(0, GUIDE_LIMIT) : [];
+    const shown = places ? (presorted ? places : sortForGuide(places)).slice(0, GUIDE_LIMIT) : [];
     const mapHref = paths.explore(locale, city, mapQuery || undefined);
 
     const itemList = {
@@ -198,18 +191,26 @@ export default function GuideView({
                 intro={intro}
                 stats={stats}
                 actions={
-                    <Link href={mapHref} className="nt-btn nt-btn-primary h-12">
-                        <MapIcon size={18} />
-                        {t.city.seeOnMap}
-                    </Link>
+                    <>
+                        <Link href={paths.search(locale, city, mapQuery || undefined)} className="nt-btn nt-btn-dark h-11 text-[0.9rem]">
+                            <Search size={17} />
+                            {t.nav.search}
+                        </Link>
+                        <Link href={mapHref} className="nt-btn nt-btn-outline h-11 text-[0.9rem]">
+                            <MapIcon size={17} />
+                            {t.city.seeOnMap}
+                        </Link>
+                    </>
                 }
             />
 
-            <div className="mx-auto max-w-6xl px-4 pt-7 md:px-6">
+            {editorial}
+
+            <div className="mx-auto max-w-6xl px-4 pt-10 md:px-6">
                 {filters}
 
                 {places === null ? null : shown.length ? (
-                    <ul className="nt-masonry mt-6 columns-2 md:columns-3 lg:columns-4">
+                    <ul className="nt-masonry mt-8 columns-2 md:columns-3 lg:columns-4">
                         {shown.map((place, index) => (
                             <li key={place.id}>
                                 <PinCard place={place} priority={index < 2} />
@@ -217,8 +218,9 @@ export default function GuideView({
                         ))}
                     </ul>
                 ) : (
-                    <div className="mt-6 rounded-[2rem] bg-surface-2 px-6 py-14 text-center">
-                        <p className="mb-5 text-text-2">{t.city.emptyGuide}</p>
+                    <div className="mt-8 rounded-[1.6rem] border border-dashed border-line-strong px-6 py-14 text-center">
+                        <p className="nt-serif text-[1.7rem]">{t.city.emptyTitle}</p>
+                        <p className="mx-auto mt-2 mb-6 max-w-sm text-text-2">{t.city.emptyGuide}</p>
                         <Link href={paths.submit(locale)} className="nt-btn nt-btn-primary">
                             <Plus size={18} />
                             {t.nav.suggest}
@@ -228,7 +230,7 @@ export default function GuideView({
 
                 {places && places.length > shown.length && (
                     <div className="mt-10 text-center">
-                        <Link href={mapHref} className="nt-btn nt-btn-dark">
+                        <Link href={mapHref} className="nt-btn nt-btn-outline">
                             <MapIcon size={17} />
                             {t.city.seeOnMap} · {fill(t.city.placesCount, { count: places.length })}
                         </Link>
@@ -237,7 +239,7 @@ export default function GuideView({
 
                 {children}
 
-                <p className="mt-12 text-xs text-muted">{t.city.sources}</p>
+                <p className="mt-14 text-xs text-muted">{t.city.sources}</p>
             </div>
         </div>
     );

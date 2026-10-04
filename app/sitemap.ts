@@ -3,6 +3,7 @@ import { getPosts } from "@/lib/blog/server";
 import { CITIES } from "@/lib/cities";
 import { SITE_URL, type Locale } from "@/lib/i18n/config";
 import { areasOf } from "@/lib/places/areas";
+import { availableCollections } from "@/lib/places/collections";
 import { isIndexable } from "@/lib/places/display";
 import { paths } from "@/lib/places/paths";
 import { getAllPlaces } from "@/lib/places/server";
@@ -37,6 +38,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             if (count >= MIN_GUIDE_PLACES && category !== "Other") {
                 entries.push(entry((l) => paths.category(l, city.slug, category), 0.7));
             }
+        }
+
+        // Editorial collections ("open late", "open on Sunday"…), only once
+        // enough places qualify.
+        const collections = availableCollections(inCity);
+        if (collections.length) entries.push(entry((l) => paths.collections(l, city.slug), 0.6));
+        for (const { collection } of collections) {
+            entries.push(entry((l) => paths.collection(l, city.slug, collection), 0.7));
         }
 
         for (const area of areasOf(inCity, MIN_GUIDE_PLACES)) {

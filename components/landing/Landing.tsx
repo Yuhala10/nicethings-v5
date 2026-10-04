@@ -1,44 +1,25 @@
 import Link from "next/link";
-import {
-    ArrowRight,
-    BadgeCheck,
-    Clock3,
-    Heart,
-    Languages,
-    Map as MapIcon,
-    MessageCircle,
-    Navigation,
-    Plus,
-    Search,
-    Sparkles,
-    Volume2,
-} from "lucide-react";
+import { ArrowRight, BadgeCheck, Clock3, Heart, Languages, MapPin, MessageCircle, Navigation, Plus, Search, Sparkles, Store, Volume2 } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
+import EditorialSection from "@/components/editorial/EditorialSection";
 import PinCard from "@/components/place/PinCard";
 import { LanguageSwitch, Logo } from "@/components/site/SiteChrome";
 import { CITIES, type City } from "@/lib/cities";
-import { fill, getDictionary, type Locale } from "@/lib/i18n";
+import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
+import type { Area } from "@/lib/places/areas";
+import type { EditorialRail } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
 import type { PlaceSummary } from "@/lib/places/types";
 import type { PostSummary } from "@/lib/blog/server";
 import Constellation from "./Constellation";
 import HeroSearch from "./HeroSearch";
 
-// City card colours: each city gets its own sunset.
-const CITY_GRADIENTS = [
-    "linear-gradient(140deg,#ff8a1f,#eb3a6f)",
-    "linear-gradient(140deg,#7c3aed,#ec4899)",
-    "linear-gradient(140deg,#0891b2,#2563eb)",
-    "linear-gradient(140deg,#16a34a,#0891b2)",
-    "linear-gradient(140deg,#f59e0b,#dc2626)",
-    "linear-gradient(140deg,#db2777,#7c3aed)",
-    "linear-gradient(140deg,#0f766e,#84cc16)",
-    "linear-gradient(140deg,#ea580c,#a16207)",
-];
-
 type Demo = { phrase: string; chips: string[] };
 
+// The home page reads like the opening pages of a city guide: a quiet
+// headline and one search, then sections drawn from real listings, then
+// the cities, the journal, and only at the end how it all works.
 export default function Landing({
     locale,
     points,
@@ -46,6 +27,10 @@ export default function Landing({
     cityCounts,
     areaCount,
     picks,
+    rails,
+    coastRail,
+    homeCity,
+    homeAreas,
     posts,
     demos,
 }: {
@@ -55,6 +40,10 @@ export default function Landing({
     cityCounts: Record<string, number>;
     areaCount: number;
     picks: PlaceSummary[];
+    rails: EditorialRail[];
+    coastRail: EditorialRail | null;
+    homeCity: City;
+    homeAreas: Area[];
     posts: PostSummary[];
     demos: Demo[];
 }) {
@@ -63,16 +52,31 @@ export default function Landing({
     const cities = CITIES.filter((city) => (cityCounts[city.slug] ?? 0) > 0).sort(
         (a, b) => (cityCounts[b.slug] ?? 0) - (cityCounts[a.slug] ?? 0)
     );
+    const otherCities = cities.filter((city) => city.slug !== homeCity.slug);
 
-    const faqJsonLd = {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: t.landing.faq.map((item) => ({
-            "@type": "Question",
-            name: item.q,
-            acceptedAnswer: { "@type": "Answer", text: item.a },
-        })),
-    };
+    const jsonLd = [
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: t.landing.faq.map((item) => ({
+                "@type": "Question",
+                name: item.q,
+                acceptedAnswer: { "@type": "Answer", text: item.a },
+            })),
+        },
+        // The city guides, so search engines see the site's structure.
+        {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: t.landing.citiesTitle,
+            itemListElement: cities.map((city, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                name: fill(t.cities.guideTitle, { city: city.name }),
+                url: `${SITE_URL}${paths.city(locale, city.slug)}`,
+            })),
+        },
+    ];
 
     const features = [
         { icon: Navigation, title: t.landing.f1Title, body: t.landing.f1Body },
@@ -84,137 +88,236 @@ export default function Landing({
     ];
 
     const steps = [
-        { icon: Search, title: t.landing.s1Title, body: t.landing.s1Body },
-        { icon: Sparkles, title: t.landing.s2Title, body: t.landing.s2Body },
-        { icon: Navigation, title: t.landing.s3Title, body: t.landing.s3Body },
+        { title: t.landing.s1Title, body: t.landing.s1Body },
+        { title: t.landing.s2Title, body: t.landing.s2Body },
+        { title: t.landing.s3Title, body: t.landing.s3Body },
     ];
 
     return (
         <div className="bg-bg">
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+
+            {/* Phone masthead (desktop has the site header). */}
+            <div className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-[max(env(safe-area-inset-top),1rem)] md:hidden">
+                <Logo compact />
+                <LanguageSwitch />
+            </div>
 
             {/* ---------------- Hero ---------------- */}
-            <section className="relative isolate overflow-hidden bg-[#0b0806] text-white">
-                <div className="nt-sunset pointer-events-none absolute -top-48 left-1/2 -z-10 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full opacity-30 blur-[110px] md:left-[70%]" />
-                <div className="pointer-events-none absolute -bottom-40 -left-20 -z-10 h-96 w-96 rounded-full bg-[#7c3aed] opacity-25 blur-[100px]" />
-                <div
-                    className="pointer-events-none absolute inset-0 -z-10 opacity-[0.06]"
-                    style={{ backgroundImage: "radial-gradient(circle at 1px 1px,#fff 1px,transparent 0)", backgroundSize: "24px 24px" }}
-                />
-                <Constellation
-                    points={points}
-                    labels={labels}
-                    className="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-full opacity-35 md:w-[52%] md:opacity-100"
-                />
-
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-[max(env(safe-area-inset-top),1rem)] md:px-6 md:pt-6">
-                    <Logo light />
-                    <div className="flex items-center gap-2">
-                        <Link href={paths.map(locale)} className="nt-btn nt-btn-glass hidden h-10 px-4 text-sm md:inline-flex">
-                            <MapIcon size={16} />
-                            {t.nav.map}
-                        </Link>
-                        <LanguageSwitch className="h-10 border-white/20 bg-white/10 text-white hover:border-white/40 hover:text-white" />
-                    </div>
-                </div>
-
-                <div className="mx-auto max-w-6xl px-4 pt-14 pb-16 md:px-6 md:pt-24 md:pb-28">
-                    <div className="max-w-2xl">
-                        <p className="nt-rise mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-[0.78rem] font-bold text-white/85 backdrop-blur">
-                            <span className="nt-open-dot" />
-                            {fill(t.landing.badge, { places: formatNumber(total, locale), cities: cities.length })}
-                        </p>
-                        <h1 className="nt-rise text-[2.7rem] leading-[0.98] font-extrabold tracking-[-0.035em] [animation-delay:80ms] md:text-[4.6rem]">
-                            {t.landing.title1} <span className="nt-sunset-text">{t.landing.title2}</span>
+            <section className="mx-auto max-w-6xl px-4 pt-10 md:px-6 md:pt-20">
+                <div className="grid items-end gap-12 md:grid-cols-[1.25fr_0.75fr] lg:gap-20">
+                    <div className="min-w-0">
+                        <p className="nt-rise nt-eyebrow">{fill(t.landing.badge, { places: formatNumber(total, locale), cities: cities.length })}</p>
+                        <h1 className="nt-rise nt-serif mt-4 text-[2.85rem] leading-[0.98] [animation-delay:60ms] sm:text-[3.6rem] lg:text-[4.75rem]">
+                            {t.landing.title1} <em className="block text-brand-600">{t.landing.title2}</em>
                         </h1>
-                        <p className="nt-rise mt-5 max-w-xl text-[1.05rem] leading-relaxed text-white/72 [animation-delay:160ms] md:text-xl">
+                        <p className="nt-rise mt-5 max-w-lg text-[1.02rem] leading-relaxed text-text-2 [animation-delay:120ms] md:text-[1.1rem]">
                             {t.landing.lead}
                         </p>
-                        <div className="nt-rise mt-8 [animation-delay:240ms]">
+                        <div className="nt-rise mt-8 [animation-delay:180ms]">
                             <HeroSearch />
                         </div>
                     </div>
 
-                    <dl className="nt-rise mt-14 grid max-w-xl grid-cols-3 gap-3 [animation-delay:320ms]">
-                        {[
-                            { value: formatNumber(total, locale), label: t.landing.statPlaces },
-                            { value: String(cities.length), label: t.landing.statCities },
-                            { value: formatNumber(areaCount, locale), label: t.landing.statAreas },
-                        ].map((stat) => (
-                            <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 backdrop-blur">
-                                <dd className="font-display text-2xl font-extrabold md:text-3xl">{stat.value}</dd>
-                                <dt className="mt-0.5 text-[0.75rem] font-semibold text-white/55">{stat.label}</dt>
-                            </div>
-                        ))}
-                    </dl>
+                    {/* A small board of real places, desktop only. */}
+                    {picks.length >= 2 && (
+                        <ul className="nt-rise hidden grid-cols-2 gap-4 [animation-delay:240ms] md:grid" aria-label={t.landing.picksTitle}>
+                            {picks.slice(0, 4).map((place, index) => (
+                                <li key={place.id} className={index % 2 === 1 ? "translate-y-10" : ""}>
+                                    <PinCard place={place} shape="portrait" priority={index < 2} />
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </section>
 
-            {/* ---------------- Cities ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-16 md:px-6 md:pt-24">
-                <div className="nt-reveal mb-6 flex items-end justify-between gap-4">
-                    <div>
-                        <p className="nt-eyebrow mb-2">{t.landing.citiesEyebrow}</p>
-                        <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.citiesTitle}</h2>
+            {/* ---------------- The home city, by mood ---------------- */}
+            {rails.length > 0 && (
+                <div className="pt-16 md:pt-28">
+                    <div className="mx-auto max-w-6xl px-4 md:px-6">
+                        <div className="nt-reveal border-t border-line pt-8 md:pt-10">
+                            <p className="nt-eyebrow">{t.city.collections}</p>
+                            <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                                <div className="max-w-2xl">
+                                    <h2 className="nt-serif text-[2.3rem] md:text-[3.2rem]">{fill(t.landing.moodTitle, { city: homeCity.name })}</h2>
+                                    <p className="mt-3 text-[0.95rem] leading-relaxed text-muted">{t.landing.moodLead}</p>
+                                </div>
+                                <nav aria-label={t.nav.cities} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.88rem] md:justify-end">
+                                    <span className="text-muted">{t.landing.elsewhere}</span>
+                                    {otherCities.slice(0, 4).map((city) => (
+                                        <Link key={city.slug} href={paths.city(locale, city.slug)} className="nt-link">
+                                            {city.name}
+                                        </Link>
+                                    ))}
+                                </nav>
+                            </div>
+                        </div>
                     </div>
+                    {rails.map((rail, index) => (
+                        <EditorialSection key={rail.key} rail={rail} locale={locale} priority={index === 0} />
+                    ))}
+
+                    {homeAreas.length > 0 && (
+                        <section className="nt-reveal mx-auto max-w-6xl px-4 pt-12 md:px-6 md:pt-16">
+                            <h2 className="nt-section-title">{fill(t.city.whereToGoIn, { area: homeCity.name })}</h2>
+                            <p className="mt-1.5 text-[0.92rem] text-muted">{t.discover.byArea}</p>
+                            <ul className="mt-5 flex flex-wrap gap-2">
+                                {homeAreas.map((area) => (
+                                    <li key={area.slug}>
+                                        <Link href={paths.neighborhood(locale, homeCity.slug, area.name)} className="nt-chip">
+                                            <MapPin size={14} className="text-muted" />
+                                            {area.name}
+                                            <span className="font-normal text-muted">{area.count}</span>
+                                        </Link>
+                                    </li>
+                                ))}
+                                <li>
+                                    <Link href={paths.city(locale, homeCity.slug)} className="nt-chip">
+                                        {fill(t.searchPage.guideLink, { city: homeCity.name })}
+                                        <ArrowRight size={14} />
+                                    </Link>
+                                </li>
+                            </ul>
+                        </section>
+                    )}
                 </div>
-                <ul className="nt-scroll-x -mx-4 gap-3 px-4 pb-2 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
-                    {cities.map((city: City, index) => (
-                        <li key={city.slug} className="nt-reveal w-[15.5rem] shrink-0 md:w-auto">
+            )}
+
+            {coastRail && (
+                <div className="pt-6">
+                    <EditorialSection rail={coastRail} locale={locale} />
+                </div>
+            )}
+
+            {/* ---------------- Cities ---------------- */}
+            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+                <div className="nt-reveal border-t border-line pt-8 md:pt-10">
+                    <p className="nt-eyebrow">{t.landing.citiesEyebrow}</p>
+                    <h2 className="nt-serif mt-2 text-[2.3rem] md:text-[3.2rem]">{t.landing.citiesTitle}</h2>
+                </div>
+                <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+                    {cities.slice(0, 8).map((city) => (
+                        <li key={city.slug} className="nt-reveal">
                             <Link
-                                href={paths.explore(locale, city.slug)}
-                                className="nt-pressable group relative flex h-44 flex-col justify-end overflow-hidden rounded-[1.6rem] p-4 text-white shadow-card"
-                                style={{ background: CITY_GRADIENTS[index % CITY_GRADIENTS.length] }}
+                                href={paths.city(locale, city.slug)}
+                                className="nt-pressable group flex h-full min-h-[9.5rem] flex-col justify-between rounded-[1.25rem] border border-line bg-surface p-4 md:min-h-[11rem] md:p-5"
                             >
-                                <div
-                                    className="pointer-events-none absolute inset-0 opacity-20"
-                                    style={{ backgroundImage: "radial-gradient(circle at 1px 1px,#fff 1px,transparent 0)", backgroundSize: "14px 14px" }}
-                                />
-                                <span className="absolute top-4 right-4 rounded-full bg-black/20 px-2.5 py-1 text-[0.72rem] font-bold backdrop-blur">
-                                    {fill(t.city.placesCount, { count: formatNumber(cityCounts[city.slug] ?? 0, locale) })}
+                                <span className="text-[0.66rem] font-semibold tracking-[0.12em] text-muted uppercase">{city.region[locale]}</span>
+                                <span>
+                                    <span className="nt-serif block text-[1.75rem] md:text-[2.1rem]">{city.name}</span>
+                                    <span className="mt-1 flex items-center justify-between gap-2 text-[0.8rem] text-muted">
+                                        {fill(t.city.placesCount, { count: formatNumber(cityCounts[city.slug] ?? 0, locale) })}
+                                        <ArrowRight size={15} className="text-text transition-transform duration-200 group-hover:translate-x-0.5" />
+                                    </span>
                                 </span>
-                                <span className="relative text-[0.72rem] font-bold tracking-[0.1em] text-white/75 uppercase">{city.region[locale]}</span>
-                                <span className="relative font-display text-[1.7rem] leading-tight font-extrabold">{city.name}</span>
-                                <span className="relative line-clamp-1 text-[0.82rem] text-white/85">{city.tagline[locale]}</span>
-                                <ArrowRight
-                                    size={20}
-                                    className="absolute right-4 bottom-4 transition duration-300 group-hover:translate-x-1"
-                                />
                             </Link>
                         </li>
                     ))}
                 </ul>
+                {cities.length > 8 && (
+                    <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.9rem]">
+                        <span className="text-muted">{t.landing.allCities} :</span>
+                        {cities.slice(8).map((city) => (
+                            <Link key={city.slug} href={paths.city(locale, city.slug)} className="nt-link">
+                                {city.name}
+                            </Link>
+                        ))}
+                    </p>
+                )}
             </section>
 
-            {/* ---------------- Concierge demo ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
-                <div className="grid items-center gap-10 md:grid-cols-2">
-                    <div className="nt-reveal">
-                        <p className="nt-eyebrow mb-2">{t.landing.conciergeEyebrow}</p>
-                        <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.conciergeTitle}</h2>
-                        <p className="mt-4 max-w-md text-text-2 md:text-lg">{t.landing.conciergeBody}</p>
-                        <Link href={paths.map(locale)} className="nt-btn nt-btn-primary mt-7">
-                            {t.landing.tryIt}
-                            <ArrowRight size={18} />
+            {/* ---------------- Journal ---------------- */}
+            {posts.length > 0 && (
+                <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+                    <div className="nt-reveal flex items-end justify-between gap-4 border-t border-line pt-8 md:pt-10">
+                        <div className="max-w-xl">
+                            <p className="nt-eyebrow">{t.blog.title}</p>
+                            <h2 className="nt-serif mt-2 text-[2.3rem] md:text-[3.2rem]">{t.landing.journalTitle}</h2>
+                            <p className="mt-3 text-[0.95rem] text-muted">{t.landing.journalLead}</p>
+                        </div>
+                        <Link href={paths.blog(locale)} className="nt-btn nt-btn-outline hidden shrink-0 sm:inline-flex">
+                            {t.blog.back}
+                            <ArrowRight size={16} />
                         </Link>
                     </div>
-                    <ul className="flex flex-col gap-3">
+                    <div className="nt-masonry mt-8 columns-2 md:columns-4">
+                        {posts.slice(0, 4).map((post) => (
+                            <div key={post.id}>
+                                <PostCard post={post} locale={locale} />
+                            </div>
+                        ))}
+                    </div>
+                    <Link href={paths.blog(locale)} className="nt-btn nt-btn-outline mt-2 w-full sm:hidden">
+                        {t.blog.back}
+                        <ArrowRight size={16} />
+                    </Link>
+                </section>
+            )}
+
+            {/* ---------------- Atlas: every place as a point of light ---------------- */}
+            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+                <div className="nt-reveal relative isolate overflow-hidden rounded-[1.6rem] bg-[#15110e] text-white">
+                    <Constellation
+                        points={points}
+                        labels={labels}
+                        className="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-full opacity-40 md:w-[58%] md:opacity-100"
+                    />
+                    <div className="max-w-xl p-6 py-10 md:p-14">
+                        <p className="text-[0.7rem] font-semibold tracking-[0.14em] text-white/50 uppercase">{t.landing.atlasEyebrow}</p>
+                        <h2 className="nt-serif mt-3 text-[2.3rem] md:text-[3.4rem]">{t.landing.atlasTitle}</h2>
+                        <p className="mt-4 text-[0.98rem] leading-relaxed text-white/70">
+                            {fill(t.landing.atlasBody, { places: formatNumber(total, locale), cities: cities.length })}
+                        </p>
+                        <dl className="mt-8 grid max-w-sm grid-cols-3 gap-6">
+                            {[
+                                { value: formatNumber(total, locale), label: t.landing.statPlaces },
+                                { value: String(cities.length), label: t.landing.statCities },
+                                { value: formatNumber(areaCount, locale), label: t.landing.statAreas },
+                            ].map((stat) => (
+                                <div key={stat.label}>
+                                    <dd className="nt-serif text-[2rem] md:text-[2.4rem]">{stat.value}</dd>
+                                    <dt className="text-[0.75rem] text-white/50">{stat.label}</dt>
+                                </div>
+                            ))}
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
+            {/* ---------------- Natural search + how it works ---------------- */}
+            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+                <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+                    <div className="nt-reveal">
+                        <p className="nt-eyebrow">{t.landing.conciergeEyebrow}</p>
+                        <h2 className="nt-serif mt-2 text-[2.3rem] md:text-[3rem]">{t.landing.conciergeTitle}</h2>
+                        <p className="mt-4 max-w-md leading-relaxed text-text-2">{t.landing.conciergeBody}</p>
+                        <ol className="mt-8 grid gap-5">
+                            {steps.map((step, index) => (
+                                <li key={step.title} className="flex gap-4">
+                                    <span className="nt-serif w-6 shrink-0 text-[1.6rem] leading-none text-brand-600">{index + 1}</span>
+                                    <div>
+                                        <h3 className="font-semibold">{step.title}</h3>
+                                        <p className="mt-0.5 text-[0.92rem] leading-relaxed text-muted">{step.body}</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                    <ul className="flex flex-col gap-3 md:pt-10">
                         {demos.map((demo) => (
                             <li key={demo.phrase} className="nt-reveal">
                                 <Link
-                                    href={paths.map(locale, demo.phrase)}
-                                    className="nt-pressable block rounded-[1.5rem] border border-line bg-surface p-4 shadow-card"
+                                    href={`${paths.searchEntry(locale)}?q=${encodeURIComponent(demo.phrase)}`}
+                                    prefetch={false}
+                                    className="nt-pressable block rounded-[1.25rem] border border-line bg-surface p-5"
                                 >
-                                    <p className="flex items-start gap-2 font-semibold text-text">
-                                        <Search size={17} className="mt-0.5 shrink-0 text-brand-500" />« {demo.phrase} »
+                                    <p className="flex items-start gap-2.5 text-[0.98rem] font-medium text-text">
+                                        <Search size={16} className="mt-1 shrink-0 text-muted" />« {demo.phrase} »
                                     </p>
-                                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                                        <span className="text-[0.7rem] font-bold tracking-wide text-brand-600 uppercase">{t.search.understood}</span>
+                                    <div className="mt-3 flex flex-wrap items-center gap-1.5 pl-6">
                                         {demo.chips.map((chip) => (
-                                            <span
-                                                key={chip}
-                                                className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand-700 dark:bg-brand-700/25 dark:text-brand-200"
-                                            >
+                                            <span key={chip} className="rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-text-2">
                                                 {chip}
                                             </span>
                                         ))}
@@ -226,115 +329,44 @@ export default function Landing({
                 </div>
             </section>
 
-            {/* ---------------- How it works ---------------- */}
+            {/* ---------------- Made for Cameroon ---------------- */}
             <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
-                <div className="nt-reveal mb-8 max-w-2xl">
-                    <p className="nt-eyebrow mb-2">{t.landing.howEyebrow}</p>
-                    <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.howTitle}</h2>
+                <div className="nt-reveal border-t border-line pt-8 md:pt-10">
+                    <p className="nt-eyebrow">{t.landing.featuresEyebrow}</p>
+                    <h2 className="nt-serif mt-2 max-w-2xl text-[2.3rem] md:text-[3rem]">{t.landing.featuresTitle}</h2>
                 </div>
-                <ol className="grid gap-3 md:grid-cols-3">
-                    {steps.map((step, index) => (
-                        <li key={step.title} className="nt-reveal relative overflow-hidden rounded-[1.6rem] border border-line bg-surface p-6 shadow-card">
-                            <span className="pointer-events-none absolute -top-4 -right-2 font-display text-[6rem] leading-none font-extrabold text-surface-2">
-                                {index + 1}
-                            </span>
-                            <span className="nt-sunset relative mb-5 grid h-12 w-12 place-items-center rounded-2xl text-white shadow-[var(--nt-glow)]">
-                                <step.icon size={22} />
-                            </span>
-                            <h3 className="relative text-xl font-extrabold">{step.title}</h3>
-                            <p className="relative mt-2 text-text-2">{step.body}</p>
+                <ul className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+                    {features.map((feature) => (
+                        <li key={feature.title} className="nt-reveal flex gap-4">
+                            <feature.icon size={20} strokeWidth={1.7} className="mt-0.5 shrink-0 text-brand-600" />
+                            <div>
+                                <h3 className="font-semibold">{feature.title}</h3>
+                                <p className="mt-1 text-[0.92rem] leading-relaxed text-muted">{feature.body}</p>
+                            </div>
                         </li>
                     ))}
-                </ol>
-            </section>
-
-            {/* ---------------- Picks ---------------- */}
-            {picks.length > 0 && (
-                <section className="pt-20 md:pt-28">
-                    <div className="nt-reveal mx-auto mb-6 max-w-6xl px-4 md:px-6">
-                        <p className="nt-eyebrow mb-2">{t.landing.picksEyebrow}</p>
-                        <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.picksTitle}</h2>
-                    </div>
-                    <div className="mx-auto max-w-6xl px-4 md:px-6">
-                        <ul className="nt-masonry columns-2 md:columns-3 lg:columns-4">
-                            {picks.map((place) => (
-                                <li key={place.id}>
-                                    <PinCard place={place} />
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </section>
-            )}
-
-            {/* ---------------- Blog ---------------- */}
-            {posts.length > 0 && (
-                <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
-                    <div className="nt-reveal mb-6 flex items-end justify-between gap-4">
-                        <div>
-                            <p className="nt-eyebrow mb-2">{t.blog.title}</p>
-                            <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.blog.lead.split(".")[0]}.</h2>
-                        </div>
-                        <Link href={paths.blog(locale)} className="nt-btn nt-btn-soft hidden shrink-0 sm:inline-flex">
-                            {t.blog.back}
-                            <ArrowRight size={17} />
-                        </Link>
-                    </div>
-                    <div className="nt-masonry columns-2 md:columns-4">
-                        {posts.slice(0, 4).map((post) => (
-                            <div key={post.id}>
-                                <PostCard post={post} locale={locale} />
-                            </div>
-                        ))}
-                    </div>
-                    <Link href={paths.blog(locale)} className="nt-btn nt-btn-soft mt-2 w-full sm:hidden">
-                        {t.blog.back}
-                        <ArrowRight size={17} />
-                    </Link>
-                </section>
-            )}
-
-            {/* ---------------- Features ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
-                <div className="nt-reveal relative overflow-hidden rounded-[2.2rem] bg-[#0b0806] p-6 text-white md:p-12">
-                    <div className="nt-sunset pointer-events-none absolute -right-20 -bottom-32 h-80 w-80 rounded-full opacity-30 blur-[90px]" />
-                    <p className="mb-2 text-[0.72rem] font-bold tracking-[0.12em] text-brand-400 uppercase">{t.landing.featuresEyebrow}</p>
-                    <h2 className="max-w-2xl text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.featuresTitle}</h2>
-                    <ul className="relative mt-10 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-                        {features.map((feature) => (
-                            <li key={feature.title} className="flex gap-4">
-                                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/10 text-brand-400">
-                                    <feature.icon size={21} />
-                                </span>
-                                <div>
-                                    <h3 className="text-lg font-bold">{feature.title}</h3>
-                                    <p className="mt-1 text-[0.92rem] text-white/65">{feature.body}</p>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                </ul>
             </section>
 
             {/* ---------------- Trust ---------------- */}
             <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
-                <div className="nt-reveal grid items-center gap-8 md:grid-cols-[1fr_1.1fr]">
+                <div className="nt-reveal grid gap-8 rounded-[1.6rem] bg-surface-2 p-6 md:grid-cols-[1fr_1.1fr] md:gap-12 md:p-12">
                     <div>
-                        <p className="nt-eyebrow mb-2">{t.landing.trustEyebrow}</p>
-                        <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.trustTitle}</h2>
-                        <p className="mt-4 text-text-2 md:text-lg">{t.landing.trustBody}</p>
+                        <p className="nt-eyebrow">{t.landing.trustEyebrow}</p>
+                        <h2 className="nt-serif mt-2 text-[2.1rem] md:text-[2.7rem]">{t.landing.trustTitle}</h2>
+                        <p className="mt-4 leading-relaxed text-text-2">{t.landing.trustBody}</p>
                     </div>
-                    <ul className="grid gap-3">
+                    <ul className="grid gap-5">
                         {[
                             { icon: BadgeCheck, title: t.trust.verifiedTitle, body: t.landing.trustVerified, tone: "text-[#0095f6]" },
-                            { icon: Sparkles, title: t.trust.submissionTitle, body: t.landing.trustCommunity, tone: "text-[#7c3aed]" },
-                            { icon: MapIcon, title: t.trust.osmTitle, body: t.landing.trustOsm, tone: "text-[#0891b2]" },
+                            { icon: Sparkles, title: t.trust.submissionTitle, body: t.landing.trustCommunity, tone: "text-text-2" },
+                            { icon: MapPin, title: t.trust.osmTitle, body: t.landing.trustOsm, tone: "text-text-2" },
                         ].map((item) => (
-                            <li key={item.title} className="flex gap-4 rounded-[1.4rem] border border-line bg-surface p-4 shadow-card">
-                                <item.icon size={24} className={`mt-0.5 shrink-0 ${item.tone}`} />
+                            <li key={item.title} className="flex gap-4">
+                                <item.icon size={22} strokeWidth={1.8} className={`mt-0.5 shrink-0 ${item.tone}`} />
                                 <div>
-                                    <p className="font-bold">{item.title}</p>
-                                    <p className="mt-0.5 text-sm text-text-2">{item.body}</p>
+                                    <p className="font-semibold">{item.title}</p>
+                                    <p className="mt-0.5 text-[0.92rem] leading-relaxed text-muted">{item.body}</p>
                                 </div>
                             </li>
                         ))}
@@ -344,13 +376,13 @@ export default function Landing({
 
             {/* ---------------- FAQ ---------------- */}
             <section className="mx-auto max-w-3xl px-4 pt-20 md:px-6 md:pt-28">
-                <h2 className="nt-reveal mb-6 text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.faqTitle}</h2>
-                <div className="flex flex-col gap-2.5">
+                <h2 className="nt-reveal nt-serif mb-6 text-[2.3rem] md:text-[3rem]">{t.landing.faqTitle}</h2>
+                <div className="divide-y divide-line border-y border-line">
                     {t.landing.faq.map((item) => (
-                        <details key={item.q} className="nt-reveal group rounded-[1.3rem] border border-line bg-surface p-5 shadow-card open:shadow-float">
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold [&::-webkit-details-marker]:hidden">
+                        <details key={item.q} className="group py-5">
+                            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[1.02rem] font-semibold [&::-webkit-details-marker]:hidden">
                                 {item.q}
-                                <Plus size={20} className="shrink-0 text-brand-500 transition duration-300 group-open:rotate-45" />
+                                <Plus size={18} strokeWidth={1.8} className="shrink-0 text-muted transition-transform duration-300 group-open:rotate-45" />
                             </summary>
                             <p className="mt-3 leading-relaxed text-text-2">{item.a}</p>
                         </details>
@@ -358,26 +390,30 @@ export default function Landing({
                 </div>
             </section>
 
-            {/* ---------------- Final call ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
-                <div className="nt-reveal nt-sunset relative overflow-hidden rounded-[2.2rem] p-8 text-center text-white shadow-[var(--nt-glow)] md:p-16">
-                    <div
-                        className="pointer-events-none absolute inset-0 opacity-20"
-                        style={{ backgroundImage: "radial-gradient(circle at 1px 1px,#fff 1px,transparent 0)", backgroundSize: "18px 18px" }}
-                    />
-                    <h2 className="relative mx-auto max-w-2xl text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.ctaTitle}</h2>
-                    <p className="relative mx-auto mt-3 max-w-lg text-white/85 md:text-lg">{t.landing.ctaBody}</p>
-                    <div className="relative mt-8 flex flex-wrap justify-center gap-3">
-                        <Link href={paths.map(locale)} className="nt-btn h-13 bg-white px-6 text-base text-[#17120e] shadow-float">
-                            <MapIcon size={19} />
-                            {t.landing.ctaMap}
-                        </Link>
-                        <Link href={paths.submit(locale)} className="nt-btn nt-btn-glass h-13 px-6 text-base">
-                            <Plus size={19} />
+            {/* ---------------- Add a place / owners ---------------- */}
+            <section className="mx-auto grid max-w-6xl gap-3 px-4 pt-20 md:grid-cols-2 md:gap-4 md:px-6 md:pt-28">
+                <Link href={paths.submit(locale)} className="nt-reveal nt-pressable group flex flex-col justify-between gap-8 rounded-[1.6rem] border border-line bg-surface p-6 md:p-8">
+                    <Plus size={22} strokeWidth={1.7} className="text-brand-600" />
+                    <span>
+                        <span className="nt-serif block text-[2rem]">{t.landing.addTitle}</span>
+                        <span className="mt-2 block text-[0.95rem] text-muted">{t.landing.addBody}</span>
+                        <span className="mt-5 inline-flex items-center gap-1.5 font-semibold">
                             {t.nav.suggest}
-                        </Link>
-                    </div>
-                </div>
+                            <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                        </span>
+                    </span>
+                </Link>
+                <Link href={paths.pro(locale)} className="nt-reveal nt-pressable group flex flex-col justify-between gap-8 rounded-[1.6rem] bg-[#15110e] p-6 text-white md:p-8">
+                    <Store size={22} strokeWidth={1.7} className="text-brand-400" />
+                    <span>
+                        <span className="nt-serif block text-[2rem]">{t.landing.ownerTitle}</span>
+                        <span className="mt-2 block text-[0.95rem] text-white/65">{t.landing.ownerBody}</span>
+                        <span className="mt-5 inline-flex items-center gap-1.5 font-semibold">
+                            {t.nav.pro}
+                            <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                        </span>
+                    </span>
+                </Link>
             </section>
         </div>
     );

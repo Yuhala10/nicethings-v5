@@ -42,7 +42,7 @@ export default function PlaceCard({
                     category={place.category}
                     name={place.name}
                     sizes="(min-width: 768px) 280px, 240px"
-                    className="aspect-[4/3] w-full rounded-[1.25rem]"
+                    className="aspect-[4/3] w-full rounded-[1.1rem]"
                     priority={priority}
                     iconSize={30}
                 />
@@ -50,7 +50,7 @@ export default function PlaceCard({
             </div>
             <div className="px-0.5 pt-2.5">
                 <div className="flex items-center gap-1.5">
-                    <h3 className="min-w-0 truncate font-display text-[0.95rem] font-bold text-text">{place.name}</h3>
+                    <h3 className="min-w-0 truncate text-[0.95rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
                     <VerifiedMark verified={place.verified} />
                     <span className="ml-auto">
                         <Rating rating={place.rating} count={place.reviewCount} />

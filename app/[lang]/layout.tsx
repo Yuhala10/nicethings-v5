@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
+import { DM_Sans, Instrument_Serif } from "next/font/google";
 import { notFound } from "next/navigation";
 import { LocaleProvider } from "@/components/site/LocaleProvider";
 import SiteChrome from "@/components/site/SiteChrome";
@@ -8,11 +8,14 @@ import { paths } from "@/lib/places/paths";
 import { siteShareImage } from "@/lib/share-image";
 import "./site.css";
 
+// Two voices: DM Sans for everything you operate, Instrument Serif for the
+// editorial headlines (it exists in one weight, so it is never bolded).
 const body = DM_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-const heading = Bricolage_Grotesque({
+const editorial = Instrument_Serif({
     subsets: ["latin"],
-    weight: ["600", "700", "800"],
-    variable: "--font-heading",
+    weight: "400",
+    style: ["normal", "italic"],
+    variable: "--font-editorial",
     display: "swap",
 });
 
@@ -71,8 +74,8 @@ export const viewport: Viewport = {
     initialScale: 1,
     viewportFit: "cover",
     themeColor: [
-        { media: "(prefers-color-scheme: light)", color: "#faf9f7" },
-        { media: "(prefers-color-scheme: dark)", color: "#0e0e0e" },
+        { media: "(prefers-color-scheme: light)", color: "#faf7f2" },
+        { media: "(prefers-color-scheme: dark)", color: "#100d0b" },
     ],
 };
 
@@ -96,7 +99,7 @@ export default async function SiteLayout({ children, params }: Props) {
     };
 
     return (
-        <html lang={lang} className={`${body.variable} ${heading.variable}`} suppressHydrationWarning>
+        <html lang={lang} className={`${body.variable} ${editorial.variable}`} suppressHydrationWarning>
             <body>
                 <script
                     type="application/ld+json"
@@ -109,7 +112,9 @@ export default async function SiteLayout({ children, params }: Props) {
                                 name: "NiceThings",
                                 url: SITE_URL,
                                 logo: `${SITE_URL}/icons/icon-512.png`,
-                                areaServed: { "@type": "City", name: "Yaoundé", addressCountry: "CM" },
+                                description: dictionary.meta.defaultDescription,
+                                areaServed: { "@type": "Country", name: "Cameroun", identifier: "CM" },
+                                knowsLanguage: ["fr", "en"],
                             },
                         ]),
                     }}

@@ -25,14 +25,14 @@ export default function PostCard({ post, locale, priority = false }: { post: Pos
 
     return (
         <Link href={paths.post(locale, post.slug)} className="group nt-pressable block">
-            <div className={`relative overflow-hidden rounded-[1.6rem] bg-surface-2 ${shapeOf(post.slug)}`}>
+            <div className={`relative overflow-hidden rounded-[1.1rem] bg-surface-2 ${shapeOf(post.slug)}`}>
                 {post.cover ? (
                     <Image
                         src={post.cover}
                         alt={post.coverAlt ?? title}
                         fill
                         sizes="(min-width: 1024px) 300px, (min-width: 640px) 33vw, 50vw"
-                        className="object-cover transition duration-700 group-hover:scale-[1.04]"
+                        className="object-cover transition duration-700 ease-out group-hover:scale-[1.03]"
                         priority={priority}
                     />
                 ) : (
@@ -42,16 +42,16 @@ export default function PostCard({ post, locale, priority = false }: { post: Pos
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
                 <span
-                    className="absolute top-3 left-3 rounded-full px-2.5 py-1 text-[0.7rem] font-extrabold tracking-wide text-white uppercase shadow-sm"
-                    style={{ background: tone }}
+                    className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/92 px-2.5 py-1 text-[0.66rem] font-semibold tracking-[0.08em] text-[#1b1612] uppercase backdrop-blur"
                 >
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: tone }} />
                     {topicLabel(post.topic, locale)}
                 </span>
             </div>
             <div className="px-1 pt-3">
-                <h3 className="font-display text-[1.02rem] leading-snug font-extrabold text-text group-hover:text-brand-600">{title}</h3>
+                <h3 className="nt-serif text-[1.4rem] leading-[1.1] text-text">{title}</h3>
                 {excerpt && <p className="mt-1 line-clamp-2 text-[0.85rem] leading-relaxed text-muted">{excerpt}</p>}
-                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-muted">
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-muted">
                     <Clock3 size={13} />
                     {fill(t.blog.readTime, { n: post.readingMinutes })}
                     {city && <span>· {city}</span>}
