@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Database, Eye, Repeat2, Search, UserPlus, Users } from "lucide-react";
-import { Bar, Empty, PageHeader, Skeleton, Stat, useAdminData } from "@/components/admin/ui";
+import { adminLang, useTr } from "@/components/admin/i18n";
+import { Bar, Empty, PageHeader, Skeleton, Stat, formatCount, useAdminData } from "@/components/admin/ui";
 import type { PageKind } from "@/lib/analytics";
 import { cityBySlug } from "@/lib/cities";
 
@@ -23,22 +24,25 @@ type Audience = {
     devices: { device: string; visitors: number }[];
 };
 
-const PAGE_LABELS: Record<PageKind, string> = {
-    landing: "Accueil",
-    city: "Guide d'une ville",
-    guide: "Guide quartier ou catégorie",
-    search: "Recherche",
-    map: "Carte",
-    place: "Fiche d'un lieu",
-    directions: "Itinéraire",
-    saved: "Favoris",
-    submit: "Proposer un lieu",
-    other: "Autres pages",
+const PAGE_LABELS: Record<PageKind, [string, string]> = {
+    landing: ["Accueil", "Home"],
+    city: ["Guide d'une ville", "City guide"],
+    guide: ["Guide quartier ou catégorie", "Neighbourhood or category guide"],
+    search: ["Recherche", "Search"],
+    map: ["Carte", "Map"],
+    place: ["Fiche d'un lieu", "Place page"],
+    directions: ["Itinéraire", "Directions"],
+    saved: ["Favoris", "Saved"],
+    submit: ["Proposer un lieu", "Suggest a place"],
+    blog: ["Blog (accueil)", "Blog (home)"],
+    article: ["Article du blog", "Blog article"],
+    pro: ["Espace pro", "Business space"],
+    other: ["Autres pages", "Other pages"],
 };
 
 const SOURCE_LABELS: Record<string, string> = {
-    direct: "Direct (lien WhatsApp, favori, adresse tapée)",
-    app: "Application installée",
+    direct: "Direct",
+    app: "App",
     google: "Google",
     bing: "Bing",
     duckduckgo: "DuckDuckGo",
@@ -57,10 +61,10 @@ const SOURCE_LABELS: Record<string, string> = {
 const RETURNED = "#ea4f16";
 const FRESH = "#a89c8e";
 
-const number = (value: number) => value.toLocaleString("fr-FR");
+const number = formatCount;
 const percent = (value: number, total: number) => (total ? Math.round((value / total) * 100) : 0);
 const dayLabel = (day: string, long = false) =>
-    new Date(`${day}T12:00:00Z`).toLocaleDateString("fr-FR", long ? { weekday: "long", day: "numeric", month: "long" } : { day: "numeric", month: "short" });
+    new Date(`${day}T12:00:00Z`).toLocaleDateString(adminLang() === "en" ? "en-GB" : "fr-FR", long ? { weekday: "long", day: "numeric", month: "long" } : { day: "numeric", month: "short" });
 
 // A round number just above the busiest day, for the top of the scale.
 function niceMax(value: number) {
@@ -70,6 +74,7 @@ function niceMax(value: number) {
 }
 
 function DailyChart({ perDay }: { perDay: Day[] }) {
+    const tr = useTr();
     const [active, setActive] = useState<number | null>(null);
     const top = niceMax(Math.max(...perDay.map((day) => day.visitors)));
     const shown = perDay[active ?? perDay.length - 1];
@@ -79,22 +84,24 @@ function DailyChart({ perDay }: { perDay: Day[] }) {
         <section className="a-card mt-6 p-5">
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
                 <div>
-                    <h2 className="text-lg font-extrabold">Visiteurs par jour</h2>
+                    <h2 className="text-lg font-extrabold">{tr("Visiteurs par jour", "Visitors per day")}</h2>
                     <p className="text-sm text-muted" aria-live="polite">
                         <span className="inline-block font-bold text-ink first-letter:uppercase">{dayLabel(shown.day, true)}</span>
                         {" : "}
-                        {number(shown.visitors)} visiteur{shown.visitors > 1 ? "s" : ""}, dont{" "}
-                        {number(shown.returned)} déjà venu{shown.returned > 1 ? "s" : ""} · {number(shown.views)} pages vues
+                        {tr(
+                            `${number(shown.visitors)} visiteur${shown.visitors > 1 ? "s" : ""}, dont ${number(shown.returned)} déjà venu${shown.returned > 1 ? "s" : ""} · ${number(shown.views)} pages vues`,
+                            `${number(shown.visitors)} visitor${shown.visitors === 1 ? "" : "s"}, ${number(shown.returned)} returning · ${number(shown.views)} page views`
+                        )}
                     </p>
                 </div>
                 <ul className="flex gap-4 text-xs font-semibold text-text-2">
                     <li className="flex items-center gap-1.5">
                         <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: RETURNED }} />
-                        Déjà venus
+                        {tr("Déjà venus", "Returning")}
                     </li>
                     <li className="flex items-center gap-1.5">
                         <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: FRESH }} />
-                        Première visite
+                        {tr("Première visite", "First visit")}
                     </li>
                 </ul>
             </div>
@@ -117,7 +124,7 @@ function DailyChart({ perDay }: { perDay: Day[] }) {
                                 <button
                                     key={day.day}
                                     type="button"
-                                    aria-label={`${dayLabel(day.day, true)} : ${day.visitors} visiteurs, dont ${day.returned} déjà venus`}
+                                    aria-label={tr(`${dayLabel(day.day, true)} : ${day.visitors} visiteurs, dont ${day.returned} déjà venus`, `${dayLabel(day.day, true)}: ${day.visitors} visitors, ${day.returned} returning`)}
                                     onPointerEnter={() => setActive(index)}
                                     onFocus={() => setActive(index)}
                                     onBlur={() => setActive(null)}
@@ -146,15 +153,15 @@ function DailyChart({ perDay }: { perDay: Day[] }) {
             </div>
 
             <details className="mt-4 text-sm">
-                <summary className="cursor-pointer font-bold text-text-2">Voir les chiffres jour par jour</summary>
+                <summary className="cursor-pointer font-bold text-text-2">{tr("Voir les chiffres jour par jour", "See the numbers day by day")}</summary>
                 <div className="mt-3 max-h-72 overflow-auto">
                     <table className="w-full text-sm tabular-nums">
                         <thead>
                             <tr className="text-left text-xs text-muted">
-                                <th className="py-2 font-bold">Jour</th>
-                                <th className="py-2 text-right font-bold">Visiteurs</th>
-                                <th className="py-2 text-right font-bold">Déjà venus</th>
-                                <th className="py-2 text-right font-bold">Pages vues</th>
+                                <th className="py-2 font-bold">{tr("Jour", "Day")}</th>
+                                <th className="py-2 text-right font-bold">{tr("Visiteurs", "Visitors")}</th>
+                                <th className="py-2 text-right font-bold">{tr("Déjà venus", "Returning")}</th>
+                                <th className="py-2 text-right font-bold">{tr("Pages vues", "Page views")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -216,6 +223,7 @@ function Card({ title, hint, children }: { title: string; hint?: string; childre
 // Who visits, from where, and who comes back. What to improve next comes
 // from here and from the "Recherches" page.
 export default function AudiencePage() {
+    const tr = useTr();
     const [days, setDays] = useState(30);
     const { data, error, loading } = useAdminData<Audience>(`audience?days=${days}`);
     const total = (rows: { visitors: number }[]) => rows.reduce((sum, row) => sum + row.visitors, 0);
@@ -226,12 +234,12 @@ export default function AudiencePage() {
         <>
             <PageHeader
                 title="Audience"
-                subtitle="Qui visite NiceThings, dans quelle ville, et qui revient. Anonyme, sans les visites de l'équipe."
+                subtitle={tr("Qui visite NiceThings, dans quelle ville, et qui revient. Anonyme, sans les visites de l'équipe.", "Who visits NiceThings, in which city, and who comes back. Anonymous, team visits excluded.")}
                 actions={
                     <div className="flex gap-1.5">
                         {[7, 30, 90].map((value) => (
                             <button key={value} type="button" className="a-chip" aria-pressed={days === value} onClick={() => setDays(value)}>
-                                {value} jours
+                                {value} {tr("jours", "days")}
                             </button>
                         ))}
                     </div>
@@ -252,47 +260,58 @@ export default function AudiencePage() {
                     <span className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-brand-50 text-brand-600">
                         <Database size={22} />
                     </span>
-                    <p className="font-bold">Une dernière étape pour activer les statistiques</p>
+                    <p className="font-bold">{tr("Une dernière étape pour activer les statistiques", "One last step to switch on statistics")}</p>
                     <ol className="mt-3 max-w-md list-decimal pl-5 text-left text-sm text-text-2">
-                        <li>Ouvre ton projet sur supabase.com, puis « SQL Editor ».</li>
+                        <li>{tr("Ouvre ton projet sur supabase.com, puis « SQL Editor ».", "Open your project on supabase.com, then “SQL Editor”.")}</li>
                         <li>
-                            Colle tout le contenu du fichier <span className="font-mono text-xs font-bold">database/migrations/002_analytics.sql</span>.
+                            {tr("Colle tout le contenu du fichier", "Paste the whole file")} <span className="font-mono text-xs font-bold">database/migrations/002_analytics.sql</span>.
                         </li>
-                        <li>Clique sur « Run ». Les visites sont comptées à partir de ce moment.</li>
+                        <li>{tr("Clique sur « Run ». Les visites sont comptées à partir de ce moment.", "Click “Run”. Visits are counted from then on.")}</li>
                     </ol>
                 </div>
             ) : data.views === 0 ? (
                 <Empty
-                    title="Pas encore de visites"
-                    body="Les visites apparaissent ici dès que quelqu'un ouvre le site. Celles de l'équipe (connectée à cet espace) ne sont pas comptées."
+                    title={tr("Pas encore de visites", "No visits yet")}
+                    body={tr("Les visites apparaissent ici dès que quelqu'un ouvre le site. Celles de l'équipe (connectée à cet espace) ne sont pas comptées.", "Visits show up here as soon as someone opens the site. The team's own visits (signed in here) are not counted.")}
                 />
             ) : (
                 <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
                     <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        <Stat icon={Users} label="Visiteurs" value={number(data.visitors)} hint={`sur ${days} jours`} tone="brand" />
-                        <Stat icon={UserPlus} label="Nouveaux visiteurs" value={number(data.fresh)} hint="première visite sur la période" />
+                        <Stat icon={Users} label={tr("Visiteurs", "Visitors")} value={number(data.visitors)} hint={tr(`sur ${days} jours`, `over ${days} days`)} tone="brand" />
+                        <Stat icon={UserPlus} label={tr("Nouveaux visiteurs", "New visitors")} value={number(data.fresh)} hint={tr("première visite sur la période", "first visit in this period")} />
                         <Stat
                             icon={Repeat2}
-                            label="Sont revenus"
+                            label={tr("Sont revenus", "Came back")}
                             value={number(data.returned)}
-                            hint={`${percent(data.returned, data.visitors)}% des visiteurs, un autre jour`}
+                            hint={tr(`${percent(data.returned, data.visitors)}% des visiteurs, un autre jour`, `${percent(data.returned, data.visitors)}% of visitors, on another day`)}
                             tone="good"
                         />
-                        <Stat icon={Eye} label="Pages vues" value={number(data.views)} hint={`${(data.views / data.visitors).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} par visiteur`} />
+                        <Stat
+                            icon={Eye}
+                            label={tr("Pages vues", "Page views")}
+                            value={number(data.views)}
+                            hint={tr(
+                                `${(data.views / data.visitors).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} par visiteur`,
+                                `${(data.views / data.visitors).toLocaleString("en-GB", { maximumFractionDigits: 1 })} per visitor`
+                            )}
+                        />
                     </section>
 
                     <DailyChart perDay={data.perDay} />
 
                     <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <Card title="Villes" hint="Visiteurs par ville explorée.">
+                        <Card title={tr("Villes", "Cities")} hint={tr("Visiteurs par ville explorée.", "Visitors per city explored.")}>
                             {data.cities.length === 0 ? (
-                                <p className="text-sm text-muted">Aucune ville explorée sur la période.</p>
+                                <p className="text-sm text-muted">{tr("Aucune ville explorée sur la période.", "No city explored in this period.")}</p>
                             ) : (
                                 <Ranking
                                     rows={data.cities.map((row) => ({
                                         key: row.city,
                                         label: cityBySlug(row.city)?.name ?? row.city,
-                                        detail: `${number(row.returned)} revenu${row.returned > 1 ? "s" : ""} · ${number(row.views)} pages vues`,
+                                        detail: tr(
+                                            `${number(row.returned)} revenu${row.returned > 1 ? "s" : ""} · ${number(row.views)} pages vues`,
+                                            `${number(row.returned)} returning · ${number(row.views)} page views`
+                                        ),
                                         value: row.visitors,
                                         href: `/admin/spots?city=${row.city}`,
                                     }))}
@@ -300,19 +319,25 @@ export default function AudiencePage() {
                             )}
                         </Card>
 
-                        <Card title="D'où viennent les visites" hint="Compté à l'arrivée sur le site.">
-                            <Ranking rows={data.sources.map((row) => ({ key: row.source, label: SOURCE_LABELS[row.source] ?? row.source, value: row.visits }))} />
+                        <Card title={tr("D'où viennent les visites", "Where visits come from")} hint={tr("Compté à l'arrivée sur le site. « Direct » : lien WhatsApp, favori ou adresse tapée.", "Counted on arrival. “Direct”: WhatsApp link, bookmark or typed address.")}>
+                            <Ranking
+                                rows={data.sources.map((row) => ({
+                                    key: row.source,
+                                    label: row.source === "app" ? tr("Application installée", "Installed app") : (SOURCE_LABELS[row.source] ?? row.source),
+                                    value: row.visits,
+                                }))}
+                            />
                         </Card>
 
-                        <Card title="Lieux les plus vus" hint="Les fiches à soigner en premier : photos, prix, horaires.">
+                        <Card title={tr("Lieux les plus vus", "Most viewed places")} hint={tr("Les fiches à soigner en premier : photos, prix, horaires.", "The listings to polish first: photos, prices, hours.")}>
                             {data.places.length === 0 ? (
-                                <p className="text-sm text-muted">Aucune fiche ouverte sur la période.</p>
+                                <p className="text-sm text-muted">{tr("Aucune fiche ouverte sur la période.", "No place page opened in this period.")}</p>
                             ) : (
                                 <Ranking
                                     rows={data.places.map((row) => ({
                                         key: row.slug,
                                         label: row.name ?? row.slug,
-                                        detail: row.city ?? "Lieu introuvable",
+                                        detail: row.city ?? tr("Lieu introuvable", "Place not found"),
                                         value: row.views,
                                         href: row.id ? `/admin/spots/${row.id}` : undefined,
                                     }))}
@@ -321,18 +346,18 @@ export default function AudiencePage() {
                         </Card>
 
                         <div className="flex min-w-0 flex-col gap-4">
-                            <Card title="Pages les plus vues">
-                                <Ranking rows={data.pages.map((row) => ({ key: row.page, label: PAGE_LABELS[row.page] ?? row.page, value: row.views }))} />
+                            <Card title={tr("Pages les plus vues", "Most viewed pages")}>
+                                <Ranking rows={data.pages.map((row) => ({ key: row.page, label: PAGE_LABELS[row.page] ? tr(...PAGE_LABELS[row.page]) : row.page, value: row.views }))} />
                             </Card>
 
-                            <Card title="Langue et appareil" hint="Part des visiteurs.">
+                            <Card title={tr("Langue et appareil", "Language and device")} hint={tr("Part des visiteurs.", "Share of visitors.")}>
                                 <div className="flex flex-col gap-3 text-sm font-semibold">
                                     <div>
-                                        <p className="mb-1">En français</p>
+                                        <p className="mb-1">{tr("En français", "In French")}</p>
                                         <Bar value={french} total={total(data.langs)} />
                                     </div>
                                     <div>
-                                        <p className="mb-1">Sur téléphone</p>
+                                        <p className="mb-1">{tr("Sur téléphone", "On phones")}</p>
                                         <Bar value={phones} total={total(data.devices)} />
                                     </div>
                                 </div>
@@ -342,7 +367,7 @@ export default function AudiencePage() {
 
                     <Link href="/admin/recherches" className="a-btn a-btn-soft mt-6">
                         <Search size={16} />
-                        Voir ce que les visiteurs cherchent
+                        {tr("Voir ce que les visiteurs cherchent", "See what visitors search for")}
                     </Link>
                 </div>
             )}

@@ -5,7 +5,7 @@ import { isLocale, type Locale } from "./i18n/config";
 // and where a visit came from. Shared by the browser beacon, /api/visits
 // and the team console.
 
-export const PAGE_KINDS = ["landing", "city", "guide", "search", "map", "place", "directions", "saved", "submit", "other"] as const;
+export const PAGE_KINDS = ["landing", "city", "guide", "search", "map", "place", "directions", "saved", "submit", "blog", "article", "pro", "other"] as const;
 export type PageKind = (typeof PAGE_KINDS)[number];
 
 export type PageInfo = { lang: Locale; page: PageKind; city: string | null; place: string | null };
@@ -23,6 +23,8 @@ export function describePath(pathname: string): PageInfo | null {
     if (first === "y-aller") return second ? info("directions", null, second.slice(0, 200)) : null;
     if (first === "favoris") return info("saved");
     if (first === "ajouter") return info("submit");
+    if (first === "blog") return info(second ? "article" : "blog");
+    if (first === "pro") return info("pro");
 
     const city = cityBySlug(first)?.slug;
     if (!city) return info("other");

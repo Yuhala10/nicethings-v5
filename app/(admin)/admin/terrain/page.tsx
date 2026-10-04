@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ImageIcon, LocateFixed, Search } from "lucide-react";
+import { useAdminLang, useTr } from "@/components/admin/i18n";
 import { Empty, PageHeader, Skeleton, StatusBadge, useAdminToast } from "@/components/admin/ui";
 import VerifiedTick from "@/components/place/VerifiedTick";
 import { adminGet } from "@/lib/admin-client";
+import { distanceMeters } from "@/lib/places/geo";
 import { CATEGORIES } from "@/lib/tags";
 
 type Result = {
@@ -21,17 +23,11 @@ type Result = {
     photo_count: number;
 };
 
-function metres(a: { lat: number; lng: number }, b: { lat: number | null; lng: number | null }) {
-    if (b.lat === null || b.lng === null) return null;
-    const rad = Math.PI / 180;
-    const x = (b.lng - a.lng) * rad * Math.cos(((a.lat + b.lat) / 2) * rad);
-    const y = (b.lat - a.lat) * rad;
-    return Math.round(Math.sqrt(x * x + y * y) * 6_371_000);
-}
-
 // On site with a phone: the places around you, closest first, one tap to
 // the editor (photos, prices, hours, blue tick).
 export default function TerrainPage() {
+    const tr = useTr();
+    const { lang } = useAdminLang();
     const toast = useAdminToast();
     const [query, setQuery] = useState("");
     const [rows, setRows] = useState<Result[] | null>(null);
@@ -64,20 +60,20 @@ export default function TerrainPage() {
             },
             () => {
                 setLoading(false);
-                toast("Position indisponible : active la localisation, ou cherche par nom.", true);
+                toast(tr("Position indisponible : active la localisation, ou cherche par nom.", "Location unavailable: turn location on, or search by name."), true);
             },
             { enableHighAccuracy: true, timeout: 15000 }
         );
-    }, [search, toast]);
+    }, [search, toast, tr]);
 
     // Straight to "around me" when opened.
     useEffect(() => {
         nearMe();
-    }, [nearMe]);
+    }, []);
 
     return (
         <>
-            <PageHeader title="Terrain" subtitle="Sur place : photos, prix, horaires et coche bleue, lieu par lieu." />
+            <PageHeader title={tr("Terrain", "Field kit")} subtitle={tr("Sur place : photos, prix, horaires et coche bleue, lieu par lieu.", "On site: photos, prices, hours and the blue tick, place by place.")} />
             <form
                 className="mb-3 flex gap-2"
                 onSubmit={(event) => {
@@ -88,23 +84,44 @@ export default function TerrainPage() {
             >
                 <div className="relative flex-1">
                     <Search size={17} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted" />
-                    <input className="a-input pl-10" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom du lieu…" aria-label="Chercher un lieu" />
+                    <input
+                        className="a-input pl-10"
+                        type="search"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder={tr("Nom du lieu…", "Place name…")}
+                        aria-label={tr("Chercher un lieu", "Search a place")}
+                    />
                 </div>
-                <button type="submit" className="a-btn a-btn-dark">Chercher</button>
+                <button type="submit" className="a-btn a-btn-dark">
+                    {tr("Chercher", "Search")}
+                </button>
             </form>
             <button type="button" onClick={nearMe} className="a-btn a-btn-primary mb-5 w-full">
                 <LocateFixed size={17} />
-                Les lieux autour de moi
+                {tr("Les lieux autour de moi", "Places around me")}
             </button>
 
             {loading ? (
-                <div className="flex flex-col gap-2">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16" />)}</div>
+                <div className="flex flex-col gap-2">
+                    {Array.from({ length: 6 }, (_, i) => (
+                        <Skeleton key={i} className="h-16" />
+                    ))}
+                </div>
             ) : rows && rows.length === 0 ? (
-                <Empty title="Aucun lieu trouvé ici" body="Ajoute-le : il sera placé exactement où tu te trouves." action={<Link href="/admin/spots/new" className="a-btn a-btn-primary">Ajouter un lieu</Link>} />
+                <Empty
+                    title={tr("Aucun lieu trouvé ici", "No place found here")}
+                    body={tr("Ajoute-le : il sera placé exactement où tu te trouves.", "Add it: it will be placed exactly where you stand.")}
+                    action={
+                        <Link href="/admin/spots/new" className="a-btn a-btn-primary">
+                            {tr("Ajouter un lieu", "Add a place")}
+                        </Link>
+                    }
+                />
             ) : (
                 <ul className="a-card divide-y divide-line overflow-hidden">
                     {(rows ?? []).map((row) => {
-                        const distance = here ? metres(here, { lat: row.latitude, lng: row.longitude }) : null;
+                        const distance = here && row.latitude !== null && row.longitude !== null ? Math.round(distanceMeters(here, { lat: row.latitude, lng: row.longitude })) : null;
                         return (
                             <li key={row.id}>
                                 <Link href={`/admin/spots/${row.id}`} className="flex items-center gap-3 px-4 py-3.5 transition hover:bg-soft/60">
@@ -114,10 +131,10 @@ export default function TerrainPage() {
                                     <span className="min-w-0 flex-1">
                                         <span className="flex items-center gap-1.5">
                                             <span className="truncate font-bold">{row.name}</span>
-                                            {row.verified && <VerifiedTick size={15} label="Vérifié" />}
+                                            {row.verified && <VerifiedTick size={15} label={tr("Vérifié", "Verified")} />}
                                         </span>
                                         <span className="block truncate text-xs text-muted">
-                                            {[CATEGORIES[row.category as keyof typeof CATEGORIES]?.fr, row.neighborhood, row.city].filter(Boolean).join(" · ")}
+                                            {[CATEGORIES[row.category as keyof typeof CATEGORIES]?.[lang], row.neighborhood, row.city].filter(Boolean).join(" · ")}
                                         </span>
                                     </span>
                                     <span className="flex shrink-0 flex-col items-end gap-1">

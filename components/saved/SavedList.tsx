@@ -7,7 +7,8 @@ import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import type { PlaceSummary } from "@/lib/places/types";
 import { useSaved } from "@/lib/hooks/useSaved";
-import PlaceCard, { PlaceCardSkeleton } from "../place/PlaceCard";
+import { PlaceCardSkeleton } from "../place/PlaceCard";
+import PinCard from "../place/PinCard";
 import { useLocale } from "../site/LocaleProvider";
 
 type State = { status: "loading" } | { status: "failed" } | { status: "done"; places: PlaceSummary[] };
@@ -85,10 +86,10 @@ export default function SavedList() {
             )}
 
             {places.length > 0 && (
-                <ul className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-3 lg:grid-cols-4">
+                <ul className="nt-masonry mt-6 columns-2 md:columns-3 lg:columns-4">
                     {places.map((place) => (
                         <li key={place.id}>
-                            <PlaceCard place={place} className="w-full" />
+                            <PinCard place={place} />
                         </li>
                     ))}
                 </ul>

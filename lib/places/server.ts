@@ -65,7 +65,7 @@ function trimTime(value: unknown) {
 
 // OpenStreetMap names are typed by volunteers: "sweet body", "LOISIR PLUS".
 // Mixed-case names are left exactly as written.
-export function displayName(name: string) {
+function displayName(name: string) {
     const letters = name.replace(/[^\p{L}]/gu, "");
     if (letters.length < 4) return name;
     if (letters !== letters.toLowerCase() && letters !== letters.toUpperCase()) return name;
@@ -204,6 +204,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         lastVerifiedAt: row.last_verified_at ?? null,
         updatedAt: row.updated_at,
         sourceRef: row.source_ref ?? null,
+        claimed: Boolean(row.claimed),
         photos: photoList,
         menu: (menu.data ?? []).map((item) => ({
             name: item.name,

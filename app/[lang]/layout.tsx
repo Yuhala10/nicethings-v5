@@ -5,6 +5,7 @@ import { LocaleProvider } from "@/components/site/LocaleProvider";
 import SiteChrome from "@/components/site/SiteChrome";
 import { LOCALES, SITE_URL, getDictionary, isLocale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
+import { siteShareImage } from "@/lib/share-image";
 import "./site.css";
 
 const body = DM_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
@@ -46,8 +47,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             alternateLocale: lang === "fr" ? ["en_CM"] : ["fr_CM"],
             title: t.meta.defaultTitle,
             description: t.meta.defaultDescription,
+            images: [siteShareImage(lang)],
         },
-        twitter: { card: "summary_large_image" },
+        twitter: { card: "summary_large_image", images: [siteShareImage(lang).url] },
         icons: {
             icon: [{ url: "/brand/icon.svg", type: "image/svg+xml" }, { url: "/favicon.ico" }],
             apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
@@ -56,6 +58,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         appleWebApp: { capable: true, title: "NiceThings", statusBarStyle: "default" },
         formatDetection: { telephone: false },
         category: "travel",
+        // Search Console / Bing Webmaster ownership, set in Vercel when ready.
+        verification: {
+            google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+            other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } : undefined,
+        },
     };
 }
 

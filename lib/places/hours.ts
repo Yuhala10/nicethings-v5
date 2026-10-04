@@ -69,10 +69,6 @@ export function getOpenState(hours: PlaceHours, date = new Date()): OpenState {
     return { status: "unknown" };
 }
 
-export function isOpenNow(hours: PlaceHours, date = new Date()) {
-    return getOpenState(hours, date).status === "open";
-}
-
 // Is the place open at some point during a window (e.g. "Saturday afternoon")?
 export function isOpenDuring(hours: PlaceHours, day: DayKey, fromMinutes: number, toMinutes_: number) {
     if (!hours.opens || !hours.closes) return true; // unknown: don't exclude

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MapPin } from "lucide-react";
 import GuideView, { CategoryIcon, countBy, plural, sortForGuide } from "@/components/guide/GuideView";
-import PlaceCard from "@/components/place/PlaceCard";
+import PinCard from "@/components/place/PinCard";
 import { cityBySlug } from "@/lib/cities";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
 import { areasOf } from "@/lib/places/areas";
@@ -43,7 +43,11 @@ export default async function CityPage({ params }: Props) {
 
     const categories = countBy(places, (place) => place.category).filter(([category]) => category !== "Other");
     const areas = areasOf(places, 2);
-    const picks = sortForGuide(places).slice(0, 8);
+    // Photos first: they make the board.
+    const picks = sortForGuide(places)
+        .slice(0, 24)
+        .sort((a, b) => Number(Boolean(b.cover)) - Number(Boolean(a.cover)))
+        .slice(0, 12);
 
     return (
         <GuideView
@@ -113,10 +117,10 @@ export default async function CityPage({ params }: Props) {
             {picks.length > 0 && (
                 <section className="nt-reveal mt-12">
                     <h2 className="nt-section-title mb-4">{t.city.ideas}</h2>
-                    <ul className="grid grid-cols-2 gap-x-3 gap-y-7 md:grid-cols-4 md:gap-x-5">
-                        {picks.map((place) => (
+                    <ul className="nt-masonry columns-2 md:columns-4">
+                        {picks.map((place, index) => (
                             <li key={place.id}>
-                                <PlaceCard place={place} className="w-full" />
+                                <PinCard place={place} priority={index < 2} />
                             </li>
                         ))}
                     </ul>

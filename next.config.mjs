@@ -6,6 +6,10 @@ const nextConfig = {
         formats: ["image/avif", "image/webp"],
     },
     poweredByHeader: false,
+    // Fonts read from disk when drawing link previews (lib/og.tsx).
+    outputFileTracingIncludes: {
+        "/api/share/**": ["./assets/fonts/**/*"],
+    },
 };
 
 export default nextConfig;

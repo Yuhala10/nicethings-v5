@@ -8,6 +8,10 @@ import {
     cleanText,
     publicWriteClient,
 } from "@/lib/feedback";
+import { cityBySlug } from "@/lib/cities";
+import { getCityPlaces } from "@/lib/places/server";
+import { findSimilar, nameKey } from "@/lib/places/similar";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 // "Ajouter un lieu": a visitor suggests a place; it waits in the admin
 // queue as PENDING until someone checks it.
@@ -33,6 +37,32 @@ export async function POST(request: Request) {
     }
 
     const position = cleanPosition(body.lat, body.lng);
+    const city = cityBySlug(typeof body.city === "string" ? body.city : null);
+    const neighborhood = cleanText(body.neighborhood, 60);
+
+    // Already on NiceThings? Then there is nothing to add: point to it.
+    if (city) {
+        const [duplicate] = findSimilar(await getCityPlaces(city.slug).catch(() => []), { name, lat: position?.lat, lng: position?.lng, neighborhood }).filter(
+            (match) => match.duplicate
+        );
+        if (duplicate) {
+            return NextResponse.json({ ok: false, duplicate: { slug: duplicate.place.slug, name: duplicate.place.name } }, { status: 409 });
+        }
+        // Already suggested by someone and waiting for the team?
+        const since = new Date(Date.now() - 60 * 86_400_000).toISOString();
+        const { data: waiting } = await getSupabaseAdminClient()
+            .from("nt_spot_submissions")
+            .select("name")
+            .eq("city", city.name)
+            .eq("status", "PENDING")
+            .gte("created_at", since)
+            .limit(500);
+        const key = nameKey(name);
+        if (key && (waiting ?? []).some((row) => nameKey(row.name) === key)) {
+            return NextResponse.json({ ok: false, alreadySuggested: true }, { status: 409 });
+        }
+    }
+
     const why = cleanText(body.why, 900);
     // The submissions table has no price column: keep it with the notes so
     // the admin sees everything in one place.
@@ -44,7 +74,7 @@ export async function POST(request: Request) {
             name,
             category: cleanCategory(body.category),
             city: cleanCity(body.city) ?? "Yaoundé",
-            neighborhood: cleanText(body.neighborhood, 60),
+            neighborhood,
             landmark: cleanText(body.landmark, 200),
             phone,
             description,

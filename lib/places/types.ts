@@ -84,6 +84,7 @@ export type PlaceDetail = PlaceSummary & {
     lastVerifiedAt: string | null;
     updatedAt: string;
     sourceRef: string | null; // e.g. "node/123" for OpenStreetMap
+    claimed: boolean; // managed by the business itself (approved claim)
     photos: PlacePhoto[];
     menu: PlaceMenuItem[];
     reviews: PlaceReview[];

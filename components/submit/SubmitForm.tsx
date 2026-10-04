@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Compass, LocateFixed, Plus } from "lucide-react";
+import { Check, Compass, Plus } from "lucide-react";
 import { paths } from "@/lib/places/paths";
 import { CITIES } from "@/lib/cities";
 import { CATEGORIES } from "@/lib/tags";
 import { useCurrentCity } from "../site/SiteChrome";
 import { useLocale } from "../site/LocaleProvider";
+import HereButton, { type Pin } from "./HereButton";
+import SimilarPlaces from "./SimilarPlaces";
 
 type Fields = {
     name: string;
@@ -28,8 +30,9 @@ export default function SubmitForm() {
     const currentCity = useCurrentCity();
     const [fields, setFields] = useState<Fields>(EMPTY);
     const city = fields.city || currentCity;
-    const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
-    const [locating, setLocating] = useState(false);
+    const [pin, setPin] = useState<Pin | null>(null);
+    const [duplicate, setDuplicate] = useState(false);
+    const [refusal, setRefusal] = useState<{ slug?: string; name?: string; suggested?: boolean } | null>(null);
     const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
     const [state, setState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
 
@@ -38,18 +41,13 @@ export default function SubmitForm() {
         if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }));
     };
 
-    const locate = () => {
-        if (!("geolocation" in navigator)) return;
-        setLocating(true);
-        navigator.geolocation.getCurrentPosition(
-            (result) => {
-                setPosition({ lat: result.coords.latitude, lng: result.coords.longitude });
-                setLocating(false);
-            },
-            () => setLocating(false),
-            { enableHighAccuracy: true, timeout: 12000 }
-        );
-    };
+    // Standing at the place: its city and neighbourhood fill themselves in.
+    const fillArea = (area: { city: string | null; neighborhood: string | null }) =>
+        setFields((current) => ({
+            ...current,
+            city: area.city ?? current.city,
+            neighborhood: current.neighborhood || area.neighborhood || "",
+        }));
 
     const submit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -63,13 +61,24 @@ export default function SubmitForm() {
             return;
         }
 
+        if (duplicate) {
+            document.getElementById("submit-name")?.focus();
+            return;
+        }
         setState("sending");
+        setRefusal(null);
         try {
             const response = await fetch("/api/submissions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...fields, city, lat: position?.lat, lng: position?.lng }),
+                body: JSON.stringify({ ...fields, city, lat: pin?.lat, lng: pin?.lng }),
             });
+            if (response.status === 409) {
+                const body = await response.json().catch(() => ({}));
+                setRefusal(body.duplicate ? { slug: body.duplicate.slug, name: body.duplicate.name } : { suggested: true });
+                setState("idle");
+                return;
+            }
             setState(response.ok ? "sent" : "failed");
         } catch {
             setState("failed");
@@ -88,7 +97,7 @@ export default function SubmitForm() {
                         type="button"
                         onClick={() => {
                             setFields(EMPTY);
-                            setPosition(null);
+                            setPin(null);
                             setState("idle");
                         }}
                         className="nt-btn nt-btn-soft"
@@ -132,6 +141,7 @@ export default function SubmitForm() {
                     className="nt-input"
                 />
                 {errorText("name")}
+                <SimilarPlaces name={fields.name} city={city} neighborhood={fields.neighborhood} pin={pin} onDuplicate={setDuplicate} />
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
@@ -150,7 +160,7 @@ export default function SubmitForm() {
                 </div>
                 <div>
                     <label htmlFor="submit-city" className={label}>
-                        {t.nav.cities}
+                        {t.submit.city}
                     </label>
                     <select id="submit-city" value={city} onChange={set("city")} className="nt-input">
                         {CITIES.map((item) => (
@@ -161,6 +171,13 @@ export default function SubmitForm() {
                     </select>
                 </div>
             </div>
+
+            <section aria-labelledby="submit-where" className="grid gap-3">
+                <h2 id="submit-where" className="text-sm font-semibold text-text">
+                    {t.submit.where}
+                </h2>
+                <HereButton pin={pin} onPin={setPin} onArea={fillArea} category={fields.category} />
+            </section>
 
             <div>
                 <label htmlFor="submit-neighborhood" className={label}>
@@ -176,15 +193,6 @@ export default function SubmitForm() {
                     {optional}
                 </label>
                 <input id="submit-landmark" value={fields.landmark} onChange={set("landmark")} maxLength={200} className="nt-input" />
-                <button
-                    type="button"
-                    onClick={locate}
-                    disabled={locating}
-                    className={`mt-2 inline-flex items-center gap-1.5 text-sm font-bold ${position ? "text-open" : "text-brand-600"}`}
-                >
-                    {position ? <Check size={16} /> : <LocateFixed size={16} className={locating ? "animate-pulse" : ""} />}
-                    {position ? t.submit.locationAdded : t.submit.useLocation}
-                </button>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
@@ -236,13 +244,28 @@ export default function SubmitForm() {
                 <input tabIndex={-1} autoComplete="off" value={fields.website} onChange={set("website")} name="website" />
             </div>
 
+            {refusal && (
+                <p role="alert" className="rounded-2xl bg-brand-500/10 px-4 py-3 text-sm font-semibold text-text">
+                    {refusal.suggested ? (
+                        t.submit.alreadySuggested
+                    ) : (
+                        <>
+                            {t.submit.duplicateTitle} :{" "}
+                            <Link href={paths.place(locale, refusal.slug!)} className="font-bold text-brand-600 underline">
+                                {refusal.name}
+                            </Link>
+                        </>
+                    )}
+                </p>
+            )}
+
             {state === "failed" && (
                 <p role="alert" className="rounded-2xl bg-closed/10 px-4 py-3 text-sm font-semibold text-closed">
                     {t.common.error}
                 </p>
             )}
 
-            <button type="submit" disabled={state === "sending"} className="nt-btn nt-btn-primary w-full disabled:opacity-60 sm:w-auto sm:justify-self-start">
+            <button type="submit" disabled={state === "sending" || duplicate} className="nt-btn nt-btn-primary w-full disabled:opacity-60 sm:w-auto sm:justify-self-start">
                 {state === "sending" ? t.submit.sending : t.submit.send}
             </button>
         </form>

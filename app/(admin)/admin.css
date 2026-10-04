@@ -87,6 +87,10 @@
         opacity: 0.5;
     }
 
+    .nt-admin-sunset {
+        background: linear-gradient(180deg, #ff8a1f, #ff5b36 52%, #eb3a6f);
+    }
+
     .a-btn-primary {
         background: linear-gradient(120deg, #ff8a1f, #ff5b36 52%, #eb3a6f);
         color: #fff;

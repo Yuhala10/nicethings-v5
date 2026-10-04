@@ -82,6 +82,7 @@ function SiteHeader() {
         { href: paths.search(locale, city), label: t.nav.search, match: "/recherche" },
         { href: paths.explore(locale, city), label: t.nav.map, match: "/carte" },
         { href: paths.city(locale, city), label: t.nav.guide },
+        { href: paths.blog(locale), label: t.nav.blog, match: "/blog" },
         { href: paths.saved(locale), label: t.nav.saved },
     ];
 
@@ -116,31 +117,6 @@ function SiteHeader() {
                 </div>
             </div>
         </header>
-    );
-}
-
-// Navigation for full-screen map pages on wide screens.
-export function FloatingNav() {
-    const { locale, t } = useLocale();
-    const city = useCurrentCity();
-    const links = [
-        { href: paths.home(locale), label: t.nav.home },
-        { href: paths.search(locale, city), label: t.nav.search },
-        { href: paths.city(locale, city), label: t.nav.guide },
-        { href: paths.saved(locale), label: t.nav.saved },
-    ];
-    return (
-        <nav className="nt-glass hidden items-center gap-1 rounded-full p-1 text-sm font-semibold shadow-card md:flex" aria-label={t.nav.menu}>
-            {links.map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full px-3.5 py-2 text-text-2 transition hover:bg-surface-2 hover:text-text">
-                    {link.label}
-                </Link>
-            ))}
-            <Link href={paths.submit(locale)} className="nt-sunset inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-white">
-                <Plus size={15} strokeWidth={2.5} />
-                {t.nav.suggest}
-            </Link>
-        </nav>
     );
 }
 
@@ -190,6 +166,8 @@ function SiteFooter() {
     const { locale, t } = useLocale();
     const links = [
         { href: paths.map(locale), label: t.nav.map },
+        { href: paths.blog(locale), label: t.nav.blog },
+        { href: paths.pro(locale), label: t.nav.pro },
         { href: paths.submit(locale), label: t.nav.suggest },
         { href: paths.privacy(locale), label: t.footer.privacy },
         { href: paths.terms(locale), label: t.footer.terms },
@@ -227,10 +205,10 @@ function SiteFooter() {
                     <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
                         {t.footer.madeIn}
                         {/* Discreet way in for the NiceThings team (PIN-protected). */}
-                        <a href="/admin-login" className="inline-flex items-center gap-1 text-white/45 hover:text-white" rel="nofollow">
+                        <Link href="/admin-login" prefetch={false} className="inline-flex items-center gap-1 text-white/45 hover:text-white" rel="nofollow">
                             <Lock size={12} />
                             {t.footer.team}
-                        </a>
+                        </Link>
                     </span>
                     <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:text-white">
                         {t.footer.osm}

@@ -14,6 +14,8 @@ import type { Locale } from "../i18n/config";
 //   /fr/douala/akwa              neighbourhood guide
 //   /fr/douala/restaurants       category guide
 //   /fr/douala/akwa/bars         neighbourhood × category
+//   /fr/blog, /fr/blog/<slug>    articles
+//   /fr/pro                      business space (claim and manage a listing)
 
 export function slugify(value: string) {
     return value
@@ -88,6 +90,11 @@ export const paths = {
     submit: (locale: Locale) => `/${locale}/ajouter`,
     privacy: (locale: Locale) => `/${locale}/confidentialite`,
     terms: (locale: Locale) => `/${locale}/conditions`,
+    blog: (locale: Locale) => `/${locale}/blog`,
+    post: (locale: Locale, slug: string) => `/${locale}/blog/${slug}`,
+    pro: (locale: Locale) => `/${locale}/pro`,
+    claim: (locale: Locale, slug: string) => `/${locale}/pro/revendiquer/${slug}`,
+    manage: (locale: Locale, slug: string) => `/${locale}/pro/lieu/${slug}`,
 };
 
 export { CATEGORIES };

@@ -2,6 +2,9 @@
 // through /api/admin/*, which checks the admin session on the server; the
 // admin screens never talk to Supabase directly.
 
+import { adminLang } from "@/components/admin/i18n";
+import { translateAdminMessage } from "./admin-messages";
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const response = await fetch(`/api/admin/${path}`, {
         ...init,
@@ -15,11 +18,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const body = await response.json().catch(() => null);
 
     if (response.status === 401 && typeof window !== "undefined") {
-        window.location.href = `/admin-login?next=${encodeURIComponent(window.location.pathname)}`;
+        // A full page load: the sign-in page lives under another root layout.
+        window.location.assign(`/admin-login?next=${encodeURIComponent(window.location.pathname)}`);
     }
 
     if (!response.ok || !body?.ok) {
-        throw new Error(body?.message ?? `Request failed (${response.status}).`);
+        const lang = adminLang();
+        throw new Error(body?.message ? translateAdminMessage(body.message, lang) : lang === "en" ? `Request failed (${response.status}).` : `La requête a échoué (${response.status}).`);
     }
 
     return body as T;

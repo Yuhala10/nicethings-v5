@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { CheckCircle2, Inbox, XCircle, type LucideIcon } from "lucide-react";
 import { adminGet } from "@/lib/admin-client";
+import { adminLang, useTr } from "./i18n";
 
 // Small shared pieces for the team console.
 
@@ -59,13 +60,14 @@ export function Stat({
 }
 
 export function StatusBadge({ status }: { status: string }) {
+    const tr = useTr();
     const map: Record<string, [string, string]> = {
-        APPROVED: ["Publié", "bg-green-50 text-good"],
-        DRAFT: ["Brouillon", "bg-soft text-text-2"],
-        PENDING: ["En attente", "bg-amber-50 text-warn"],
-        REJECTED: ["Refusé", "bg-red-50 text-bad"],
-        CLOSED: ["Fermé", "bg-red-50 text-bad"],
-        RESOLVED: ["Résolu", "bg-green-50 text-good"],
+        APPROVED: [tr("Publié", "Published"), "bg-green-50 text-good"],
+        DRAFT: [tr("Brouillon", "Draft"), "bg-soft text-text-2"],
+        PENDING: [tr("En attente", "Pending"), "bg-amber-50 text-warn"],
+        REJECTED: [tr("Refusé", "Rejected"), "bg-red-50 text-bad"],
+        CLOSED: [tr("Fermé", "Closed"), "bg-red-50 text-bad"],
+        RESOLVED: [tr("Résolu", "Resolved"), "bg-green-50 text-good"],
     };
     const [label, style] = map[status] ?? [status, "bg-soft text-text-2"];
     return <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-[0.72rem] font-bold ${style}`}>{label}</span>;
@@ -101,13 +103,19 @@ export function Bar({ value, total, tone = "#ff6a2b" }: { value: number; total: 
 }
 
 export function timeAgo(iso: string) {
+    const en = adminLang() === "en";
     const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-    if (minutes < 1) return "à l'instant";
-    if (minutes < 60) return `il y a ${minutes} min`;
+    if (minutes < 1) return en ? "just now" : "à l'instant";
+    if (minutes < 60) return en ? `${minutes} min ago` : `il y a ${minutes} min`;
     const hours = Math.round(minutes / 60);
-    if (hours < 24) return `il y a ${hours} h`;
+    if (hours < 24) return en ? `${hours} h ago` : `il y a ${hours} h`;
     const days = Math.round(hours / 24);
-    return days < 30 ? `il y a ${days} j` : new Date(iso).toLocaleDateString("fr-FR");
+    return days < 30 ? (en ? `${days} d ago` : `il y a ${days} j`) : new Date(iso).toLocaleDateString(en ? "en-GB" : "fr-FR");
+}
+
+// Numbers in the console's language (1 204 / 1,204).
+export function formatCount(value: number) {
+    return value.toLocaleString(adminLang() === "en" ? "en-GB" : "fr-FR");
 }
 
 // Loads an admin endpoint; `reload` refetches without flashing.

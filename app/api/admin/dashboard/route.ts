@@ -23,7 +23,7 @@ export async function GET() {
 
     try {
         const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
-        const [spots, photos, submissions, reports, searches, recentSubmissions, recentReports] = await Promise.all([
+        const [spots, photos, submissions, reports, searches, recentSubmissions, recentReports, audience] = await Promise.all([
             selectAll<Row>((from, to) =>
                 db.from("nt_spots").select("id,city,status,verified,featured,minimum_price,maximum_price,opening_time,phone").range(from, to)
             ),
@@ -33,6 +33,8 @@ export async function GET() {
             db.from("nt_searches").select("id", { count: "exact", head: true }).gte("created_at", since),
             db.from("nt_spot_submissions").select("id,name,city,neighborhood,category,created_at").eq("status", "PENDING").order("created_at", { ascending: false }).limit(5),
             db.from("nt_reports").select("id,reason,description,spot_id,created_at").eq("status", "PENDING").order("created_at", { ascending: false }).limit(5),
+            // Visitors this week (if analytics is set up; otherwise left out).
+            db.rpc("nt_audience", { since }),
         ]);
         for (const result of [submissions, reports, searches, recentSubmissions, recentReports]) {
             if (result.error) throw result.error;
@@ -83,6 +85,8 @@ export async function GET() {
                 pendingSubmissions: submissions.count ?? 0,
                 pendingReports: reports.count ?? 0,
                 searches7d: searches.count ?? 0,
+                visitors7d: audience.error ? null : Number(audience.data?.visitors ?? 0),
+                returned7d: audience.error ? null : Number(audience.data?.returned ?? 0),
             },
             cities: [...cities.values()].sort((a, b) => b.published - a.published),
             recentSubmissions: recentSubmissions.data ?? [],

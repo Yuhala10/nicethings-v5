@@ -12,7 +12,7 @@ import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
 // Share and save, as glass buttons over the place hero.
-export function HeroActions({ slug, name }: { slug: string; name: string }) {
+export function HeroActions({ slug, name, preview }: { slug: string; name: string; preview: string }) {
     const { locale, t } = useLocale();
     const toast = useToast();
     const { isSaved, toggle } = useSaved();
@@ -27,7 +27,7 @@ export function HeroActions({ slug, name }: { slug: string; name: string }) {
                 aria-label={t.spot.share}
                 onClick={async () => {
                     const url = `${window.location.origin}${paths.place(locale, slug)}`;
-                    const result = await sharePlace(name, url, fill(t.spot.shareText, { name }));
+                    const result = await sharePlace(name, url, fill(t.spot.shareText, { name }), preview);
                     if (result === "copied") toast(t.common.copied);
                 }}
             >

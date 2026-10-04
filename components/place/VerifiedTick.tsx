@@ -2,7 +2,7 @@
 // people already know from social networks. Shown next to places the
 // NiceThings team has checked on site (admin "Vérifié" switch).
 
-export const VERIFIED_BLUE = "#0095f6";
+const VERIFIED_BLUE = "#0095f6";
 
 // Scalloped outline: a circle with 10 soft bumps, computed once.
 const BADGE_PATH = (() => {

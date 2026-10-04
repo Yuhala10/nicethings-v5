@@ -33,11 +33,13 @@ export default function PlaceActions({
     name,
     phone,
     whatsapp,
+    preview,
 }: {
     slug: string;
     name: string;
     phone: string | null; // dialable, e.g. +237679823692
     whatsapp: string | null;
+    preview: string; // link-preview image, warmed up when sharing
 }) {
     const { locale, t } = useLocale();
     const toast = useToast();
@@ -70,7 +72,7 @@ export default function PlaceActions({
                 className={item}
                 onClick={async () => {
                     const url = `${window.location.origin}${paths.place(locale, slug)}`;
-                    const result = await sharePlace(name, url, fill(t.spot.shareText, { name }));
+                    const result = await sharePlace(name, url, fill(t.spot.shareText, { name }), preview);
                     if (result === "copied") toast(t.common.copied);
                 }}
             >

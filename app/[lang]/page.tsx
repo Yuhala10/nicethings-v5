@@ -9,6 +9,7 @@ import { areasOf } from "@/lib/places/areas";
 import { knownFacts } from "@/lib/places/display";
 import { paths } from "@/lib/places/paths";
 import { getAllPlaces } from "@/lib/places/server";
+import { getPosts } from "@/lib/blog/server";
 import type { PlaceSummary } from "@/lib/places/types";
 import { AMENITIES, CATEGORIES, GOOD_FOR, VIBES, tagLabel } from "@/lib/tags";
 
@@ -80,10 +81,11 @@ export default async function HomePage({ params }: Props) {
         return { name: city.name, x, y, count: cityCounts[city.slug] };
     });
 
-    // Standout places across the country: the richest listings, a few per city.
+    // Standout places across the country: photos first (they make the
+    // pins), then verified and complete listings, a few per city.
     const perCity = new Map<string, number>();
     const picks = [...places]
-        .sort((a, b) => Number(b.verified) - Number(a.verified) || knownFacts(b) - knownFacts(a))
+        .sort((a, b) => Number(Boolean(b.cover)) - Number(Boolean(a.cover)) || Number(b.verified) - Number(a.verified) || knownFacts(b) - knownFacts(a))
         .filter((place) => {
             const count = perCity.get(place.city) ?? 0;
             if (count >= 3) return false;
@@ -103,6 +105,7 @@ export default async function HomePage({ params }: Props) {
             cityCounts={cityCounts}
             areaCount={areaCount}
             picks={picks}
+            posts={await getPosts().catch(() => [])}
             demos={demos}
         />
     );

@@ -1,0 +1,68 @@
+# Adds more places in Cameroon's cities from open datasets (Overture Maps,
+# Foursquare Open Source Places), skipping anything NiceThings already has.
+# Runs in GitHub's cloud: nothing is downloaded on your own connection.
+#
+# One-time setup (GitHub → repository → Settings → Secrets and variables →
+# Actions → New repository secret):
+#   SUPABASE_URL               same value as NEXT_PUBLIC_SUPABASE_URL
+#   SUPABASE_SERVICE_ROLE_KEY  same value as in Vercel
+#
+# Then: Actions tab → "Import places" → Run workflow. Start with "dry run"
+# ticked to see what would be added, then run it again without.
+
+name: Import places
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: only show what would be added"
+        type: boolean
+        default: true
+      source:
+        description: "Which dataset"
+        type: choice
+        options: [both, overture, foursquare]
+        default: both
+      cities:
+        description: "City slugs separated by spaces (empty = all 20 cities)"
+        required: false
+        default: ""
+      publish_from:
+        description: "Confidence needed to publish straight away (0 to 1); the rest become drafts"
+        required: false
+        default: "0.8"
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install DuckDB
+        run: pip install --quiet duckdb
+
+      - name: Import
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          SOURCE: ${{ inputs.source }}
+          CITIES: ${{ inputs.cities }}
+          PUBLISH_FROM: ${{ inputs.publish_from }}
+        run: |
+          set -euo pipefail
+          args=(--source "$SOURCE" --publish-from "$PUBLISH_FROM")
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          # Only letters and dashes: city slugs, nothing else reaches the command.
+          cities=$(echo "$CITIES" | tr -cd 'a-z \n-')
+          if [ -n "${cities// /}" ]; then args+=(--cities $cities); fi
+          python scripts/import_open_places.py "${args[@]}"

@@ -13,13 +13,15 @@ import {
     Sparkles,
     Volume2,
 } from "lucide-react";
-import PlaceCard from "@/components/place/PlaceCard";
+import PostCard from "@/components/blog/PostCard";
+import PinCard from "@/components/place/PinCard";
 import { LanguageSwitch, Logo } from "@/components/site/SiteChrome";
 import { CITIES, type City } from "@/lib/cities";
 import { fill, getDictionary, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
 import type { PlaceSummary } from "@/lib/places/types";
+import type { PostSummary } from "@/lib/blog/server";
 import Constellation from "./Constellation";
 import HeroSearch from "./HeroSearch";
 
@@ -44,6 +46,7 @@ export default function Landing({
     cityCounts,
     areaCount,
     picks,
+    posts,
     demos,
 }: {
     locale: Locale;
@@ -52,6 +55,7 @@ export default function Landing({
     cityCounts: Record<string, number>;
     areaCount: number;
     picks: PlaceSummary[];
+    posts: PostSummary[];
     demos: Demo[];
 }) {
     const t = getDictionary(locale);
@@ -251,15 +255,42 @@ export default function Landing({
                         <p className="nt-eyebrow mb-2">{t.landing.picksEyebrow}</p>
                         <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.landing.picksTitle}</h2>
                     </div>
-                    <div className="mx-auto max-w-6xl">
-                        <ul className="nt-scroll-x gap-3 px-4 pb-2 md:px-6">
+                    <div className="mx-auto max-w-6xl px-4 md:px-6">
+                        <ul className="nt-masonry columns-2 md:columns-3 lg:columns-4">
                             {picks.map((place) => (
                                 <li key={place.id}>
-                                    <PlaceCard place={place} />
+                                    <PinCard place={place} />
                                 </li>
                             ))}
                         </ul>
                     </div>
+                </section>
+            )}
+
+            {/* ---------------- Blog ---------------- */}
+            {posts.length > 0 && (
+                <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+                    <div className="nt-reveal mb-6 flex items-end justify-between gap-4">
+                        <div>
+                            <p className="nt-eyebrow mb-2">{t.blog.title}</p>
+                            <h2 className="text-3xl leading-tight font-extrabold md:text-5xl">{t.blog.lead.split(".")[0]}.</h2>
+                        </div>
+                        <Link href={paths.blog(locale)} className="nt-btn nt-btn-soft hidden shrink-0 sm:inline-flex">
+                            {t.blog.back}
+                            <ArrowRight size={17} />
+                        </Link>
+                    </div>
+                    <div className="nt-masonry columns-2 md:columns-4">
+                        {posts.slice(0, 4).map((post) => (
+                            <div key={post.id}>
+                                <PostCard post={post} locale={locale} />
+                            </div>
+                        ))}
+                    </div>
+                    <Link href={paths.blog(locale)} className="nt-btn nt-btn-soft mt-2 w-full sm:hidden">
+                        {t.blog.back}
+                        <ArrowRight size={17} />
+                    </Link>
                 </section>
             )}
 

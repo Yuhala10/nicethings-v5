@@ -36,7 +36,7 @@ const SERVERS: Record<Profile, string> = {
 
 // OSRM assumes empty roads; Yaoundé and Douala traffic, shared taxis and
 // hills make car trips far slower. Walking estimates are already realistic.
-export function trafficFactor(profile: Profile, now = new Date()) {
+function trafficFactor(profile: Profile, now = new Date()) {
     if (profile === "foot") return 1;
     const hour = (now.getUTCHours() + 1) % 24; // West Africa Time
     const weekday = ((now.getUTCDay() + 6) % 7) < 5;
@@ -212,6 +212,9 @@ function ordinal(n: number) {
 export function spoken(step: Step, meters: number, locale: Locale) {
     const text = instruction(step, locale);
     if (meters < 40 || step.maneuver.type === "arrive") return text;
-    const rounded = meters >= 1000 ? `${(meters / 1000).toFixed(1).replace(".", locale === "fr" ? "," : ".")} ${locale === "fr" ? "kilomètre" : "kilometres"}` : `${Math.round(meters / 10) * 10} mètres`;
+    // Rounded the way people say it (and so the same sentence repeats,
+    // which lets the voice be prepared in advance).
+    const near = meters >= 200 ? Math.round(meters / 50) * 50 : Math.round(meters / 10) * 10;
+    const rounded = meters >= 1000 ? `${(meters / 1000).toFixed(1).replace(".", locale === "fr" ? "," : ".")} ${locale === "fr" ? "kilomètre" : "kilometres"}` : `${near} mètres`;
     return locale === "fr" ? `Dans ${rounded}, ${text.charAt(0).toLowerCase()}${text.slice(1)}` : `In ${rounded.replace("mètres", "metres")}, ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }

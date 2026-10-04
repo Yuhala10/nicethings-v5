@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 // Branded 1200×630 share cards (WhatsApp, Facebook, X previews): a night
@@ -6,9 +8,30 @@ export const OG_SIZE = { width: 1200, height: 630 };
 
 const INK = "#0b0806";
 
-function Brand() {
+// The site's own typefaces, as static files (the drawing engine cannot read
+// variable or woff2 fonts). Loaded once per server.
+export const TITLE_FONT = "Bricolage Grotesque";
+export const TEXT_FONT = "DM Sans";
+type Font = { name: string; data: Buffer; weight: 500 | 700 | 800; style: "normal" };
+let fonts: Promise<Font[]> | undefined;
+
+export function ogFonts() {
+    const load = (file: string) => readFile(join(process.cwd(), "assets/fonts", file));
+    fonts ??= Promise.all([
+        load("BricolageGrotesque-ExtraBold.ttf"),
+        load("DMSans-Medium.ttf"),
+        load("DMSans-Bold.ttf"),
+    ]).then(([title, medium, bold]) => [
+        { name: TITLE_FONT, data: title, weight: 800, style: "normal" },
+        { name: TEXT_FONT, data: medium, weight: 500, style: "normal" },
+        { name: TEXT_FONT, data: bold, weight: 700, style: "normal" },
+    ]);
+    return fonts;
+}
+
+export function Brand() {
     return (
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, fontFamily: TITLE_FONT }}>
             <div
                 style={{
                     width: 44,
@@ -32,7 +55,7 @@ function Brand() {
     );
 }
 
-export function ogCard({
+export async function ogCard({
     eyebrow,
     title,
     footer,
@@ -55,7 +78,8 @@ export function ogCard({
                     display: "flex",
                     position: "relative",
                     background: INK,
-                    fontFamily: "sans-serif",
+                    fontFamily: TEXT_FONT,
+                    fontWeight: 500,
                     overflow: "hidden",
                 }}
             >
@@ -123,7 +147,7 @@ export function ogCard({
                                 </div>
                             )}
                         </div>
-                        <div style={{ display: "flex", fontSize: size, fontWeight: 800, color: "white", lineHeight: 1.02, letterSpacing: "-0.03em" }}>
+                        <div style={{ display: "flex", fontFamily: TITLE_FONT, fontSize: size, fontWeight: 800, color: "white", lineHeight: 1.02, letterSpacing: "-0.03em" }}>
                             {title}
                         </div>
                         <div style={{ display: "flex", marginTop: 18, fontSize: 30, color: "rgba(255,255,255,0.88)" }}>{footer}</div>
@@ -135,6 +159,6 @@ export function ogCard({
                 </div>
             </div>
         ),
-        OG_SIZE
+        { ...OG_SIZE, fonts: await ogFonts() }
     );
 }

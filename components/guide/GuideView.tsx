@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, Map as MapIcon, Plus } from "lucide-react";
-import PlaceCard from "@/components/place/PlaceCard";
+import PinCard from "@/components/place/PinCard";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { categoryStyle, knownFacts } from "@/lib/places/display";
 import { CATEGORY_PLURALS, paths } from "@/lib/places/paths";
@@ -10,7 +10,7 @@ import type { Category } from "@/lib/tags";
 // Shared layout for the SEO guides: /douala, /douala/akwa, /douala/bars,
 // /douala/akwa/bars. Everything here is server-rendered and crawlable.
 
-export const GUIDE_LIMIT = 48;
+const GUIDE_LIMIT = 48;
 
 export function plural(category: string, locale: Locale) {
     return CATEGORY_PLURALS[category as Category]?.[locale] ?? category;
@@ -32,7 +32,7 @@ export function countBy<T extends string>(places: PlaceSummary[], key: (place: P
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
-export function Breadcrumbs({ items, light = false }: { items: { label: string; href?: string }[]; light?: boolean }) {
+function Breadcrumbs({ items, light = false }: { items: { label: string; href?: string }[]; light?: boolean }) {
     return (
         <nav
             aria-label="Breadcrumb"
@@ -88,7 +88,7 @@ export function LinkChips({ title, links }: { title: string; links: { href: stri
 }
 
 // Dark, glowing page header shared by guides and the city hub.
-export function GuideHero({
+function GuideHero({
     crumbs,
     eyebrow,
     title,
@@ -209,10 +209,10 @@ export default function GuideView({
                 {filters}
 
                 {places === null ? null : shown.length ? (
-                    <ul className="mt-6 grid grid-cols-2 gap-x-3 gap-y-7 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+                    <ul className="nt-masonry mt-6 columns-2 md:columns-3 lg:columns-4">
                         {shown.map((place, index) => (
-                            <li key={place.id} className="nt-reveal">
-                                <PlaceCard place={place} className="w-full" priority={index < 2} />
+                            <li key={place.id}>
+                                <PinCard place={place} priority={index < 2} />
                             </li>
                         ))}
                     </ul>

@@ -5,11 +5,19 @@ import { fail, requireAdmin } from "@/lib/admin-api";
 export async function GET() {
     const { db, denied } = await requireAdmin();
     if (denied) return denied;
-    const [submissions, reports] = await Promise.all([
+    const [submissions, reports, claims, requests] = await Promise.all([
         db.from("nt_spot_submissions").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
         db.from("nt_reports").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
+        db.from("nt_claims").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
+        db.from("nt_spot_changes").select("id", { count: "exact", head: true }).eq("field", "request").eq("status", "PENDING"),
     ]);
     if (submissions.error) return fail(submissions.error);
     if (reports.error) return fail(reports.error);
-    return NextResponse.json({ ok: true, submissions: submissions.count ?? 0, reports: reports.count ?? 0 });
+    // Claims may not be set up yet: they simply count as zero.
+    return NextResponse.json({
+        ok: true,
+        submissions: submissions.count ?? 0,
+        reports: reports.count ?? 0,
+        claims: (claims.count ?? 0) + (requests.count ?? 0),
+    });
 }

@@ -54,15 +54,3 @@ export default function PlaceRow({
         </Link>
     );
 }
-
-export function PlaceRowSkeleton() {
-    return (
-        <div className="flex items-center gap-3.5 p-2.5" aria-hidden>
-            <div className="nt-skeleton h-[4.5rem] w-[4.5rem] rounded-2xl" />
-            <div className="flex flex-1 flex-col gap-2">
-                <div className="nt-skeleton h-4 w-3/5 rounded" />
-                <div className="nt-skeleton h-3 w-4/5 rounded" />
-            </div>
-        </div>
-    );
-}

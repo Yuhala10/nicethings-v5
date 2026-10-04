@@ -3,15 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 import VerifiedTick from "@/components/place/VerifiedTick";
-import { AtSign, ChevronRight, Clock3, Database, ExternalLink, Globe, MapPin, Navigation, Phone, Users, Wallet, type LucideIcon } from "lucide-react";
+import { AtSign, ChevronRight, Clock3, Database, ExternalLink, Globe, MapPin, Navigation, Phone, Store, Users, Wallet, type LucideIcon } from "lucide-react";
 import BackButton from "@/components/site/BackButton";
 import HoursTable from "@/components/place/HoursTable";
+import PostCard from "@/components/blog/PostCard";
 import PlaceActions from "@/components/place/PlaceActions";
 import PlaceCard from "@/components/place/PlaceCard";
 import PlaceMap from "@/components/place/PlaceMap";
 import ReportButton from "@/components/place/ReportButton";
 import { OpenBadge, PlaceThumb, PriceLabel, Rating } from "@/components/place/bits";
 import { HeroActions, StickyPlaceBar } from "@/components/place/PlaceHeroBits";
+import { getPostsForPlace } from "@/lib/blog/server";
 import { DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { SITE_URL, fill, getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { formatPrice, formatRelativeDays } from "@/lib/i18n/format";
@@ -19,10 +21,14 @@ import { SCHEMA_TYPES, categoryStyle, cuisineLabel, firstPhone, formatPhone, isI
 import { distanceMeters } from "@/lib/places/geo";
 import { CATEGORY_PLURALS, paths } from "@/lib/places/paths";
 import { getAllPlaces, getPlace } from "@/lib/places/server";
+import { placeShareImage } from "@/lib/share-image";
 import type { PlaceDetail } from "@/lib/places/types";
 import { AMENITIES, CATEGORIES, GOOD_FOR, VIBES, tagLabel } from "@/lib/tags";
 
 export const revalidate = 300;
+
+// Open datasets places can come from (scripts/import_open_places.py).
+const OPEN_DATA: Record<string, string> = { overture: "Overture Maps", foursquare: "Foursquare" };
 export const dynamicParams = true;
 
 // Pages are built on first visit, then served from cache.
@@ -64,7 +70,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             canonical: paths.place(lang, slug),
             languages: { fr: paths.place("fr", slug), en: paths.place("en", slug), "x-default": paths.place("fr", slug) },
         },
-        openGraph: { type: "website", title, description: describe(place, lang), url: paths.place(lang, slug) },
+        openGraph: { type: "website", title, description: describe(place, lang), url: paths.place(lang, slug), images: [placeShareImage(place, lang)] },
+        twitter: { card: "summary_large_image", images: [placeShareImage(place, lang).url] },
         robots: isIndexable(place) ? undefined : { index: false, follow: true },
     };
 }
@@ -190,6 +197,7 @@ export default async function PlacePage({ params }: Props) {
     const category = tagLabel(CATEGORIES, place.category, lang);
     const phone = firstPhone(place.phone);
     const whatsapp = firstPhone(place.whatsapp);
+    const preview = placeShareImage(place, lang).url;
     const area = place.neighborhood;
     const cityName = (cityBySlug(place.city) ?? DEFAULT_CITY).name;
     const style = categoryStyle(place.category);
@@ -209,6 +217,7 @@ export default async function PlacePage({ params }: Props) {
         .sort((a, b) => knownFacts(b.place) - knownFacts(a.place) || a.distance - b.distance)
         .slice(0, 10);
 
+    const articles = await getPostsForPlace(place.slug);
     const hasHours = Boolean(place.hours.opens && place.hours.closes);
     const hasPrice = Boolean(place.priceMin || place.priceMax);
     const updatedAgo = formatRelativeDays(place.updatedAt, lang);
@@ -252,7 +261,7 @@ export default async function PlacePage({ params }: Props) {
                 <div className="mx-auto max-w-3xl px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-7 md:px-6 md:pt-8 md:pb-10">
                     <div className="flex items-center justify-between">
                         <BackButton className="border border-white/20 !bg-black/25 text-white backdrop-blur-md" />
-                        <HeroActions slug={place.slug} name={place.name} />
+                        <HeroActions slug={place.slug} name={place.name} preview={preview} />
                     </div>
 
                     <div className="pt-24 md:pt-36">
@@ -273,13 +282,15 @@ export default async function PlacePage({ params }: Props) {
                                 </>
                             )}
                         </nav>
-                        <h1 className="text-[2.3rem] leading-[1.02] font-extrabold tracking-[-0.03em] drop-shadow-sm md:text-6xl">
-                            {place.name}
-                            {place.verified && (
-                                <span className="ml-2 inline-grid h-8 w-8 place-items-center rounded-full bg-white align-[-0.12em] md:h-11 md:w-11">
-                                    <VerifiedTick size={30} className="md:h-10 md:w-10" label={t.trust.verifiedTitle} />
-                                </span>
-                            )}
+                        {/* One line: a long name ends with "…", the tick always stays beside it. */}
+                        <h1
+                            title={place.name}
+                            className={`flex min-w-0 items-center gap-2 leading-[1.08] font-extrabold tracking-[-0.03em] drop-shadow-sm md:gap-3 ${
+                                place.name.length > 26 ? "text-[1.65rem] md:text-5xl" : place.name.length > 16 ? "text-[2rem] md:text-6xl" : "text-[2.3rem] md:text-6xl"
+                            }`}
+                        >
+                            <span className="min-w-0 truncate">{place.name}</span>
+                            {place.verified && <VerifiedTick size={28} className="drop-shadow md:h-11 md:w-11" label={t.trust.verifiedTitle} />}
                         </h1>
                         <p className="mt-2 text-[1rem] font-medium text-white/85">
                             {place.cuisine ? `${category} · ${cuisineLabel(place.cuisine, lang, 3)}` : category}
@@ -305,7 +316,7 @@ export default async function PlacePage({ params }: Props) {
             </header>
 
             <div className="mx-auto max-w-3xl px-4 pt-5 md:px-6">
-                <PlaceActions slug={place.slug} name={place.name} phone={phone} whatsapp={whatsapp} />
+                <PlaceActions slug={place.slug} name={place.name} phone={phone} whatsapp={whatsapp} preview={preview} />
 
                 {/* Practical info: one calm card, one row per fact. */}
                 <section className="mt-8">
@@ -443,7 +454,9 @@ export default async function PlacePage({ params }: Props) {
                                   ? t.trust.osmTitle
                                   : place.source === "submission"
                                     ? t.trust.submissionTitle
-                                    : t.trust.unverified}
+                                    : OPEN_DATA[place.source]
+                                      ? fill(t.trust.openDataTitle, { source: OPEN_DATA[place.source] })
+                                      : t.trust.unverified}
                         </div>
                         <p className="text-sm text-text-2">
                             {place.verified
@@ -454,7 +467,9 @@ export default async function PlacePage({ params }: Props) {
                                   ? t.trust.osmBody
                                   : place.source === "submission"
                                     ? t.trust.submissionBody
-                                    : t.trust.helpUs}
+                                    : OPEN_DATA[place.source]
+                                      ? fill(t.trust.openDataBody, { source: OPEN_DATA[place.source] })
+                                      : t.trust.helpUs}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
                             <ReportButton
@@ -478,6 +493,29 @@ export default async function PlacePage({ params }: Props) {
                     </div>
                 </section>
 
+                {/* Owners claim their listing from here (or it shows they already do). */}
+                {place.claimed ? (
+                    <p className="mt-4 flex items-center gap-2 rounded-2xl bg-open/10 px-4 py-3 text-sm font-bold text-open">
+                        <Store size={17} />
+                        {t.pro.managed}
+                    </p>
+                ) : (
+                    <Link
+                        href={paths.claim(lang, place.slug)}
+                        className="group mt-4 flex items-center gap-4 rounded-[1.4rem] border border-dashed border-line-strong p-4 transition hover:border-brand-500"
+                        rel="nofollow"
+                    >
+                        <span className="nt-sunset grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-white">
+                            <Store size={20} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                            <span className="block font-display font-extrabold">{t.pro.claimCta}</span>
+                            <span className="block text-sm text-text-2">{t.pro.claimCtaBody}</span>
+                        </span>
+                        <ChevronRight size={20} className="shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-brand-600" />
+                    </Link>
+                )}
+
                 <Section title={t.spot.onMap}>
                     <div className="relative h-60 overflow-hidden rounded-[1.4rem] shadow-card">
                         <PlaceMap id={place.id} lat={place.lat} lng={place.lng} category={place.category} className="absolute inset-0" />
@@ -490,6 +528,19 @@ export default async function PlacePage({ params }: Props) {
                         </Link>
                     </div>
                 </Section>
+
+                {articles.length > 0 && (
+                    <section className="mt-10">
+                        <h2 className="nt-section-title mb-3">{t.blog.inArticles}</h2>
+                        <div className="nt-scroll-x -mx-4 gap-4 px-4 md:mx-0 md:px-0">
+                            {articles.map((post) => (
+                                <div key={post.id} className="w-[13.5rem] shrink-0">
+                                    <PostCard post={post} locale={lang} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {nearby.length > 0 && (
                     <section className="mt-10">

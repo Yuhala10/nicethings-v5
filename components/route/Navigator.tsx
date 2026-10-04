@@ -54,6 +54,8 @@ import {
 import type { FollowCamera, MapRoute } from "../map/MapView";
 import AreaPicker from "../explore/AreaPicker";
 import { sharePlace } from "@/lib/share";
+import { distanceMeters } from "@/lib/places/geo";
+import { prefetchSpeech, primeVoices, speak, stopSpeaking } from "@/lib/voice";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
@@ -74,7 +76,10 @@ export type Destination = {
 };
 
 type Phase = "preview" | "navigating" | "arrived";
-const ARRIVAL_METERS = 35;
+// "Arrived" only right beside the place itself (not where the road ends),
+// with a precise GPS reading.
+const ARRIVAL_METERS = 15;
+const ARRIVAL_ACCURACY = 30;
 const OFF_ROUTE_METERS = 55;
 
 const MANEUVER_ICONS: Record<string, LucideIcon> = {
@@ -96,15 +101,6 @@ function ManeuverIcon({ step, size, strokeWidth, className }: { step: Step | und
     if (type === "roundabout" || type === "rotary") return <RotateCw {...props} />;
     const Icon = (modifier && MANEUVER_ICONS[modifier]) || ArrowUp;
     return <Icon {...props} />;
-}
-
-function speak(text: string, locale: string) {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = locale === "fr" ? "fr-FR" : "en-GB";
-    utterance.rate = 1.02;
-    window.speechSynthesis.speak(utterance);
 }
 
 export default function Navigator({
@@ -216,13 +212,27 @@ export default function Navigator({
 
         setNav({ along, step: index, toManeuver, camera: { lat: live.lat, lng: live.lng, bearing: bearing(here, ahead) } });
 
+        // New step: get the next sentences ready so they play instantly.
+        if (index !== progressRef.current.step && next) {
+            progressRef.current.step = index;
+            for (const distance of [400, 150, 30]) prefetchSpeech(spoken(next, distance, locale), locale);
+        }
+
         const state = progressRef.current;
         const remaining = route.distance - along;
-        if (remaining < ARRIVAL_METERS) {
+        const direct = distanceMeters(live, destination);
+        const precise = demoPosition !== null || (geo.position?.accuracy ?? 999) <= ARRIVAL_ACCURACY;
+        const reachedEnd = demoPosition !== null && remaining < ARRIVAL_METERS;
+        if (reachedEnd || (direct <= ARRIVAL_METERS && precise) || direct <= 6) {
             setPhase("arrived");
             say(fill(t.route.arrivedVoice, { name: place.name }));
             if (navigator.vibrate) navigator.vibrate([30, 60, 30, 60, 60]);
             return;
+        }
+        // The road ends but the door is a little further: say how far, once.
+        if (remaining < 25 && direct > ARRIVAL_METERS && !state.announced.has("last")) {
+            state.announced.add("last");
+            say(fill(t.route.lastMeters, { m: Math.max(10, Math.round(direct / 5) * 5), name: place.name }));
         }
         if (next) {
             for (const threshold of [400, 150, 35]) {
@@ -265,7 +275,7 @@ export default function Navigator({
         navigator.wakeLock?.request("screen").then((sentinel) => (lock = sentinel)).catch(() => {});
         return () => {
             lock?.release().catch(() => {});
-            window.speechSynthesis?.cancel();
+            stopSpeaking();
         };
     }, [phase]);
 
@@ -289,6 +299,7 @@ export default function Navigator({
             return;
         }
         progressRef.current = { step: -1, announced: new Set(), offRoute: 0, rerouting: false };
+        primeVoices();
         setPhase("navigating");
         say(instruction(route.steps[0], locale));
     };
@@ -296,7 +307,7 @@ export default function Navigator({
     const stop = () => {
         setPhase("preview");
         setDemoPosition(null);
-        window.speechSynthesis?.cancel();
+        stopSpeaking();
     };
 
     // ---- Derived view values --------------------------------------------

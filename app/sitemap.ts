@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getPosts } from "@/lib/blog/server";
 import { CITIES } from "@/lib/cities";
 import { SITE_URL, type Locale } from "@/lib/i18n/config";
 import { areasOf } from "@/lib/places/areas";
@@ -51,9 +52,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
     }
 
-    // Only place pages that say something beyond a name and a pin.
+    // Only place pages that say something beyond a name and a pin. Their
+    // photo goes in too, so places can show up in Google Images.
     for (const place of places) {
-        if (isIndexable(place)) entries.push(entry((l) => paths.place(l, place.slug), 0.5));
+        if (!isIndexable(place)) continue;
+        const item = entry((l) => paths.place(l, place.slug), place.verified ? 0.6 : 0.5);
+        if (place.cover) item.images = [place.cover];
+        entries.push(item);
+    }
+
+    // The page inviting businesses to claim their listing.
+    entries.push(entry(paths.pro, 0.4));
+
+    // The blog, and each article (English only when it is translated).
+    const posts = await getPosts().catch(() => []);
+    if (posts.length) entries.push(entry(paths.blog, 0.8));
+    for (const post of posts) {
+        const fr = `${SITE_URL}${paths.post("fr", post.slug)}`;
+        const en = `${SITE_URL}${paths.post("en", post.slug)}`;
+        entries.push({
+            url: fr,
+            lastModified: post.updatedAt,
+            priority: 0.7,
+            alternates: { languages: post.title.en ? { fr, en } : { fr } },
+            ...(post.cover && { images: [post.cover] }),
+        });
     }
 
     return entries;

@@ -519,6 +519,120 @@
     animation: nt-float 6s ease-in-out infinite;
 }
 
+/* Blog articles: comfortable reading on a phone, magazine rhythm. */
+.nt-article > p,
+.nt-article > ul,
+.nt-article > ol {
+    margin: 1.15rem 0;
+    font-size: 1.09rem;
+    line-height: 1.78;
+    color: var(--nt-text-2);
+}
+
+.nt-article > p:first-child::first-letter {
+    float: left;
+    margin: 0.32rem 0.6rem 0 0;
+    font-family: var(--font-display);
+    font-size: 3.6rem;
+    font-weight: 800;
+    line-height: 0.8;
+    background: var(--nt-sunset);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.nt-article > h2 {
+    margin: 2.8rem 0 0.9rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.55rem, 4.5vw, 2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--nt-text);
+    scroll-margin-top: 6rem;
+}
+
+.nt-article > h3 {
+    margin: 2rem 0 0.6rem;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: var(--nt-text);
+}
+
+.nt-article > ul,
+.nt-article > ol {
+    padding-left: 1.4rem;
+}
+
+.nt-article > ul {
+    list-style: none;
+}
+
+.nt-article > ul > li {
+    position: relative;
+}
+
+.nt-article > ul > li::before {
+    content: "";
+    position: absolute;
+    left: -1.1rem;
+    top: 0.72em;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--nt-sunset);
+}
+
+.nt-article > ol {
+    list-style: decimal;
+}
+
+.nt-article > ol > li::marker {
+    font-weight: 800;
+    color: var(--color-brand-600);
+}
+
+.nt-article li + li {
+    margin-top: 0.45rem;
+}
+
+/* Pinterest-style columns: cards keep their own height and flow down. */
+.nt-masonry {
+    column-gap: 0.9rem;
+}
+
+.nt-masonry > * {
+    break-inside: avoid;
+    margin-bottom: 1.1rem;
+}
+
+/* A slow glow behind the "I'm there now" icon, inviting the tap. */
+.nt-here-breathe {
+    animation: nt-here-breathe 2.8s ease-in-out infinite;
+    will-change: transform, opacity;
+}
+
+@keyframes nt-here-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.55;
+    }
+    50% {
+        transform: scale(1.22);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nt-here-breathe {
+        animation: none;
+    }
+}
+
 /* Sections glide in as they enter the screen. Browsers without
    scroll-driven animations simply show them: content is never hidden. */
 @supports (animation-timeline: view()) {

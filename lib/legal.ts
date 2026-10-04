@@ -8,7 +8,7 @@ type Doc = { title: string; updated: string; sections: { heading: string; body: 
 export const PRIVACY: Record<Locale, Doc> = {
     fr: {
         title: "Confidentialité",
-        updated: "Mise à jour : 1er octobre 2026",
+        updated: "Mise à jour : 4 octobre 2026",
         sections: [
             {
                 heading: "En bref",
@@ -44,6 +44,14 @@ export const PRIVACY: Record<Locale, Doc> = {
                 ],
             },
             {
+                heading: "Espace pro (propriétaires)",
+                body: [
+                    "Pour revendiquer un établissement, tu te connectes avec ton compte Google : on reçoit ton nom, ton adresse e-mail et ta photo de profil, rien d'autre. On enregistre aussi ce que tu nous donnes pour la demande (nom, numéro, lien de ta page) et l'historique des étapes.",
+                    "Les preuves envoyées (photos, documents de l'entreprise, pièce d'identité) sont stockées dans un espace privé que seule l'équipe NiceThings peut ouvrir, avec des liens valables une minute. Elles sont supprimées 30 jours après la décision. Pour repérer les fraudes, on garde une empreinte chiffrée (non réversible) de ta connexion, pas ton adresse IP.",
+                    "Chaque modification faite sur une fiche est enregistrée avec son auteur, pour pouvoir l'annuler en cas d'abus.",
+                ],
+            },
+            {
                 heading: "Hébergement",
                 body: ["Le site est hébergé par Vercel et les données des lieux par Supabase."],
             },
@@ -51,7 +59,7 @@ export const PRIVACY: Record<Locale, Doc> = {
     },
     en: {
         title: "Privacy",
-        updated: "Updated: 1 October 2026",
+        updated: "Updated: 4 October 2026",
         sections: [
             {
                 heading: "In short",
@@ -82,6 +90,14 @@ export const PRIVACY: Record<Locale, Doc> = {
                 body: [
                     "To know how many people use NiceThings and how many come back, we count page views: the page, the city, the language, the type of device (phone or computer) and the site you arrive from.",
                     "Your browser keeps a random identifier, used only to recognise a return visit. It holds no name, phone number or position, and your IP address is not stored in these statistics. Clearing the site's data resets it, and your browser's “Do Not Track” setting stops this counting.",
+                ],
+            },
+            {
+                heading: "Business space (owners)",
+                body: [
+                    "To claim a business, you sign in with your Google account: we receive your name, email address and profile picture, nothing else. We also store what you give us for the claim (name, number, link to your page) and the history of its steps.",
+                    "Proof you send (photos, business documents, ID) is kept in a private space only the NiceThings team can open, through links that last one minute. It is deleted 30 days after the decision. To spot fraud we keep an encrypted, irreversible fingerprint of your connection, not your IP address.",
+                    "Every change made to a listing is recorded with its author, so it can be undone in case of abuse.",
                 ],
             },
             {
@@ -118,7 +134,7 @@ export const TERMS: Record<Locale, Doc> = {
             },
             {
                 heading: "Données cartographiques",
-                body: ["Données © contributeurs OpenStreetMap, disponibles sous licence ODbL."],
+                body: ["Données © contributeurs OpenStreetMap (licence ODbL), Overture Maps Foundation (licence CDLA Permissive 2.0) et Foursquare Open Source Places (licence Apache 2.0)."],
             },
         ],
     },
@@ -147,7 +163,7 @@ export const TERMS: Record<Locale, Doc> = {
             },
             {
                 heading: "Map data",
-                body: ["Data © OpenStreetMap contributors, available under the ODbL licence."],
+                body: ["Data © OpenStreetMap contributors (ODbL licence), Overture Maps Foundation (CDLA Permissive 2.0) and Foursquare Open Source Places (Apache 2.0)."],
             },
         ],
     },
