@@ -183,7 +183,10 @@ class Supabase:
                 text = response.read().decode()
                 return json.loads(text) if text else None
         except urllib.error.HTTPError as error:
-            raise SystemExit(f"Supabase {method} {path} failed: {error.code} {error.read().decode()[:400]}")
+            hint = " (check the SUPABASE_SERVICE_ROLE_KEY secret)" if error.code in (401, 403) else ""
+            raise SystemExit(f"Supabase {method} {path.split('?')[0]} failed: {error.code}{hint} {error.read().decode()[:300]}")
+        except urllib.error.URLError as error:
+            raise SystemExit(f"Cannot reach Supabase ({error.reason}): check the SUPABASE_URL secret, it should look like https://xxxx.supabase.co")
 
     def all_spots(self):
         rows = []
@@ -200,13 +203,16 @@ class Supabase:
 
 # ---------------------------------------------------------------- sources --
 
-def duck():
+def duck(hf_token=None):
     try:
         import duckdb
     except ImportError:
         raise SystemExit("Install DuckDB first: pip install duckdb")
     db = duckdb.connect()
     db.execute("INSTALL httpfs; LOAD httpfs;")
+    # Foursquare's open data now lives on Hugging Face behind a free sign-up.
+    if hf_token and re.fullmatch(r"hf_[A-Za-z0-9]+", hf_token):
+        db.execute(f"CREATE SECRET hf (TYPE HUGGINGFACE, TOKEN '{hf_token}')")
     return db
 
 
@@ -269,8 +275,7 @@ def overture_places(db, city):
 
 def foursquare_places(db, city):
     slug, name, lat, lng, radius = city
-    db.execute("SET s3_region='us-east-1';")
-    source = f"read_parquet('s3://fsq-os-places-us-east-1/release/dt={foursquare_places.release}/places/parquet/*.parquet')"
+    source = f"read_parquet('hf://datasets/foursquare/fsq-os-places/release/dt={foursquare_places.release}/places/parquet/*.parquet')"
     if not hasattr(foursquare_places, "cols"):
         foursquare_places.cols = columns(db, source)
     cols = foursquare_places.cols
@@ -305,13 +310,14 @@ def foursquare_places(db, city):
 
 
 def latest_foursquare_release():
-    url = "https://fsq-os-places-us-east-1.s3.amazonaws.com/?list-type=2&prefix=release/&delimiter=/"
+    # The file list is public; reading the files needs the (free) token.
+    url = "https://huggingface.co/api/datasets/foursquare/fsq-os-places/tree/main/release"
     with urllib.request.urlopen(url, timeout=60) as response:
-        tree = ET.fromstring(response.read())
-    names = [node.text for node in tree.iter() if node.tag.endswith("Prefix") and node.text and "dt=" in node.text]
+        entries = json.loads(response.read())
+    names = [entry["path"] for entry in entries if "dt=" in entry.get("path", "")]
     if not names:
         raise SystemExit("Could not find the latest Foursquare release.")
-    return sorted(names)[-1].rstrip("/").split("dt=")[-1]
+    return sorted(names)[-1].split("dt=")[-1]
 
 
 # ------------------------------------------------------------------- main --
@@ -325,30 +331,43 @@ def main():
     args = parser.parse_args()
 
     env = load_env()
-    url, key = env.get("NEXT_PUBLIC_SUPABASE_URL"), env.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        raise SystemExit("Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.")
+    url = (env.get("NEXT_PUBLIC_SUPABASE_URL") or "").strip().strip('"')
+    key = (env.get("SUPABASE_SERVICE_ROLE_KEY") or "").strip().strip('"')
+    missing = [name for name, value in (("SUPABASE_URL", url), ("SUPABASE_SERVICE_ROLE_KEY", key)) if not value]
+    if missing:
+        raise SystemExit(f"Missing secret(s): {', '.join(missing)}. Add them under Settings > Secrets and variables > Actions.")
+    if not url.startswith("https://"):
+        raise SystemExit("The SUPABASE_URL secret should start with https:// (just the address, without the name or quotes).")
     supabase = Supabase(url, key)
     cities = [city for city in CITIES if not args.cities or city[0] in args.cities]
 
     existing = supabase.all_spots()
     known_refs = {(row["source"], row["source_ref"]) for row in existing if row.get("source_ref")}
     taken_slugs = {row["slug"] for row in existing if row.get("slug")}
-    print(f"{len(existing)} places already in NiceThings.")
+    print(f"Connected to Supabase: {len(existing)} places already in NiceThings.")
 
-    db = duck()
+    hf_token = (env.get("HF_TOKEN") or "").strip()
+    db = duck(hf_token)
     sources = []
     if args.source in ("overture", "both"):
-        overture_places.release = latest_overture_release()
-        print(f"Overture release {overture_places.release}")
-        sources.append(("overture", overture_places))
-    if args.source in ("foursquare", "both"):
         try:
-            foursquare_places.release = latest_foursquare_release()
-            print(f"Foursquare release {foursquare_places.release}")
-            sources.append(("foursquare", foursquare_places))
-        except Exception as error:  # noqa: BLE001 - optional source
-            print(f"Foursquare skipped ({error})")
+            overture_places.release = latest_overture_release()
+            print(f"Overture release {overture_places.release}")
+            sources.append(("overture", overture_places))
+        except Exception as error:  # noqa: BLE001
+            print(f"Overture skipped ({error})")
+    if args.source in ("foursquare", "both"):
+        if not hf_token:
+            print("Foursquare skipped: it needs a free Hugging Face token (HF_TOKEN secret).")
+        else:
+            try:
+                foursquare_places.release = latest_foursquare_release()
+                print(f"Foursquare release {foursquare_places.release}")
+                sources.append(("foursquare", foursquare_places))
+            except Exception as error:  # noqa: BLE001 - optional source
+                print(f"Foursquare skipped ({error})")
+    if not sources:
+        raise SystemExit("No dataset available, nothing to do.")
 
     totals = {"seen": 0, "kept": 0, "duplicate": 0, "category": 0, "published": 0}
     new_rows = []

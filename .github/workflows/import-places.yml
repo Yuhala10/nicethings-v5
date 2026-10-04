@@ -6,9 +6,14 @@
 # Actions → New repository secret):
 #   SUPABASE_URL               same value as NEXT_PUBLIC_SUPABASE_URL
 #   SUPABASE_SERVICE_ROLE_KEY  same value as in Vercel
+#   HF_TOKEN                   optional: a free Hugging Face "Read" token, after
+#                              accepting the terms on
+#                              huggingface.co/datasets/foursquare/fsq-os-places
+#                              (without it, only Overture is used)
 #
 # Then: Actions tab → "Import places" → Run workflow. Start with "dry run"
-# ticked to see what would be added, then run it again without.
+# ticked to see what would be added, then run it again without. The result
+# appears on the run's summary page.
 
 name: Import places
 
@@ -41,9 +46,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -54,6 +59,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
           SOURCE: ${{ inputs.source }}
           CITIES: ${{ inputs.cities }}
@@ -65,4 +71,15 @@ jobs:
           # Only letters and dashes: city slugs, nothing else reaches the command.
           cities=$(echo "$CITIES" | tr -cd 'a-z \n-')
           if [ -n "${cities// /}" ]; then args+=(--cities $cities); fi
-          python scripts/import_open_places.py "${args[@]}"
+          python -u scripts/import_open_places.py "${args[@]}" 2>&1 | tee import.log
+
+      # The outcome (or the error) on the run's main page, no log digging.
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '### Import places'
+            echo '```'
+            tail -n 60 import.log 2>/dev/null || echo "The import did not start."
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
