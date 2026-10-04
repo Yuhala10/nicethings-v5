@@ -252,7 +252,7 @@ export default function PostEditor({ initial }: { initial: PostRow }) {
                             value={(lang === "fr" ? post.title_fr : post.title_en) ?? ""}
                             onChange={(event) => set(lang === "fr" ? "title_fr" : "title_en", event.target.value)}
                             placeholder={lang === "fr" ? tr("Le titre qui donne envie", "A title that makes people click") : tr("Titre en anglais", "Title in English")}
-                            className="w-full border-0 bg-transparent font-display text-[1.7rem] leading-tight font-extrabold outline-none placeholder:text-line-strong md:text-[2.2rem]"
+                            className="a-serif w-full border-0 bg-transparent text-[2.1rem] outline-none placeholder:text-line-strong md:text-[2.8rem]"
                         />
                         <textarea
                             value={(lang === "fr" ? post.excerpt_fr : post.excerpt_en) ?? ""}
@@ -311,15 +311,15 @@ export default function PostEditor({ initial }: { initial: PostRow }) {
                         <dl className="grid grid-cols-3 gap-2 text-center">
                             <div className="rounded-xl bg-soft p-2">
                                 <dt className="text-[0.68rem] font-bold text-muted">{tr("Lecture", "Reading")}</dt>
-                                <dd className="font-display text-lg font-extrabold">{minutes} min</dd>
+                                <dd className="a-serif text-[1.6rem]">{minutes} min</dd>
                             </div>
                             <div className="rounded-xl bg-soft p-2">
                                 <dt className="text-[0.68rem] font-bold text-muted">{tr("Lieux", "Places")}</dt>
-                                <dd className="font-display text-lg font-extrabold">{placeCount}</dd>
+                                <dd className="a-serif text-[1.6rem]">{placeCount}</dd>
                             </div>
                             <div className="rounded-xl bg-soft p-2">
                                 <dt className="text-[0.68rem] font-bold text-muted">{tr("Parties", "Sections")}</dt>
-                                <dd className="font-display text-lg font-extrabold">{sections}</dd>
+                                <dd className="a-serif text-[1.6rem]">{sections}</dd>
                             </div>
                         </dl>
                         {placeCount >= 2 && (

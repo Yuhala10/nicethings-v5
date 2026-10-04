@@ -57,7 +57,7 @@ const digits = (phone: string | null) => {
 function Proof({ icon: Icon, title, done, children }: { icon: typeof Phone; title: string; done: boolean; children: React.ReactNode }) {
     return (
         <section className={`a-card p-5 ${done ? "border-green-200" : ""}`}>
-            <h2 className="mb-3 flex items-center gap-2 font-extrabold">
+            <h2 className="a-serif mb-3 flex items-center gap-2 text-[1.4rem]">
                 <span className={`grid h-8 w-8 place-items-center rounded-lg ${done ? "bg-green-50 text-good" : "bg-soft text-text-2"}`}>{done ? <Check size={16} /> : <Icon size={16} />}</span>
                 {title}
             </h2>
@@ -282,7 +282,7 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
 
                 <aside className="grid content-start gap-5">
                     <section className="a-card p-5">
-                        <h2 className="mb-3 font-extrabold">{tr("Confiance", "Trust")}</h2>
+                        <h2 className="a-serif mb-3 text-[1.4rem]">{tr("Confiance", "Trust")}</h2>
                         <ul className="space-y-1.5 text-sm">
                             {assessment.checks.map((check) => (
                                 <li key={check.key} className="flex items-start gap-2">
@@ -309,7 +309,7 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
 
                     {open && (
                         <section className="a-card grid gap-3 p-5">
-                            <h2 className="font-extrabold">{tr("Décision", "Decision")}</h2>
+                            <h2 className="a-serif text-[1.4rem]">{tr("Décision", "Decision")}</h2>
                             <textarea
                                 value={note}
                                 onChange={(event) => setNote(event.target.value)}
@@ -346,7 +346,7 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
 
                     {claim.status === "APPROVED" && (
                         <section className="a-card grid gap-3 p-5">
-                            <h2 className="font-extrabold">{tr("Accès propriétaire", "Owner access")}</h2>
+                            <h2 className="a-serif text-[1.4rem]">{tr("Accès propriétaire", "Owner access")}</h2>
                             <p className="text-sm text-text-2">
                                 {tr("Validée. En cas de litige ou d'abus, tu peux retirer l'accès (motif obligatoire).", "Approved. In case of dispute or abuse, you can remove access (reason required).")}
                             </p>
@@ -359,7 +359,7 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
 
                     {(data.others.length > 0 || data.owners.length > 0) && (
                         <section className="a-card p-5">
-                            <h2 className="mb-2 font-extrabold">{tr("Autour de ce lieu", "Around this place")}</h2>
+                            <h2 className="a-serif mb-2 text-[1.4rem]">{tr("Autour de ce lieu", "Around this place")}</h2>
                             {data.owners.filter((owner) => !owner.revoked_at).length > 0 && (
                                 <p className="mb-2 text-sm font-semibold text-bad">
                                     {tr(
@@ -384,7 +384,7 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
                     )}
 
                     <section className="a-card p-5">
-                        <h2 className="mb-3 font-extrabold">{tr("Historique", "History")}</h2>
+                        <h2 className="a-serif mb-3 text-[1.4rem]">{tr("Historique", "History")}</h2>
                         <ol className="space-y-2 border-l-2 border-line pl-4 text-sm">
                             {data.events.map((event, index) => (
                                 <li key={index}>

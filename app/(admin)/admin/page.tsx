@@ -110,7 +110,7 @@ export default function DashboardPage() {
             <section className="a-card mt-6 overflow-hidden">
                 <div className="flex flex-wrap items-end justify-between gap-2 border-b border-line px-5 py-4">
                     <div>
-                        <h2 className="text-lg font-extrabold">{tr("Qualité des fiches par ville", "Listing quality by city")}</h2>
+                        <h2 className="a-serif text-[1.55rem]">{tr("Qualité des fiches par ville", "Listing quality by city")}</h2>
                         <p className="text-sm text-muted">{tr("Ce qui manque le plus : c'est là que le travail de terrain rapporte.", "What's missing most: that's where field work pays off.")}</p>
                     </div>
                 </div>
@@ -167,7 +167,7 @@ export default function DashboardPage() {
             <section className="mt-6 grid gap-4 lg:grid-cols-2">
                 <div className="a-card p-5">
                     <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-lg font-extrabold">{tr("Propositions récentes", "Recent suggestions")}</h2>
+                        <h2 className="a-serif text-[1.55rem]">{tr("Propositions récentes", "Recent suggestions")}</h2>
                         <Link href="/admin/submissions" className="text-sm font-bold text-brand-600">
                             {tr("Tout voir", "See all")}
                         </Link>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="a-card p-5">
                     <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-lg font-extrabold">{tr("Signalements récents", "Recent reports")}</h2>
+                        <h2 className="a-serif text-[1.55rem]">{tr("Signalements récents", "Recent reports")}</h2>
                         <Link href="/admin/reports" className="text-sm font-bold text-brand-600">
                             {tr("Tout voir", "See all")}
                         </Link>

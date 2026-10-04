@@ -43,7 +43,7 @@ const text = (value: unknown) => (value === null || value === undefined ? "" : S
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
     return (
         <section className="a-card p-5">
-            <h2 className="text-base font-extrabold">{title}</h2>
+            <h2 className="a-serif text-[1.4rem]">{title}</h2>
             {hint && <p className="mb-4 text-sm text-muted">{hint}</p>}
             <div className={hint ? "" : "mt-4"}>{children}</div>
         </section>
@@ -269,7 +269,7 @@ export default function PlaceEditor({ id, backHref = "/admin/spots" }: { id: str
                                     { }
                                     <img src={photo.image_url} alt={photo.alt_text ?? ""} loading="lazy" className="h-full w-full object-cover" />
                                     {index === 0 && (
-                                        <span className="absolute top-1.5 left-1.5 rounded-full bg-gradient-to-r from-[#ff8a1f] to-[#eb3a6f] px-2 py-0.5 text-[0.62rem] font-extrabold text-white">
+                                        <span className="absolute top-1.5 left-1.5 rounded-full bg-brand-600 px-2 py-0.5 text-[0.62rem] font-extrabold text-white">
                                             {tr("Couverture", "Cover")}
                                         </span>
                                     )}
@@ -402,11 +402,11 @@ export default function PlaceEditor({ id, backHref = "/admin/spots" }: { id: str
                         </Field>
                         <div className="mt-3 flex flex-col gap-2">
                             <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-soft px-3.5 py-3 text-sm font-semibold">
-                                <input type="checkbox" className="h-5 w-5 accent-[#ff5b36]" checked={Boolean(form.featured)} onChange={(e) => set("featured", e.target.checked)} />
+                                <input type="checkbox" className="h-5 w-5 accent-[#c0471b]" checked={Boolean(form.featured)} onChange={(e) => set("featured", e.target.checked)} />
                                 <Star size={16} className="text-amber-500" /> {tr("Coup de cœur (mis en avant)", "Featured (highlighted)")}
                             </label>
                             <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-sky-50 px-3.5 py-3 text-sm font-semibold">
-                                <input type="checkbox" className="h-5 w-5 accent-[#ff5b36]" checked={verifiedToday || Boolean(form.verified)} onChange={(e) => (e.target.checked ? setVerifiedToday(true) : (setVerifiedToday(false), set("verified", false)))} />
+                                <input type="checkbox" className="h-5 w-5 accent-[#c0471b]" checked={verifiedToday || Boolean(form.verified)} onChange={(e) => (e.target.checked ? setVerifiedToday(true) : (setVerifiedToday(false), set("verified", false)))} />
                                 <VerifiedTick size={18} />{" "}
                                 <span>
                                     {tr("Coche bleue « Vérifié »", "Blue “Verified” tick")}

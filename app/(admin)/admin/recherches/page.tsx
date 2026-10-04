@@ -46,14 +46,14 @@ export default function SearchesPage() {
             ) : (
                 <>
                     <section className="a-card mb-4 p-5">
-                        <p className="font-display text-3xl font-extrabold">{formatCount(data.total)}</p>
+                        <p className="a-serif text-[2.6rem]">{formatCount(data.total)}</p>
                         <p className="text-sm text-muted">{tr(`recherches sur ${days} jours`, `searches over ${days} days`)}</p>
                         <div className="mt-4 flex h-24 items-end gap-1" aria-hidden>
                             {data.perDay.map((day) => (
                                 <div
                                     key={day.day}
                                     title={`${day.day} : ${day.count}`}
-                                    className="flex-1 rounded-t bg-gradient-to-t from-[#ff8a1f] to-[#eb3a6f]"
+                                    className="flex-1 rounded-t bg-brand-500"
                                     style={{ height: `${(day.count / max) * 100}%`, minHeight: 3 }}
                                 />
                             ))}
@@ -62,7 +62,7 @@ export default function SearchesPage() {
 
                     <div className="grid gap-4 lg:grid-cols-2">
                         <section className="a-card p-5">
-                            <h2 className="mb-3 text-lg font-extrabold">{tr("Les plus demandées", "Most requested")}</h2>
+                            <h2 className="a-serif mb-3 text-[1.55rem]">{tr("Les plus demandées", "Most requested")}</h2>
                             <ol className="divide-y divide-line">
                                 {data.top.map((bucket, index) => (
                                     <li key={bucket.query} className="flex items-center gap-3 py-2.5">
@@ -78,7 +78,7 @@ export default function SearchesPage() {
                         </section>
 
                         <section className="a-card p-5">
-                            <h2 className="mb-1 flex items-center gap-2 text-lg font-extrabold">
+                            <h2 className="a-serif mb-1 flex items-center gap-2 text-[1.55rem]">
                                 <SearchX size={19} className="text-bad" />
                                 {tr("Sans résultat", "No result")}
                             </h2>

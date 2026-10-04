@@ -155,7 +155,7 @@ export default function BlockEditor({
                     value={block.text}
                     onChange={(event) => onChange({ ...block, text: event.target.value })}
                     placeholder={block.type === "h2" ? tr("Titre de partie (apparaît dans le sommaire)", "Section title (shown in the contents)") : tr("Sous-titre", "Subtitle")}
-                    className={`a-input font-display font-extrabold ${block.type === "h2" ? "h-12 text-xl" : "text-lg"}`}
+                    className={`a-input a-serif ${block.type === "h2" ? "h-12 text-2xl" : "text-xl"}`}
                 />
             );
             break;
@@ -171,7 +171,7 @@ export default function BlockEditor({
         case "quote":
             body = (
                 <div className="grid gap-2">
-                    <AutoText value={block.text} onChange={(text) => onChange({ ...block, text })} placeholder={tr("La citation", "The quote")} className="font-display text-lg font-bold" />
+                    <AutoText value={block.text} onChange={(text) => onChange({ ...block, text })} placeholder={tr("La citation", "The quote")} className="a-serif text-xl italic" />
                     <input value={block.cite} onChange={(event) => onChange({ ...block, cite: event.target.value })} placeholder={tr("Qui le dit ? (facultatif)", "Who says it? (optional)")} className="a-input" />
                 </div>
             );

@@ -238,7 +238,7 @@ function PlacesList() {
                     <div className="flex items-center gap-3 border-b border-line px-4 py-2.5 text-xs font-bold text-muted">
                         <input
                             type="checkbox"
-                            className="h-4 w-4 accent-[#ff5b36]"
+                            className="h-4 w-4 accent-[#c0471b]"
                             checked={allSelected}
                             onChange={() => setSelected(allSelected ? [] : (data?.rows ?? []).map((row) => row.id))}
                             aria-label={tr("Tout sélectionner", "Select all")}
@@ -253,7 +253,7 @@ function PlacesList() {
                             <li key={row.id} className="flex items-center gap-3 px-4 py-3 transition hover:bg-soft/60">
                                 <input
                                     type="checkbox"
-                                    className="h-4 w-4 shrink-0 accent-[#ff5b36]"
+                                    className="h-4 w-4 shrink-0 accent-[#c0471b]"
                                     checked={selected.includes(row.id)}
                                     onChange={() => setSelected((current) => (current.includes(row.id) ? current.filter((id) => id !== row.id) : [...current, row.id]))}
                                     aria-label={tr(`Sélectionner ${row.name}`, `Select ${row.name}`)}

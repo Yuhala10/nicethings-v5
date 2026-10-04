@@ -72,35 +72,35 @@ function Frame({ children }: { children: ReactNode }) {
 
     const badge = (item: Item) =>
         item.badge && counts[item.badge] > 0 ? (
-            <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-brand-500 px-1.5 text-[0.68rem] font-extrabold text-white">{counts[item.badge]}</span>
+            <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-[0.68rem] font-bold text-white">{counts[item.badge]}</span>
         ) : null;
 
     return (
         <div className="min-h-dvh md:flex">
-            {/* Sidebar (computer) */}
-            <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto bg-ink p-4 text-white md:flex">
-                <Link href="/admin" className="mb-7 flex items-center gap-2.5 px-2 pt-2">
-                    <img src="/brand/mark.svg" alt="" width={34} height={34} />
+            {/* Sidebar (computer): paper, hairline, the current page in ink. */}
+            <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r border-line bg-card p-4 md:flex">
+                <Link href="/admin" className="mb-8 flex items-center gap-2.5 px-2 pt-2">
+                    <img src="/brand/mark.svg" alt="" width={32} height={32} />
                     <span>
-                        <span className="block font-display text-[1.1rem] leading-tight font-extrabold">NiceThings</span>
-                        <span className="block text-xs font-semibold text-white/50">{tr("Espace équipe", "Team console")}</span>
+                        <span className="block text-[1.05rem] leading-tight font-bold tracking-[-0.03em]">NiceThings</span>
+                        <span className="block text-xs text-muted">{tr("Espace équipe", "Team console")}</span>
                     </span>
                 </Link>
-                <nav className="flex flex-col gap-5">
+                <nav className="flex flex-col gap-6">
                     {GROUPS.map((group) => (
                         <div key={group.title[0]}>
-                            <p className="mb-1.5 px-3 text-[0.65rem] font-extrabold tracking-[0.14em] text-white/35 uppercase">{tr(...group.title)}</p>
+                            <p className="a-eyebrow mb-2 px-3">{tr(...group.title)}</p>
                             <div className="flex flex-col gap-0.5">
                                 {group.items.map((item) => (
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                                            active(item) ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white"
+                                        aria-current={active(item) ? "page" : undefined}
+                                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                                            active(item) ? "bg-ink text-white" : "text-text-2 hover:bg-soft hover:text-ink"
                                         }`}
                                     >
-                                        {active(item) && <span className="nt-admin-sunset absolute top-2 bottom-2 left-0 w-1 rounded-full" />}
-                                        <item.icon size={18} className={active(item) ? "text-brand-500" : ""} />
+                                        <item.icon size={18} strokeWidth={active(item) ? 2.1 : 1.8} />
                                         {label(item)}
                                         {badge(item)}
                                     </Link>
@@ -109,59 +109,69 @@ function Frame({ children }: { children: ReactNode }) {
                         </div>
                     ))}
                 </nav>
-                <div className="mt-auto flex flex-col gap-1 border-t border-white/10 pt-4">
+                <div className="mt-auto flex flex-col gap-1 border-t border-line pt-4">
                     <div className="flex items-center justify-between px-3 py-1.5">
-                        <span className="text-xs font-semibold text-white/50">{tr("Langue", "Language")}</span>
+                        <span className="text-xs text-muted">{tr("Langue", "Language")}</span>
                         <LangSwitch />
                     </div>
-                    <a href="/fr" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-white/65 hover:bg-white/5 hover:text-white">
-                        <ExternalLink size={18} />
+                    <a href="/fr" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-2 hover:bg-soft hover:text-ink">
+                        <ExternalLink size={18} strokeWidth={1.8} />
                         {tr("Voir le site", "Open the site")}
                     </a>
                     <button
                         type="button"
                         onClick={signOut}
                         disabled={signingOut}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-white/65 hover:bg-white/5 hover:text-white"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-text-2 hover:bg-soft hover:text-ink"
                     >
-                        <LogOut size={18} />
+                        <LogOut size={18} strokeWidth={1.8} />
                         {signingOut ? tr("Déconnexion…", "Signing out…") : tr("Se déconnecter", "Sign out")}
                     </button>
                 </div>
             </aside>
 
             {/* Top bar (phone) */}
-            <header className="sticky top-0 z-40 flex items-center justify-between gap-2 bg-ink px-3 pt-[max(env(safe-area-inset-top),0.6rem)] pb-3 text-white md:hidden">
+            <header className="sticky top-0 z-40 flex items-center justify-between gap-2 border-b border-line bg-paper/90 px-3 pt-[max(env(safe-area-inset-top),0.6rem)] pb-2.5 backdrop-blur-xl md:hidden">
                 <Link href="/admin" className="flex shrink-0 items-center gap-2">
                     <img src="/brand/mark.svg" alt="" width={28} height={28} />
                 </Link>
                 <div className="flex min-w-0 items-center gap-0.5">
                     {NAV.filter((item) => !TABS.includes(item.href)).map((item) => (
-                        <Link key={item.href} href={item.href} className={`grid h-10 w-10 place-items-center rounded-full ${active(item) ? "bg-white/10 text-brand-500" : "text-white/75"}`} aria-label={label(item)}>
-                            <item.icon size={19} />
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            aria-current={active(item) ? "page" : undefined}
+                            className={`grid h-10 w-10 place-items-center rounded-full ${active(item) ? "bg-ink text-white" : "text-text-2"}`}
+                            aria-label={label(item)}
+                        >
+                            <item.icon size={19} strokeWidth={1.8} />
                         </Link>
                     ))}
                     <LangSwitch className="ml-1" />
-                    <button type="button" onClick={signOut} className="grid h-10 w-10 place-items-center rounded-full text-white/75" aria-label={tr("Se déconnecter", "Sign out")}>
-                        <LogOut size={19} />
+                    <button type="button" onClick={signOut} className="grid h-10 w-10 place-items-center rounded-full text-text-2" aria-label={tr("Se déconnecter", "Sign out")}>
+                        <LogOut size={19} strokeWidth={1.8} />
                     </button>
                 </div>
             </header>
 
-            <main className="min-w-0 flex-1 px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">
+            <main className="min-w-0 flex-1 px-4 pt-6 pb-32 md:px-10 md:pt-10 md:pb-14">
                 <div className="mx-auto max-w-6xl">{children}</div>
             </main>
 
-            {/* Bottom tabs (phone) */}
-            <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 px-1 pt-1 pb-[max(env(safe-area-inset-bottom),0.4rem)] backdrop-blur md:hidden">
-                <ul className="flex">
+            {/* Bottom tabs (phone): separate tiles, as on the public site. */}
+            <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:hidden">
+                <ul className="pointer-events-auto mx-auto flex w-fit gap-1.5">
                     {NAV.filter((item) => TABS.includes(item.href)).map((item) => (
-                        <li key={item.href} className="flex-1">
-                            <Link href={item.href} className={`relative flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[0.66rem] font-bold ${active(item) ? "text-ink" : "text-muted"}`}>
-                                <item.icon size={20} className={active(item) ? "text-brand-500" : ""} />
+                        <li key={item.href}>
+                            <Link
+                                href={item.href}
+                                aria-current={active(item) ? "page" : undefined}
+                                className="a-tab relative flex h-[3.4rem] w-[clamp(3.6rem,17vw,4.3rem)] flex-col items-center justify-center gap-[0.2rem] rounded-[1rem] text-[0.62rem] font-semibold"
+                            >
+                                <item.icon size={19} strokeWidth={active(item) ? 2.1 : 1.8} />
                                 {tr(...item.short)}
                                 {item.badge && counts[item.badge] > 0 && (
-                                    <span className="absolute top-0.5 right-[22%] grid h-4 min-w-4 place-items-center rounded-full bg-brand-500 px-1 text-[0.6rem] font-extrabold text-white">
+                                    <span className="absolute -top-1.5 -right-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1 text-[0.62rem] font-bold text-white ring-2 ring-paper">
                                         {counts[item.badge]}
                                     </span>
                                 )}

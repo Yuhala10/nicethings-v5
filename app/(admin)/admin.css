@@ -1,29 +1,33 @@
 @import "tailwindcss";
 
-/* NiceThings team console. Same palette and type as the public site, tuned
-   for work: calm surfaces, clear status colours, dense but readable. */
+/* NiceThings team console, on the public site's design system v2 (see
+   app/[lang]/site.css): warm paper and ink, one terracotta accent for the
+   action that moves work forward, the editorial serif for page titles, a
+   clean sans for everything you operate. Tuned for work: dense but calm. */
 
 @theme inline {
-    --color-brand-50: #fff4ec;
-    --color-brand-100: #ffe6d4;
-    --color-brand-200: #ffc9a3;
-    --color-brand-500: #ff6a2b;
-    --color-brand-600: #ea4f16;
-    --color-brand-700: #c23b0c;
-    --color-ink: #17120e;
-    --color-paper: #f7f3ee;
+    --color-brand-50: #fbf1ea;
+    --color-brand-100: #f7e0d1;
+    --color-brand-200: #efc0a3;
+    --color-brand-400: #e2804f;
+    --color-brand-500: #d4592a;
+    --color-brand-600: #c0471b;
+    --color-brand-700: #9c3815;
+    --color-ink: #1b1612;
+    --color-paper: #faf7f2;
     --color-card: #ffffff;
-    --color-line: #ece5dc;
-    --color-line-strong: #ddd3c6;
-    --color-muted: #7a6c60;
-    --color-text-2: #45392f;
-    --color-soft: #f4eee7;
+    --color-line: #ebe4da;
+    --color-line-strong: #dcd2c5;
+    --color-muted: #776a5f;
+    --color-text-2: #4a4038;
+    --color-soft: #f3eee6;
     --color-good: #15803d;
     --color-warn: #b45309;
     --color-bad: #b91c1c;
 
     --font-sans: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-display: var(--font-heading), var(--font-body), system-ui, sans-serif;
+    --font-display: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-serif: var(--font-editorial), Georgia, "Times New Roman", serif;
 }
 
 @layer base {
@@ -65,6 +69,14 @@
         border-radius: 1.25rem;
     }
 
+    /* Editorial titles: one weight, never bolded. */
+    .a-serif {
+        font-family: var(--font-serif);
+        font-weight: 400;
+        letter-spacing: -0.012em;
+        line-height: 1.05;
+    }
+
     .a-btn {
         display: inline-flex;
         align-items: center;
@@ -73,10 +85,10 @@
         height: 2.6rem;
         padding: 0 1rem;
         border-radius: 0.85rem;
-        font-weight: 700;
+        font-weight: 650;
         font-size: 0.88rem;
         white-space: nowrap;
-        transition: background 150ms ease, transform 150ms ease, opacity 150ms ease;
+        transition: background 200ms ease, border-color 200ms ease, transform 150ms ease, opacity 150ms ease;
     }
 
     .a-btn:active:not(:disabled) {
@@ -88,13 +100,17 @@
     }
 
     .nt-admin-sunset {
-        background: linear-gradient(180deg, #ff8a1f, #ff5b36 52%, #eb3a6f);
+        background: var(--color-brand-600);
     }
 
     .a-btn-primary {
-        background: linear-gradient(120deg, #ff8a1f, #ff5b36 52%, #eb3a6f);
+        background: var(--color-brand-600);
         color: #fff;
-        box-shadow: 0 8px 20px -10px rgba(255, 91, 54, 0.8);
+        box-shadow: 0 6px 18px -10px rgba(192, 71, 27, 0.6);
+    }
+
+    .a-btn-primary:hover:not(:disabled) {
+        background: var(--color-brand-700);
     }
 
     .a-btn-dark {
@@ -103,12 +119,13 @@
     }
 
     .a-btn-soft {
-        background: var(--color-soft);
+        background: var(--color-card);
         color: var(--color-ink);
+        border: 1px solid var(--color-line-strong);
     }
 
     .a-btn-soft:hover:not(:disabled) {
-        background: #ece3d8;
+        border-color: var(--color-text-2);
     }
 
     .a-btn-ghost {
@@ -145,15 +162,15 @@
 
     .a-input:focus {
         outline: none;
-        border-color: var(--color-brand-500);
-        box-shadow: 0 0 0 4px rgba(255, 106, 43, 0.16);
+        border-color: var(--color-text-2);
+        box-shadow: 0 0 0 4px rgba(27, 22, 18, 0.07);
     }
 
     .a-label {
         display: block;
         margin-bottom: 0.35rem;
         font-size: 0.78rem;
-        font-weight: 700;
+        font-weight: 600;
         color: var(--color-text-2);
     }
 
@@ -179,11 +196,32 @@
     }
 
     .a-eyebrow {
-        font-size: 0.7rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
+        font-size: 0.68rem;
+        font-weight: 650;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--color-muted);
+    }
+
+    /* Phone tabs: separate tiles, the current one in ink (as on the site). */
+    .a-tab {
+        background: var(--color-card);
+        border: 1px solid var(--color-line);
+        color: var(--color-muted);
+        box-shadow:
+            0 1px 2px rgba(27, 22, 18, 0.05),
+            0 10px 24px -12px rgba(27, 22, 18, 0.28);
+        transition: background 200ms ease, color 200ms ease, transform 150ms ease;
+    }
+
+    .a-tab:active {
+        transform: scale(0.95);
+    }
+
+    .a-tab[aria-current="page"] {
+        background: var(--color-ink);
+        border-color: var(--color-ink);
+        color: #fff;
     }
 
     .a-skeleton {

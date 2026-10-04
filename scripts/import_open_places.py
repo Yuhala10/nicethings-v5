@@ -63,6 +63,9 @@ CITIES = [
 CATEGORY_RULES = [
     # Shops selling beauty products are shops, not salons.
     ("Shopping", ["beauty supply", "cosmetic and beauty supply", "cosmetics store", "jewelry store", "jewelry", "jewellery", "jewelry and watches store"]),
+    # Overture's broad "beauty and spa" is nearly always a salon; a real spa
+    # carries its own "spa" or "day spa" label.
+    ("Beauty", ["beauty and spa", "health and beauty", "skin care", "makeup artist", "eyelash service", "nail salon", "hair salon", "beauty salon"]),
     ("Club", ["night club", "nightclub", "dance club", "disco", "discotheque"]),
     ("Bakery", ["bakery", "bakeries", "patisserie", "pastry shop", "cake shop", "dessert shop", "boulangerie", "donut shop"]),
     ("Cafe", ["cafe", "coffee", "coffee shop", "tea room", "tea house", "juice bar", "ice cream", "ice cream shop", "smoothie"]),
@@ -78,6 +81,8 @@ CATEGORY_RULES = [
 ]
 RULES = [(category, [re.compile(r"\b" + re.escape(word) + r"\b") for word in words]) for category, words in CATEGORY_RULES]
 
+PUBLISH_DIRECTLY = {"Restaurant", "Bar", "Cafe", "Bakery", "Club", "Hotel", "Culture", "Nature", "Entertainment"}
+
 # Never imported, whatever else the labels say: places people do not "go
 # out" to, and look-alikes ("internet cafe" is not a café).
 EXCLUDED_LABELS = re.compile(
@@ -85,11 +90,13 @@ EXCLUDED_LABELS = re.compile(
     r"hospital|clinic|medical|doctor|dentist|pharmacy|drugstore|church|mosque|religious|bank|atm|insurance|real estate|"
     r"automotive|car dealer|car rental|car wash|auto repair|gas station|fuel|office|consulting|lawyer|legal|accountant|"
     r"government|embassy|wholesale|warehouse|printing|telecommunication|mobile phone|electronics|hardware|construction|"
-    r"logistics|transport|bus station|taxi|funeral)\b"
+    r"logistics|transport|bus station|taxi|funeral|optician|optometrist|eyewear|optical|dietitian|nutritionist|"
+    r"telecommunications)\b"
 )
 EXCLUDED_NAMES = re.compile(
     r"\b(academie|académie|academy|ecole|école|school|institut|institute|formation|centre de formation|agence|agency|"
-    r"cyber|pharmacie|pharmacy|clinique|hopital|hôpital|eglise|église|church|banque|bank|assurance)\b",
+    r"cyber|pharmacie|pharmacy|clinique|hopital|hôpital|eglise|église|church|banque|bank|assurance|optique|optic|optical|"
+    r"lunetterie|mtn|orange money|express union)\b",
     re.IGNORECASE,
 )
 
@@ -458,7 +465,9 @@ def main():
                     unique = f"{base}-{number}"
                     number += 1
                 taken_slugs.add(unique)
-                publish = place["confidence"] >= args.publish_from
+                # Only places people go out to are published straight away;
+                # shops, salons and gyms always wait for the team.
+                publish = place["confidence"] >= args.publish_from and category in PUBLISH_DIRECTLY
                 row = {
                     "slug": unique,
                     "name": name,

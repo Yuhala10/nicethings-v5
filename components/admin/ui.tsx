@@ -9,10 +9,10 @@ import { adminLang, useTr } from "./i18n";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
     return (
-        <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <header className="mb-7 flex flex-wrap items-end justify-between gap-3 md:mb-9">
             <div className="min-w-0">
-                <h1 className="text-[1.7rem] leading-tight font-extrabold md:text-3xl">{title}</h1>
-                {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+                <h1 className="a-serif text-[2.3rem] md:text-[3rem]">{title}</h1>
+                {subtitle && <p className="mt-2 text-[0.92rem] text-muted">{subtitle}</p>}
             </div>
             {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
         </header>
@@ -35,27 +35,25 @@ export function Stat({
     href?: string;
 }) {
     const tones = {
-        neutral: "bg-soft text-ink",
-        brand: "bg-brand-50 text-brand-600",
-        good: "bg-green-50 text-good",
-        warn: "bg-amber-50 text-warn",
+        neutral: "text-text-2",
+        brand: "text-brand-600",
+        good: "text-good",
+        warn: "text-warn",
     } as const;
     const body = (
         <>
-            <span className={`grid h-10 w-10 place-items-center rounded-xl ${tones[tone]}`}>
-                <Icon size={19} />
-            </span>
-            <p className="mt-3 font-display text-[1.75rem] leading-none font-extrabold">{value}</p>
-            <p className="mt-1 text-sm font-semibold text-text-2">{label}</p>
+            <Icon size={18} strokeWidth={1.8} className={tones[tone]} />
+            <p className="a-serif mt-4 text-[2.3rem] leading-none tabular-nums">{value}</p>
+            <p className="mt-1.5 text-sm font-medium text-text-2">{label}</p>
             {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
         </>
     );
     return href ? (
-        <a href={href} className="a-card block p-4 transition hover:border-line-strong hover:shadow-sm">
+        <a href={href} className="a-card block p-5 transition hover:border-line-strong">
             {body}
         </a>
     ) : (
-        <div className="a-card p-4">{body}</div>
+        <div className="a-card p-5">{body}</div>
     );
 }
 
@@ -70,16 +68,14 @@ export function StatusBadge({ status }: { status: string }) {
         RESOLVED: [tr("Résolu", "Resolved"), "bg-green-50 text-good"],
     };
     const [label, style] = map[status] ?? [status, "bg-soft text-text-2"];
-    return <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-[0.72rem] font-bold ${style}`}>{label}</span>;
+    return <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-[0.72rem] font-semibold ${style}`}>{label}</span>;
 }
 
 export function Empty({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {
     return (
-        <div className="a-card flex flex-col items-center px-6 py-14 text-center">
-            <span className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-soft text-muted">
-                <Inbox size={22} />
-            </span>
-            <p className="font-bold">{title}</p>
+        <div className="flex flex-col items-center rounded-[1.25rem] border border-dashed border-line-strong px-6 py-14 text-center">
+            <Inbox size={22} strokeWidth={1.6} className="mb-3 text-muted" />
+            <p className="a-serif text-[1.6rem]">{title}</p>
             {body && <p className="mt-1 max-w-sm text-sm text-muted">{body}</p>}
             {action && <div className="mt-4">{action}</div>}
         </div>
@@ -90,7 +86,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
     return <div className={`a-skeleton ${className}`} aria-hidden />;
 }
 
-export function Bar({ value, total, tone = "#ff6a2b" }: { value: number; total: number; tone?: string }) {
+export function Bar({ value, total, tone = "#c0471b" }: { value: number; total: number; tone?: string }) {
     const percent = total ? Math.round((value / total) * 100) : 0;
     return (
         <div className="flex items-center gap-2">
@@ -170,7 +166,7 @@ export function AdminToastProvider({ children }: { children: ReactNode }) {
                 {toasts.map((toast) => (
                     <div
                         key={toast.id}
-                        className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white shadow-lg ${toast.error ? "bg-bad" : "bg-ink"}`}
+                        className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-white shadow-lg ${toast.error ? "bg-bad" : "bg-ink"}`}
                     >
                         {toast.error ? <XCircle size={16} /> : <CheckCircle2 size={16} className="text-green-400" />}
                         {toast.text}

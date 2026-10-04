@@ -84,7 +84,7 @@ function DailyChart({ perDay }: { perDay: Day[] }) {
         <section className="a-card mt-6 p-5">
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
                 <div>
-                    <h2 className="text-lg font-extrabold">{tr("Visiteurs par jour", "Visitors per day")}</h2>
+                    <h2 className="a-serif text-[1.55rem]">{tr("Visiteurs par jour", "Visitors per day")}</h2>
                     <p className="text-sm text-muted" aria-live="polite">
                         <span className="inline-block font-bold text-ink first-letter:uppercase">{dayLabel(shown.day, true)}</span>
                         {" : "}
@@ -213,7 +213,7 @@ function Ranking({ rows }: { rows: { key: string; label: string; detail?: string
 function Card({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
     return (
         <section className="a-card min-w-0 p-5">
-            <h2 className="text-lg font-extrabold">{title}</h2>
+            <h2 className="a-serif text-[1.55rem]">{title}</h2>
             {hint && <p className="text-sm text-muted">{hint}</p>}
             <div className="mt-4">{children}</div>
         </section>

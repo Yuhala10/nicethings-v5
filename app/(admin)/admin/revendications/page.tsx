@@ -71,7 +71,7 @@ export default function ClaimsPage() {
 
             {(requests.data?.rows.length ?? 0) > 0 && (
                 <section className="a-card mb-6 p-5">
-                    <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold">
+                    <h2 className="a-serif mb-3 flex items-center gap-2 text-[1.55rem]">
                         <Wrench size={18} className="text-brand-600" />
                         {tr("Corrections demandées par des propriétaires", "Corrections requested by owners")}
                     </h2>

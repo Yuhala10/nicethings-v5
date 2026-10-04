@@ -90,7 +90,7 @@ export default function SubmissionsPage() {
                         <li key={row.id} className="a-card flex flex-col p-5">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                    <h2 className="truncate text-lg font-extrabold">{row.name}</h2>
+                                    <h2 className="a-serif truncate text-[1.5rem]">{row.name}</h2>
                                     <p className="text-sm text-muted">
                                         {[CATEGORIES[row.category as keyof typeof CATEGORIES]?.[lang], row.neighborhood, row.city].filter(Boolean).join(" · ") || tr("Type non précisé", "Type not given")}
                                     </p>

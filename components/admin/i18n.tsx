@@ -58,14 +58,14 @@ export function useTr() {
 export function LangSwitch({ className = "" }: { className?: string }) {
     const { lang, setLang } = useAdminLang();
     return (
-        <div className={`inline-flex rounded-full bg-white/10 p-0.5 text-xs font-extrabold ${className}`} role="group" aria-label="Langue / Language">
+        <div className={`inline-flex rounded-full border border-line bg-card p-0.5 text-xs font-semibold ${className}`} role="group" aria-label="Langue / Language">
             {(["fr", "en"] as const).map((value) => (
                 <button
                     key={value}
                     type="button"
                     aria-pressed={lang === value}
                     onClick={() => setLang(value)}
-                    className={`rounded-full px-2.5 py-1 transition ${lang === value ? "bg-white text-ink" : "text-white/60 hover:text-white"}`}
+                    className={`rounded-full px-2.5 py-1 transition ${lang === value ? "bg-ink text-white" : "text-muted hover:text-ink"}`}
                 >
                     {value.toUpperCase()}
                 </button>
