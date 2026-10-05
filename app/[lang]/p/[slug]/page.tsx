@@ -32,9 +32,15 @@ export const revalidate = 300;
 const OPEN_DATA: Record<string, string> = { overture: "Overture Maps", foursquare: "Foursquare" };
 export const dynamicParams = true;
 
-// Pages are built on first visit, then served from cache.
-export function generateStaticParams() {
-    return [];
+// The best-known places are built at deploy time; every other page is
+// built on its first visit, then served from cache.
+export async function generateStaticParams() {
+    const places = await getAllPlaces().catch((): Awaited<ReturnType<typeof getAllPlaces>> => []);
+    return places
+        .filter((place) => place.cover || place.verified || knownFacts(place) >= 3)
+        .sort((a, b) => knownFacts(b) - knownFacts(a))
+        .slice(0, 100)
+        .map((place) => ({ slug: place.slug }));
 }
 
 type Props = { params: Promise<{ lang: string; slug: string }> };

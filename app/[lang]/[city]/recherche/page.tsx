@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import SearchView from "@/components/search/SearchView";
-import { cityBySlug } from "@/lib/cities";
+import { CITIES, cityBySlug } from "@/lib/cities";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
 import { areasOf } from "@/lib/places/areas";
 import { compactPlaces } from "@/lib/places/compact";
@@ -12,8 +12,10 @@ import { getCityCounts, getCityPlaces } from "@/lib/places/server";
 export const revalidate = 300;
 export const dynamicParams = true;
 
+// Every city is built at deploy time (once per language), so the first
+// visitor after a deploy never waits; new cities still render on demand.
 export function generateStaticParams() {
-    return [];
+    return CITIES.map((city) => ({ city: city.slug }));
 }
 
 type Props = { params: Promise<{ lang: string; city: string }> };

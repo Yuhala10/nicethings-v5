@@ -5,7 +5,7 @@ import { DAY_KEYS, type PlaceDetail, type PlaceSummary } from "./types";
 
 // Public, cookie-less reads with the publishable key: Row Level Security
 // only exposes APPROVED places, and results are cached so pages render
-// from memory. Admin writes call revalidateTag(PLACES_TAG) to refresh.
+// from memory. Admin writes call refreshPlaces() (lib/refresh.ts).
 
 export const PLACES_TAG = "places";
 const REVALIDATE_SECONDS = 300;
@@ -105,43 +105,54 @@ function toSummary(row: SpotRow, cover: string | null): PlaceSummary {
     };
 }
 
-async function fetchCovers(ids: string[]) {
-    const covers = new Map<string, string>();
-    if (ids.length === 0) return covers;
+const PAGE_SIZE = 1000;
 
+// First photo of every place, in one pass over the (small) photo table:
+// asking per batch of place ids meant a dozen slow requests with huge URLs.
+async function fetchCovers() {
+    const covers = new Map<string, string>();
     const db = publicClient();
-    for (let i = 0; i < ids.length; i += 300) {
+    for (let from = 0; ; from += PAGE_SIZE) {
         const { data, error } = await db
             .from("nt_spot_photos")
             .select("spot_id,image_url,sort_order")
-            .in("spot_id", ids.slice(i, i + 300))
-            .order("sort_order", { ascending: true });
+            .order("spot_id", { ascending: true })
+            .order("sort_order", { ascending: true })
+            .range(from, from + PAGE_SIZE - 1);
         if (error) throw error;
         for (const photo of data ?? []) {
             if (!covers.has(photo.spot_id)) covers.set(photo.spot_id, photo.image_url);
         }
+        if (!data || data.length < PAGE_SIZE) return covers;
     }
-    return covers;
 }
 
-async function loadAllPlaces(): Promise<PlaceSummary[]> {
-    const db = publicClient();
+function spotsPage(from: number, count: boolean) {
+    return publicClient()
+        .from("nt_spots")
+        .select(SUMMARY_COLUMNS, count ? { count: "exact" } : undefined)
+        .in("status", VISIBLE_STATUSES)
+        .not("latitude", "is", null)
+        .not("longitude", "is", null)
+        .order("id", { ascending: true })
+        .range(from, from + PAGE_SIZE - 1);
+}
+
+// The whole catalogue: the first page tells how many there are, the rest
+// are fetched side by side, while the covers load in parallel. Exported
+// for the sitemap, which reads the database itself.
+export async function loadAllPlaces(): Promise<PlaceSummary[]> {
+    const [first, covers] = await Promise.all([spotsPage(0, true), fetchCovers()]);
+    if (first.error) throw first.error;
+    const total = first.count ?? first.data?.length ?? 0;
+    const rest = await Promise.all(
+        Array.from({ length: Math.max(0, Math.ceil(total / PAGE_SIZE) - 1) }, (_, index) => spotsPage((index + 1) * PAGE_SIZE, false))
+    );
     const rows: SpotRow[] = [];
-
-    for (let from = 0; ; from += 1000) {
-        const { data, error } = await db
-            .from("nt_spots")
-            .select(SUMMARY_COLUMNS)
-            .in("status", VISIBLE_STATUSES)
-            .not("latitude", "is", null)
-            .not("longitude", "is", null)
-            .range(from, from + 999);
-        if (error) throw error;
-        rows.push(...((data ?? []) as unknown as SpotRow[]));
-        if (!data || data.length < 1000) break;
+    for (const page of [first, ...rest]) {
+        if (page.error) throw page.error;
+        rows.push(...((page.data ?? []) as unknown as SpotRow[]));
     }
-
-    const covers = await fetchCovers(rows.map((row) => row.id));
     return rows.map((row) => toSummary(row, covers.get(row.id) ?? null));
 }
 
