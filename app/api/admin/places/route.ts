@@ -1,9 +1,8 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { fail, readJson, requireAdmin, UUID_PATTERN } from "@/lib/admin-api";
 import { photoCounts, readNewPlace, uniqueSlug } from "@/lib/admin-places";
 import { cityBySlug } from "@/lib/cities";
-import { PLACES_TAG } from "@/lib/places/server";
+import { refreshPlaces } from "@/lib/refresh";
 
 const PAGE_SIZE = 40;
 const COLUMNS =
@@ -68,7 +67,7 @@ export async function POST(request: Request) {
         const slug = await uniqueSlug(db, [place.name, place.neighborhood, place.city === "Yaoundé" ? null : place.city]);
         const { data, error } = await db.from("nt_spots").insert({ ...place, slug }).select("id,slug").single();
         if (error) throw error;
-        revalidateTag(PLACES_TAG, "max");
+        refreshPlaces();
         return NextResponse.json({ ok: true, row: data });
     } catch (error) {
         return fail(error);
@@ -95,6 +94,6 @@ export async function PATCH(request: Request) {
 
     const { error, count } = await db.from("nt_spots").update(changes, { count: "exact" }).in("id", ids);
     if (error) return fail(error);
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true, updated: count ?? ids.length });
 }

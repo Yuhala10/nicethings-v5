@@ -1,13 +1,12 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { readJson } from "@/lib/admin-api";
 import { cleanText } from "@/lib/feedback";
 import { FIELD_LABELS, OWNER_FIELDS, applyOwnerChanges, readOwnerChanges } from "@/lib/claims/owner-edits";
 import { ownedSpot } from "@/lib/claims/owned";
 import { cityByName } from "@/lib/cities";
-import { PLACES_TAG } from "@/lib/places/server";
 import { CATEGORIES } from "@/lib/tags";
 import { requireOwner } from "@/lib/supabase/owner";
+import { refreshPlaces } from "@/lib/refresh";
 
 type Context = { params: Promise<{ slug: string }> };
 
@@ -73,7 +72,7 @@ export async function PATCH(request: Request, context: Context) {
     if ("invalid" in result) return NextResponse.json({ ok: false, message: "Valeur invalide.", field: result.invalid }, { status: 422 });
     try {
         const count = await applyOwnerChanges(db, owned.spot.id, owner.id, result.changes);
-        if (count) revalidateTag(PLACES_TAG, "max");
+        if (count) refreshPlaces();
         return NextResponse.json({ ok: true, changed: count });
     } catch (error) {
         console.error("Owner edit failed:", error);

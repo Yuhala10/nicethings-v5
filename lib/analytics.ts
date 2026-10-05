@@ -63,3 +63,29 @@ export function visitSource({ tag, referrer, installed }: { tag?: unknown; refer
     }
     return "direct";
 }
+
+// Kept in the visitor's browser, never sent anywhere else.
+export const VISITOR_KEY = "nt_vid"; // random id: tells a return visit from a first one
+export const HUMAN_KEY = "nt_human"; // a real person has already used this browser
+export const TEAM_KEY = "nt_team"; // set by the team console: this device is never counted
+
+// How the browser knew a person was there before counting a page: a touch,
+// a click, a key, the wheel, a mouse that really moves, or a browser where
+// a person was already seen. A page that is only loaded (crawlers, link
+// previews, automated browsers) never sends one, so it is never counted.
+export const HUMAN_SIGNS = ["touch", "pointer", "key", "wheel", "move", "known"] as const;
+export type HumanSign = (typeof HUMAN_SIGNS)[number];
+
+export function isHumanSign(value: unknown): value is HumanSign {
+    return typeof value === "string" && (HUMAN_SIGNS as readonly string[]).includes(value);
+}
+
+// Programs that give themselves away in their name, beyond the well-known
+// search engines the framework already recognises. "bot" must stand as a
+// word or end a name (Googlebot/2.1), so CUBOT phones are not caught.
+const AUTOMATED =
+    /(?:^|[^a-z])bot(?:[^a-z]|$)|[a-z]bot[/;),]|crawl|spider|slurp|scrap|googleother|google-|feedfetcher|headless|phantomjs|puppeteer|playwright|selenium|webdriver|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|preview|python|curl|wget|httpclient|okhttp|axios|node-fetch|go-http|java\/|libwww|archiver|scanner/i;
+
+export function looksAutomated(agent: string) {
+    return !agent.trim() || AUTOMATED.test(agent);
+}

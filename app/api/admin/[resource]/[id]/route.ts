@@ -1,8 +1,7 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { fail, pick, readJson, requireAdmin, UUID_PATTERN } from "../../../../../lib/admin-api";
 import { ADMIN_RESOURCES, isAdminResource } from "../../../../../lib/admin-resources";
-import { PLACES_TAG } from "../../../../../lib/places/server";
+import { refreshPlaces } from "../../../../../lib/refresh";
 
 type Context = {
     params: Promise<{ resource: string; id: string }>;
@@ -49,7 +48,7 @@ export async function PATCH(request: Request, context: Context) {
     }
 
     // Public pages serve cached places; refresh them in the background.
-    if (resource === "spots") revalidateTag(PLACES_TAG, "max");
+    if (resource === "spots") refreshPlaces();
 
     return NextResponse.json({ ok: true, row: data });
 }

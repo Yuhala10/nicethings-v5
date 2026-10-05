@@ -5,7 +5,7 @@ import { cleanBlocks, type Block } from "./blocks";
 
 // Public reads of published articles with the publishable key: Row Level
 // Security only shows published ones whose date has come. Cached like the
-// places; the admin calls revalidateTag(POSTS_TAG) after each save.
+// places; the admin calls refreshPosts() (lib/refresh.ts) after each save.
 
 export const POSTS_TAG = "posts";
 
@@ -58,7 +58,9 @@ function toSummary(row: Record<string, unknown>): PostSummary {
     };
 }
 
-async function loadPosts(): Promise<PostSummary[]> {
+// Straight from the database, for the sitemap: it must list an article the
+// moment it is published.
+export async function loadPosts(): Promise<PostSummary[]> {
     const { data, error } = await client()
         .from("nt_posts")
         .select(SUMMARY_COLUMNS)

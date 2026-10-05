@@ -1,8 +1,7 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { UUID_PATTERN, fail, readJson, requireAdmin } from "@/lib/admin-api";
 import { readPostChanges, uniquePostSlug } from "@/lib/blog/admin";
-import { POSTS_TAG } from "@/lib/blog/server";
+import { refreshPosts } from "@/lib/refresh";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -49,7 +48,7 @@ export async function PATCH(request: Request, context: Context) {
 
         const { data, error } = await db.from("nt_posts").update(changes).eq("id", id).select("*").single();
         if (error) throw error;
-        revalidateTag(POSTS_TAG, "max");
+        refreshPosts();
         return NextResponse.json({ ok: true, row: data });
     } catch (error) {
         return fail(error);
@@ -68,6 +67,6 @@ export async function DELETE(_request: Request, context: Context) {
 
     const { error } = await db.from("nt_posts").delete().eq("id", id);
     if (error) return fail(error);
-    revalidateTag(POSTS_TAG, "max");
+    refreshPosts();
     return NextResponse.json({ ok: true });
 }

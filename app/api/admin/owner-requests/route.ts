@@ -1,8 +1,7 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { fail, readJson, requireAdmin } from "@/lib/admin-api";
-import { PLACES_TAG } from "@/lib/places/server";
 import { CATEGORIES } from "@/lib/tags";
+import { refreshPlaces } from "@/lib/refresh";
 
 // Corrections owners asked for on fields only the team may change (name,
 // category, address, position).
@@ -47,7 +46,7 @@ export async function PATCH(request: Request) {
         if (Object.keys(update).length) {
             const { error } = await db.from("nt_spots").update(update).eq("id", change.spot_id);
             if (error) return fail(error);
-            revalidateTag(PLACES_TAG, "max");
+            refreshPlaces();
         }
     }
     const { error } = await db.from("nt_spot_changes").update({ status: body.action === "apply" ? "APPLIED" : "REJECTED" }).eq("id", id);

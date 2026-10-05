@@ -26,6 +26,7 @@ export function Stat({
     hint,
     tone = "neutral",
     href,
+    aside,
 }: {
     icon: LucideIcon;
     label: string;
@@ -33,6 +34,8 @@ export function Stat({
     hint?: string;
     tone?: "neutral" | "brand" | "good" | "warn";
     href?: string;
+    // Shown opposite the icon: a trend, a badge.
+    aside?: ReactNode;
 }) {
     const tones = {
         neutral: "text-text-2",
@@ -42,7 +45,10 @@ export function Stat({
     } as const;
     const body = (
         <>
-            <Icon size={18} strokeWidth={1.8} className={tones[tone]} />
+            <div className="flex items-center justify-between gap-2">
+                <Icon size={18} strokeWidth={1.8} className={tones[tone]} />
+                {aside}
+            </div>
             <p className="a-serif mt-4 text-[2.3rem] leading-none tabular-nums">{value}</p>
             <p className="mt-1.5 text-sm font-medium text-text-2">{label}</p>
             {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}

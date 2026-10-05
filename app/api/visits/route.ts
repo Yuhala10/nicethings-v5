@@ -1,16 +1,21 @@
 import { NextResponse, userAgent } from "next/server";
 import { UUID_PATTERN } from "@/lib/admin-api";
 import { hasAdminSession } from "@/lib/admin-auth";
-import { describePath, visitSource } from "@/lib/analytics";
+import { describePath, isHumanSign, looksAutomated, visitSource } from "@/lib/analytics";
 import { publicWriteClient } from "@/lib/feedback";
 import { getPlacesBySlugs } from "@/lib/places/server";
 
-// Anonymous audience log: one row per page seen (kind of page, city,
-// language, device, where the visit came from) under a random id kept in
-// the browser. No IP address, no position. Feeds the admin "Audience" page.
-// Robots and the team (anyone signed in to the console) are not counted.
+// Anonymous audience log: one row per page seen by a real person (kind of
+// page, city, language, device, where the visit came from) under a random
+// id kept in the browser. No IP address, no position. Feeds the admin
+// "Audience" page. Robots and the team (anyone signed in to the console)
+// are not counted.
 export async function POST(request: Request) {
     const done = () => new NextResponse(null, { status: 204 });
+
+    // Sent by our own pages only: browsers say where a request comes from.
+    const site = request.headers.get("sec-fetch-site");
+    if (site && site !== "same-origin") return done();
 
     let body: Record<string, unknown>;
     try {
@@ -21,10 +26,12 @@ export async function POST(request: Request) {
     const visitor = typeof body.v === "string" && UUID_PATTERN.test(body.v) ? body.v.toLowerCase() : null;
     const path = typeof body.path === "string" ? body.path.slice(0, 300) : "";
     const seen = describePath(path);
-    if (!visitor || !seen) return done();
+    // The browser only writes once a person has touched, typed or moved the
+    // mouse (components/site/Analytics.tsx): without that sign, no count.
+    if (!visitor || !seen || !isHumanSign(body.h)) return done();
 
     const agent = userAgent(request);
-    if (agent.isBot || (await hasAdminSession().catch(() => false))) return done();
+    if (agent.isBot || looksAutomated(agent.ua) || (await hasAdminSession().catch(() => false))) return done();
 
     // Place pages have no city in their URL: take it from the catalogue.
     let city = seen.city;

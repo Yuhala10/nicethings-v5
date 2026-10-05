@@ -1,9 +1,8 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { readMenu } from "@/lib/claims/owner-edits";
 import { ownedSpot } from "@/lib/claims/owned";
-import { PLACES_TAG } from "@/lib/places/server";
 import { requireOwner } from "@/lib/supabase/owner";
+import { refreshPlaces } from "@/lib/refresh";
 
 // PUT { items: [...] } — replaces the whole menu (prices in FCFA).
 export async function PUT(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -28,6 +27,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ slug
         }
     }
     await db.from("nt_spot_changes").insert({ spot_id: owned.spot.id, user_id: owner.id, field: "menu", old_value: before ?? [], new_value: items, status: "APPLIED" });
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true, count: items.length });
 }

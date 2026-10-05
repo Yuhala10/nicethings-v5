@@ -1,8 +1,7 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { fail, readJson, requireAdmin, UUID_PATTERN } from "@/lib/admin-api";
 import { readNewPlace, uniqueSlug } from "@/lib/admin-places";
-import { PLACES_TAG } from "@/lib/places/server";
+import { refreshPlaces } from "@/lib/refresh";
 
 // Turn a visitor's suggestion into a place (a draft to complete, or
 // published straight away when it has a position), and close the
@@ -45,7 +44,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         const closed = await db.from("nt_spot_submissions").update({ status: "APPROVED" }).eq("id", id);
         if (closed.error) throw closed.error;
 
-        revalidateTag(PLACES_TAG, "max");
+        refreshPlaces();
         return NextResponse.json({ ok: true, row: created.data });
     } catch (caught) {
         return fail(caught);

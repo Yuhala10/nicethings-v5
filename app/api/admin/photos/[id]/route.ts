@@ -1,7 +1,6 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { fail, readJson, requireAdmin, UUID_PATTERN } from "@/lib/admin-api";
-import { PLACES_TAG } from "@/lib/places/server";
+import { refreshPlaces } from "@/lib/refresh";
 
 const BUCKET = "spot-photos";
 
@@ -40,7 +39,7 @@ export async function PATCH(request: Request, context: Context) {
         .eq("id", id);
     if (error) return fail(error);
 
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true });
 }
 
@@ -59,6 +58,6 @@ export async function DELETE(_request: Request, context: Context) {
     const path = storagePath(photo.data.image_url);
     if (path) await db.storage.from(BUCKET).remove([path]);
 
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true });
 }

@@ -33,6 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: excerpt || undefined,
         // An untranslated English page points search engines to the French one.
         alternates: { canonical: translated ? paths.post(lang, slug) : paths.post("fr", slug), languages },
+        // Lets Google show the cover in large and quote the text freely
+        // (needed for Discover and for its AI answers).
+        robots: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
         openGraph: {
             type: "article",
             title,

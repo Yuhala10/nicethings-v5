@@ -1,8 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { fail, requireAdmin, UUID_PATTERN } from "@/lib/admin-api";
-import { PLACES_TAG } from "@/lib/places/server";
+import { refreshPlaces } from "@/lib/refresh";
 
 const BUCKET = "spot-photos";
 const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
@@ -58,6 +57,6 @@ export async function POST(request: Request) {
         return fail(error);
     }
 
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true, row: data });
 }

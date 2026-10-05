@@ -1,11 +1,10 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { UUID_PATTERN, fail, readJson, requireAdmin } from "@/lib/admin-api";
 import { cleanText } from "@/lib/feedback";
 import { assess, type ClaimFile } from "@/lib/claims/score";
 import { openCode } from "@/lib/claims/secrets";
 import { PROOF_BUCKET, claimContext, logClaimEvent, refreshAssessment, type ClaimRow } from "@/lib/claims/server";
-import { PLACES_TAG } from "@/lib/places/server";
+import { refreshPlaces } from "@/lib/refresh";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -105,7 +104,7 @@ export async function PATCH(request: Request, context: Context) {
             await db.from("nt_spots").update({ claimed: true }).eq("id", claim.spot_id);
             changes = { status: "APPROVED", decided_at: now, decided_by: "équipe", review_note: note ?? claim.review_note, phone_code_secret: null, message_to_owner: null };
             if (!assessment.canApprove) await logClaimEvent(db, claim.id, "team", "approved_with_override", { reason: note, blocker: assessment.blocker });
-            revalidateTag(PLACES_TAG, "max");
+            refreshPlaces();
             break;
         }
         case "revoke": {
@@ -114,7 +113,7 @@ export async function PATCH(request: Request, context: Context) {
             const { count } = await db.from("nt_place_owners").select("id", { count: "exact", head: true }).eq("spot_id", claim.spot_id).is("revoked_at", null);
             if (!count) await db.from("nt_spots").update({ claimed: false }).eq("id", claim.spot_id);
             changes = { review_note: note };
-            revalidateTag(PLACES_TAG, "max");
+            refreshPlaces();
             break;
         }
         default:

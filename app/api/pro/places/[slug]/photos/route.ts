@@ -1,10 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { UUID_PATTERN } from "@/lib/admin-api";
 import { ownedSpot } from "@/lib/claims/owned";
-import { PLACES_TAG } from "@/lib/places/server";
+import { refreshPlaces } from "@/lib/refresh";
 import { requireOwner } from "@/lib/supabase/owner";
 
 type Context = { params: Promise<{ slug: string }> };
@@ -48,7 +47,7 @@ export async function POST(request: Request, context: Context) {
         return NextResponse.json({ ok: false, message: "Enregistrement impossible." }, { status: 502 });
     }
     await db.from("nt_spot_changes").insert({ spot_id: owned.spot.id, user_id: owner.id, field: "photo_added", new_value: { url }, status: "APPLIED" });
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true, photo: data });
 }
 
@@ -68,7 +67,7 @@ export async function DELETE(request: Request, context: Context) {
     const path = photo.image_url.includes(marker) ? photo.image_url.split(marker)[1] : null;
     if (path) await db.storage.from(BUCKET).remove([path]);
     await db.from("nt_spot_changes").insert({ spot_id: owned.spot.id, user_id: owner.id, field: "photo_removed", old_value: { url: photo.image_url }, status: "APPLIED" });
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true });
 }
 
@@ -84,6 +83,6 @@ export async function PATCH(request: Request, context: Context) {
     const mine = new Set<string>((photos ?? []).map((photo) => String(photo.id)));
     const ids = [...order.filter((id) => mine.has(id)), ...[...mine].filter((id) => !order.includes(id))];
     await Promise.all(ids.map((id, index) => db.from("nt_spot_photos").update({ sort_order: index }).eq("id", id)));
-    revalidateTag(PLACES_TAG, "max");
+    refreshPlaces();
     return NextResponse.json({ ok: true });
 }

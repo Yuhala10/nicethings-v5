@@ -4,7 +4,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BadgeCheck, BarChart3, Camera, ExternalLink, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Newspaper, Search, type LucideIcon } from "lucide-react";
-import { adminGet } from "@/lib/admin-client";
+import { adminGet, adminPost } from "@/lib/admin-client";
+import { TEAM_KEY, VISITOR_KEY } from "@/lib/analytics";
 import { AdminLangProvider, LangSwitch, useTr } from "./i18n";
 import { AdminToastProvider } from "./ui";
 
@@ -56,6 +57,20 @@ function Frame({ children }: { children: ReactNode }) {
             .then((data) => setCounts({ submissions: data.submissions, reports: data.reports, claims: data.claims ?? 0 }))
             .catch(() => {});
     }, [pathname]);
+
+    // A browser that opens the console belongs to the team: the public site
+    // stops counting it (components/site/Analytics.tsx), and the pages it was
+    // counted for before signing in are taken out of the statistics, once.
+    useEffect(() => {
+        try {
+            if (localStorage.getItem(TEAM_KEY) === "cleared") return;
+            localStorage.setItem(TEAM_KEY, "1");
+            const visitor = localStorage.getItem(VISITOR_KEY);
+            const done = () => localStorage.setItem(TEAM_KEY, "cleared");
+            if (visitor) adminPost("audience", { visitor }).then(done, () => {});
+            else done();
+        } catch {}
+    }, []);
 
     const active = (item: Item) => (item.exact ? pathname === item.href : pathname.startsWith(item.href));
     const label = (item: Item) => tr(...item.label);

@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { getPosts } from "@/lib/blog/server";
+import { getPosts, loadPosts } from "@/lib/blog/server";
 import { CITIES } from "@/lib/cities";
 import { SITE_URL, type Locale } from "@/lib/i18n/config";
 import { areasOf } from "@/lib/places/areas";
 import { availableCollections } from "@/lib/places/collections";
 import { isIndexable } from "@/lib/places/display";
 import { paths } from "@/lib/places/paths";
-import { getAllPlaces } from "@/lib/places/server";
+import { getAllPlaces, loadAllPlaces } from "@/lib/places/server";
 
 export const revalidate = 3600;
 
@@ -24,7 +24,13 @@ function entry(path: Localised, priority: number): MetadataRoute.Sitemap[number]
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const places = await getAllPlaces().catch(() => []);
+    // Read from the database at each rebuild, not from the page cache: the
+    // cached copy made the sitemap run one edition late, so a new article
+    // stayed invisible to search engines. The cache is only the fallback when
+    // the database does not answer.
+    const places = await loadAllPlaces()
+        .catch(() => getAllPlaces())
+        .catch(() => []);
     const entries: MetadataRoute.Sitemap = [entry(paths.home, 1)];
 
     for (const city of CITIES) {
@@ -74,7 +80,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push(entry(paths.pro, 0.4));
 
     // The blog, and each article (English only when it is translated).
-    const posts = await getPosts().catch(() => []);
+    const posts = await loadPosts()
+        .catch(() => getPosts())
+        .catch(() => []);
     if (posts.length) entries.push(entry(paths.blog, 0.8));
     for (const post of posts) {
         const fr = `${SITE_URL}${paths.post("fr", post.slug)}`;
