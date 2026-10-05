@@ -89,6 +89,8 @@ export default async function SiteLayout({ children, params }: Props) {
         "@context": "https://schema.org",
         "@type": "WebSite",
         name: "NiceThings",
+        // How people type it: Google uses these to match the site to its name.
+        alternateName: ["Nice Things", "NiceThings Cameroun", "nicethings.site"],
         url: `${SITE_URL}/${lang}`,
         inLanguage: lang === "fr" ? "fr-CM" : "en-CM",
         potentialAction: {

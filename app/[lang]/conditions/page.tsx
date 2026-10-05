@@ -10,7 +10,8 @@ type Props = { params: Promise<{ lang: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { lang } = await params;
     if (!isLocale(lang)) return {};
-    return { title: TERMS[lang].title, alternates: { canonical: paths.terms(lang) } };
+    // Kept out of search results, like the privacy page.
+    return { title: TERMS[lang].title, alternates: { canonical: paths.terms(lang) }, robots: { index: false, follow: true } };
 }
 
 export default async function Page({ params }: Props) {

@@ -10,7 +10,9 @@ type Props = { params: Promise<{ lang: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { lang } = await params;
     if (!isLocale(lang)) return {};
-    return { title: PRIVACY[lang].title, alternates: { canonical: paths.privacy(lang) } };
+    // Readable by everyone, but kept out of search results: a legal page
+    // should never be what shows up when someone searches for NiceThings.
+    return { title: PRIVACY[lang].title, alternates: { canonical: paths.privacy(lang) }, robots: { index: false, follow: true } };
 }
 
 export default async function Page({ params }: Props) {
