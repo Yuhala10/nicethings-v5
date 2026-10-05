@@ -140,12 +140,20 @@ export default function BlockEditor({
     switch (block.type) {
         case "p":
             body = (
-                <AutoText
-                    value={block.text}
-                    onChange={(text) => onChange({ ...block, text })}
-                    placeholder={tr("Écris ici… **gras**, *italique*, [lien](https://…) ou [lien interne](/fr/yaounde/bastos)", "Write here… **bold**, *italic*, [link](https://…) or [internal link](/fr/yaounde/bastos)")}
-                    className="text-[1.02rem]"
-                />
+                <>
+                    <AutoText
+                        value={block.text}
+                        onChange={(text) => onChange({ ...block, text })}
+                        placeholder={tr("Écris ici… **gras**, *italique*, [lien](https://…) ou [lien interne](/fr/yaounde/bastos)", "Write here… **bold**, *italic*, [link](https://…) or [internal link](/fr/yaounde/bastos)")}
+                        className="text-[1.02rem]"
+                    />
+                    <p className="mt-1.5 text-xs text-muted">
+                        {tr(
+                            "Tu peux coller tout un texte ici : une ligne vide commence un nouveau paragraphe, et une ligne courte seule, sans point final, devient un titre de partie.",
+                            "You can paste a whole text here: a blank line starts a new paragraph, and a short line on its own, with no full stop, becomes a section title."
+                        )}
+                    </p>
+                </>
             );
             break;
         case "h2":

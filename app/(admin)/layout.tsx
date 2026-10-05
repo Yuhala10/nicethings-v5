@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Instrument_Serif } from "next/font/google";
+import { TRANSLATE_GUARD } from "@/lib/translate-guard";
 import "./admin.css";
 
 // Root layout for the private team console. The public site has its own
@@ -12,6 +13,10 @@ const editorial = Instrument_Serif({ subsets: ["latin"], weight: "400", style: [
 export const metadata: Metadata = {
     title: { default: "Espace équipe", template: "%s · NiceThings équipe" },
     robots: { index: false, follow: false },
+    // The console has its own French and English: machine translation by
+    // the browser is asked to stay off (it broke the pages at the first
+    // touch).
+    other: { google: "notranslate" },
     icons: { icon: "/brand/icon.svg" },
 };
 
@@ -24,8 +29,11 @@ export const viewport: Viewport = {
 
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="fr" className={`${body.variable} ${editorial.variable}`}>
-            <body>{children}</body>
+        <html lang="fr" translate="no" className={`${body.variable} ${editorial.variable}`}>
+            <body>
+                <script dangerouslySetInnerHTML={{ __html: TRANSLATE_GUARD }} />
+                {children}
+            </body>
         </html>
     );
 }

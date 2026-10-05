@@ -8,6 +8,7 @@ import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
 import Analytics from "./Analytics";
+import LanguagePrompt from "./LanguagePrompt";
 import { useLocale } from "./LocaleProvider";
 import LocationHelp from "./LocationHelp";
 import NavProgress from "./NavProgress";
@@ -232,6 +233,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             <LocationHelp />
             <NavProgress />
             <Analytics />
+            {layout === "page" && <LanguagePrompt />}
             {/* Desktop only; phones get the tab bar and each page's own top. */}
             {layout === "page" && <SiteHeader />}
             {layout === "map" || layout === "navigation" ? (

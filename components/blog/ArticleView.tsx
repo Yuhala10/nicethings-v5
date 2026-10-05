@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock3, Languages } from "lucide-react";
-import { outline, placesIn, plainText } from "@/lib/blog/blocks";
+import { expandBlocks, outline, placesIn, plainText } from "@/lib/blog/blocks";
 import { getPosts, localised, type Post } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
 import { cityBySlug } from "@/lib/cities";
@@ -27,7 +27,8 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
     const t = getDictionary(lang);
 
     const { title, excerpt, translated } = localised(post, lang);
-    const blocks = lang === "en" && post.body.en.length && post.title.en ? post.body.en : post.body.fr;
+    // Text pasted as one block is opened up into paragraphs and titles.
+    const blocks = expandBlocks(lang === "en" && post.body.en.length && post.title.en ? post.body.en : post.body.fr);
     const places = await getPlacesBySlugs(placesIn(blocks)).catch((): PlaceSummary[] => []);
     const placeMap = new Map(places.map((place) => [place.slug, place] as const));
     const contents = outline(blocks);

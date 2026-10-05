@@ -4,7 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 // The team console in French or English. Each text is written in both
 // languages where it is used — tr("Lieux publiés", "Published places") — so
-// a screen can never be half translated. The choice is kept per browser.
+// a screen can never be half translated. The choice is kept per browser;
+// before any choice, a phone or computer set to English gets English.
 
 export type AdminLang = "fr" | "en";
 const KEY = "nt_admin_lang";
@@ -23,7 +24,8 @@ export function AdminLangProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         try {
-            if (localStorage.getItem(KEY) === "en") {
+            const saved = localStorage.getItem(KEY);
+            if (saved === "en" || (saved === null && navigator.language.toLowerCase().startsWith("en"))) {
                 current = "en";
                 setState("en");
             }

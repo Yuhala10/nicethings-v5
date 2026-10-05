@@ -58,7 +58,7 @@ export default function ArticlePlace({ place, note, number }: { place: PlaceSumm
                     <OpenBadge hours={place.hours} compact />
                 </div>
                 {note && (
-                    <p className="mt-4 text-[1.02rem] leading-relaxed text-text-2">
+                    <p className="mt-4 text-[1.02rem] leading-relaxed whitespace-pre-line text-text-2">
                         <Inline text={note} />
                     </p>
                 )}

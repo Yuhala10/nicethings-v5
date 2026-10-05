@@ -6,6 +6,7 @@ import SiteChrome from "@/components/site/SiteChrome";
 import { LOCALES, SITE_URL, getDictionary, isLocale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { siteShareImage } from "@/lib/share-image";
+import { TRANSLATE_GUARD } from "@/lib/translate-guard";
 import "./site.css";
 
 // Two voices: DM Sans for everything you operate, Instrument Serif for the
@@ -61,6 +62,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         appleWebApp: { capable: true, title: "NiceThings", statusBarStyle: "default" },
         formatDetection: { telephone: false },
         category: "travel",
+        // The site is written in French and in English: the browser's own
+        // machine translation is asked to stay off (it also broke the pages).
+        other: { google: "notranslate" },
         // Search Console / Bing Webmaster ownership, set in Vercel when ready.
         verification: {
             google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
@@ -101,8 +105,9 @@ export default async function SiteLayout({ children, params }: Props) {
     };
 
     return (
-        <html lang={lang} className={`${body.variable} ${editorial.variable}`} suppressHydrationWarning>
+        <html lang={lang} translate="no" className={`${body.variable} ${editorial.variable}`} suppressHydrationWarning>
             <body>
+                <script dangerouslySetInnerHTML={{ __html: TRANSLATE_GUARD }} />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

@@ -56,7 +56,8 @@ export function cleanBlocks(input: unknown): Block[] {
             case "h2":
             case "h3":
             case "tip": {
-                const text = str(item.text, item.type === "p" || item.type === "tip" ? 4000 : 200).trim();
+                // A whole article is sometimes pasted into one text block.
+                const text = str(item.text, item.type === "p" ? 20000 : item.type === "tip" ? 4000 : 200).trim();
                 if (text) blocks.push({ type: item.type, text });
                 break;
             }
@@ -88,6 +89,41 @@ export function cleanBlocks(input: unknown): Block[] {
         }
     }
     return blocks;
+}
+
+const BULLET = /^\s*(?:[-•*–]|\d{1,2}[.)])\s+/;
+
+// A short line standing alone, with no final punctuation, followed by text.
+function isTitle(chunk: string, last: boolean) {
+    if (last || chunk.includes("\n") || chunk.length > 80) return false;
+    const text = plainText(chunk).trim();
+    return /\p{L}{3}/u.test(text) && !/[.!?:;,…]["'”’»)]?$/.test(text);
+}
+
+// A writer often pastes a whole text into one block, and it used to come
+// out as a single wall of words. For reading, such a block is opened up: a
+// blank line starts a new paragraph, a short line on its own with no final
+// punctuation is a section title ("# Title" works too), and lines starting
+// with "-" or "1." make a list. The stored article and the editor keep the
+// text exactly as it was written.
+export function expandBlocks(blocks: Block[]): Block[] {
+    return blocks.flatMap((block): Block[] => {
+        if (block.type !== "p" || !/\n\s*\n/.test(block.text)) return [block];
+        const chunks = block.text
+            .split(/\n\s*\n/)
+            .map((chunk) => chunk.trim())
+            .filter(Boolean);
+        return chunks.map((chunk, index): Block => {
+            const lines = chunk.split("\n");
+            const marked = lines.length === 1 ? chunk.match(/^(#{1,3})\s+(.+)$/) : null;
+            if (marked) return { type: marked[1].length === 3 ? "h3" : "h2", text: marked[2].trim() };
+            if (lines.length > 1 && lines.every((line) => BULLET.test(line))) {
+                return { type: "list", ordered: lines.every((line) => /^\s*\d/.test(line)), items: lines.map((line) => line.replace(BULLET, "").trim()) };
+            }
+            if (isTitle(chunk, index === chunks.length - 1)) return { type: "h2", text: plainText(chunk).trim() };
+            return { type: "p", text: chunk };
+        });
+    });
 }
 
 // Every place an article shows, in order of appearance.

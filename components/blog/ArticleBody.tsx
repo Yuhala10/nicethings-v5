@@ -20,7 +20,8 @@ export default function ArticleBody({ blocks, places, t }: { blocks: Block[]; pl
                 switch (block.type) {
                     case "p":
                         return (
-                            <p key={index}>
+                            // Line breaks typed by the writer are kept.
+                            <p key={index} className="whitespace-pre-line">
                                 <Inline text={block.text} />
                             </p>
                         );
@@ -69,7 +70,7 @@ export default function ArticleBody({ blocks, places, t }: { blocks: Block[]; pl
                         return (
                             <blockquote key={index} className="relative my-10 rounded-[1.75rem] bg-surface-2 px-6 pt-10 pb-6 md:px-8">
                                 <Quote size={30} className="absolute top-4 left-5 text-brand-500" />
-                                <p className="nt-serif text-[1.75rem] leading-[1.2] text-text italic md:text-[2.1rem]">
+                                <p className="nt-serif text-[1.75rem] leading-[1.2] whitespace-pre-line text-text italic md:text-[2.1rem]">
                                     <Inline text={block.text} />
                                 </p>
                                 {block.cite && <footer className="mt-3 text-sm font-semibold text-muted">— {block.cite}</footer>}
@@ -95,8 +96,8 @@ export default function ArticleBody({ blocks, places, t }: { blocks: Block[]; pl
                                 </span>
                                 <div>
                                     <p className="text-xs font-extrabold tracking-wider text-brand-600 uppercase">{t.blog.tip}</p>
-                                    <p className="mt-1 leading-relaxed text-text-2">
-                                        <Inline text={block.text} />
+                                    <p className="mt-1 leading-relaxed whitespace-pre-line text-text-2">
+                                        <Inline text={block.text.replace(/\n{3,}/g, "\n\n")} />
                                     </p>
                                 </div>
                             </aside>
