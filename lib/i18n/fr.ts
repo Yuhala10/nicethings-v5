@@ -541,6 +541,8 @@ export const fr = {
         homeTitle: "Fondé et construit par {name}.",
         readStory: "Lire son histoire",
         storyEyebrow: "Son histoire",
+        faqQuestion: "Qui a créé NiceThings ?",
+        faqAnswer: "NiceThings a été fondé et construit par {name}, étudiant à l'{school} (Polytechnique Yaoundé). Son histoire est sur la page À propos.",
         studies: "Études",
         email: "Écrire un e-mail",
         figuresEyebrow: "NiceThings aujourd'hui",

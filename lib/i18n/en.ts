@@ -539,6 +539,8 @@ export const en: Dictionary = {
         homeTitle: "Founded and built by {name}.",
         readStory: "Read his story",
         storyEyebrow: "His story",
+        faqQuestion: "Who founded NiceThings?",
+        faqAnswer: "NiceThings was founded and built by {name}, a student at {school} (Polytechnique Yaoundé). His story is on the About page.",
         studies: "Studies",
         email: "Send an email",
         figuresEyebrow: "NiceThings today",
