@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fail, readJson, requireAdmin } from "@/lib/admin-api";
 import { POST_LIST_COLUMNS, uniquePostSlug } from "@/lib/blog/admin";
+import { FOUNDER } from "@/lib/founder";
 
 // GET /api/admin/posts — every article, newest first, for the console list.
 export async function GET() {
@@ -25,7 +26,8 @@ export async function POST(request: Request) {
         const slug = await uniquePostSlug(db, title);
         const { data, error } = await db
             .from("nt_posts")
-            .insert({ slug, title_fr: title, status: "DRAFT", body_fr: [{ type: "p", text: "" }] })
+            // Signed by the founder unless the byline is changed in the editor.
+            .insert({ slug, title_fr: title, status: "DRAFT", author: FOUNDER.name, body_fr: [{ type: "p", text: "" }] })
             .select("id")
             .single();
         if (error) throw error;

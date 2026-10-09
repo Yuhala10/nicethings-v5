@@ -78,6 +78,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // The page inviting businesses to claim their listing.
     entries.push(...entry(paths.pro, 0.4));
 
+    // Who is behind NiceThings.
+    entries.push(...entry(paths.about, 0.5));
+
     // The blog, and each article (English only when it is translated).
     const posts = await loadPosts()
         .catch(() => getPosts())

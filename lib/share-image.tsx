@@ -5,6 +5,7 @@ import { DEFAULT_CITY, cityBySlug } from "./cities";
 import { fill, getDictionary, type Locale } from "./i18n";
 import { localised, type PostSummary } from "./blog/server";
 import { TOPICS, isTopic, topicLabel } from "./blog/topics";
+import { FOUNDER } from "./founder";
 import { Brand, OG_SIZE, TEXT_FONT, TITLE_FONT, ogCard, ogFonts } from "./og";
 import { categoryStyle } from "./places/display";
 import type { PlaceDetail } from "./places/types";
@@ -199,4 +200,71 @@ export async function postShareJpeg(post: PostSummary, lang: Locale) {
     };
     const photo = post.cover ? await photoJpeg(post.cover, card) : null;
     return photo ?? toJpeg(ogCard({ eyebrow: card.chip, title: card.title, footer: card.subline, tone: card.tone }));
+}
+
+export function founderShareImage(lang: Locale) {
+    return {
+        url: `/api/share/founder?l=${lang}&v=${version([lang, FOUNDER.name, FOUNDER.role[lang], FOUNDER.pull[lang], FOUNDER.photo])}`,
+        width: OG_SIZE.width,
+        height: OG_SIZE.height,
+        alt: `${FOUNDER.name}, ${FOUNDER.role[lang]}`,
+        type: "image/jpeg",
+    };
+}
+
+// The founder's card: his name on ink and the studio portrait whole on the
+// right. (Cropping a standing portrait to a wide card loses the face.)
+const PORTRAIT_WIDTH = Math.round((OG_SIZE.height * 3) / 4);
+
+async function founderOverlay(lang: Locale) {
+    return new ImageResponse(
+        (
+            <div style={{ width: "100%", height: "100%", display: "flex", fontFamily: TEXT_FONT, fontWeight: 500 }}>
+                <div
+                    style={{
+                        position: "absolute",
+                        left: OG_SIZE.width - PORTRAIT_WIDTH,
+                        top: 0,
+                        width: 240,
+                        height: "100%",
+                        background: "linear-gradient(to right, rgba(11,8,6,1) 0%, rgba(11,8,6,0) 100%)",
+                    }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: OG_SIZE.width - PORTRAIT_WIDTH + 40, padding: "56px 0 52px 64px" }}>
+                    <Brand />
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div style={{ display: "flex" }}>
+                            <div style={{ display: "flex", padding: "8px 18px", borderRadius: 999, background: "#c0471b", color: "white", fontSize: 24, fontWeight: 700 }}>
+                                {FOUNDER.role[lang]}
+                            </div>
+                        </div>
+                        <div style={{ display: "flex", marginTop: 18, fontFamily: TITLE_FONT, fontSize: 88, fontWeight: 800, color: "white", lineHeight: 1, letterSpacing: "-0.03em" }}>
+                            {FOUNDER.name}
+                        </div>
+                        <div style={{ display: "flex", marginTop: 22, fontSize: 28, lineHeight: 1.3, color: "rgba(255,255,255,0.82)" }}>{FOUNDER.pull[lang].join(" ")}</div>
+                    </div>
+                    <div style={{ display: "flex", fontSize: 24, color: "rgba(255,255,255,0.6)" }}>nicethings.site</div>
+                </div>
+            </div>
+        ),
+        { ...OG_SIZE, fonts: await ogFonts() }
+    );
+}
+
+// `origin` is the site answering the request: the portrait is one of its own
+// files.
+export async function founderShareJpeg(lang: Locale, origin: string) {
+    try {
+        const photo = await fetch(`${origin}${FOUNDER.photo}`, { signal: AbortSignal.timeout(8000) });
+        if (!photo.ok) throw new Error(`Photo ${photo.status}`);
+        const portrait = await sharp(Buffer.from(await photo.arrayBuffer())).resize(PORTRAIT_WIDTH, OG_SIZE.height, { fit: "cover" }).toBuffer();
+        const overlay = Buffer.from(await (await founderOverlay(lang)).arrayBuffer());
+        return await sharp({ create: { width: OG_SIZE.width, height: OG_SIZE.height, channels: 3, background: "#0b0806" } })
+            .composite([{ input: portrait, left: OG_SIZE.width - PORTRAIT_WIDTH, top: 0 }, { input: overlay }])
+            .jpeg({ quality: QUALITY, mozjpeg: true })
+            .toBuffer();
+    } catch (error) {
+        console.error("Founder share photo failed, using the card:", error);
+        return toJpeg(ogCard({ eyebrow: FOUNDER.role[lang], title: FOUNDER.name, footer: FOUNDER.pull[lang].join(" "), tone: "#c0471b" }));
+    }
 }
