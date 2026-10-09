@@ -13,6 +13,7 @@ const LEGACY: Record<string, string> = {
     "/privacy": "/confidentialite",
     "/terms": "/conditions",
     "/profile": "/favoris",
+    "/about": "/a-propos",
 };
 
 function preferredLocale(request: NextRequest) {

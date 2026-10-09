@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock3, Languages } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Languages } from "lucide-react";
+import FounderPortrait from "@/components/site/FounderPortrait";
 import { expandBlocks, outline, placesIn, plainText } from "@/lib/blog/blocks";
 import { getPosts, localised, type Post } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
 import { cityBySlug } from "@/lib/cities";
+import { FOUNDER, ORGANIZATION_ID, founderJsonLd, isFounder } from "@/lib/founder";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { getPlacesBySlugs } from "@/lib/places/server";
@@ -35,6 +37,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
     const tone = isTopic(post.topic) ? TOPICS[post.topic].tone : "#ff5b36";
     const city = cityBySlug(post.city);
     const shareImage = postShareImage(post, lang).url;
+    const byFounder = isFounder(post.author);
 
     const all = await getPosts().catch(() => []);
     const related = all
@@ -58,8 +61,10 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
             datePublished: post.publishedAt,
             dateModified: post.updatedAt,
             inLanguage: translated && lang === "en" ? "en" : "fr",
-            author: { "@type": "Organization", name: post.author },
-            publisher: { "@type": "Organization", name: "NiceThings", logo: { "@type": "ImageObject", url: `${SITE_URL}/icons/icon-512.png` } },
+            // A person when the founder signed it: search engines then credit
+            // the article to them, not to an anonymous team.
+            author: byFounder ? founderJsonLd(`${SITE_URL}${paths.about(lang)}`, lang) : { "@type": "Organization", name: post.author },
+            publisher: { "@type": "Organization", "@id": ORGANIZATION_ID, name: "NiceThings", logo: { "@type": "ImageObject", url: `${SITE_URL}/icons/icon-512.png` } },
             mainEntityOfPage: url,
             wordCount: blocks.map((block) => ("text" in block ? plainText(block.text) : "")).join(" ").split(/\s+/).filter(Boolean).length,
         },
@@ -124,7 +129,13 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                             <h1 className="nt-serif mt-4 text-[2.6rem] leading-[1.02] md:text-[4.2rem]">{title}</h1>
                             {excerpt && <p className="mt-4 text-lg leading-relaxed text-white/80 md:text-xl">{excerpt}</p>}
                             <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold text-white/75">
-                                <span>{fill(t.blog.by, { author: post.author })}</span>
+                                {byFounder ? (
+                                    <Link href={paths.about(lang)} rel="author" className="underline decoration-white/40 underline-offset-4 hover:decoration-white">
+                                        {fill(t.blog.by, { author: post.author })}
+                                    </Link>
+                                ) : (
+                                    <span>{fill(t.blog.by, { author: post.author })}</span>
+                                )}
                                 <span className="inline-flex items-center gap-1.5">
                                     <CalendarDays size={15} />
                                     {formatDate(post.publishedAt, lang)}
@@ -172,6 +183,19 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                         <p className="nt-serif text-[1.6rem]">{t.blog.share}</p>
                         <ShareBar title={title} path={paths.post(lang, slug)} preview={shareImage} />
                     </div>
+
+                    {/* Who wrote it, with the way to their page. */}
+                    {byFounder && (
+                        <Link href={paths.about(lang)} rel="author" className="nt-pressable group mt-8 flex items-center gap-4 rounded-[1.25rem] bg-surface-2 p-4 md:p-5">
+                            <FounderPortrait size={64} className="h-16 w-16" />
+                            <span className="min-w-0 flex-1">
+                                <span className="nt-eyebrow block">{t.blog.writtenBy}</span>
+                                <span className="nt-serif mt-1 block text-[1.5rem]">{FOUNDER.name}</span>
+                                <span className="mt-0.5 block text-[0.88rem] text-muted">{FOUNDER.role[lang]}</span>
+                            </span>
+                            <ArrowRight size={18} className="shrink-0 text-muted transition-transform duration-200 group-hover:translate-x-0.5" />
+                        </Link>
+                    )}
                 </div>
 
                 {/* Desktop: the contents stay beside the text. */}

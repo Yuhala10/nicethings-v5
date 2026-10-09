@@ -3,6 +3,7 @@ import { DM_Sans, Instrument_Serif } from "next/font/google";
 import { notFound } from "next/navigation";
 import { LocaleProvider } from "@/components/site/LocaleProvider";
 import SiteChrome from "@/components/site/SiteChrome";
+import { FOUNDER, FOUNDER_ID, ORGANIZATION_ID } from "@/lib/founder";
 import { LOCALES, SITE_URL, getDictionary, isLocale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { siteShareImage } from "@/lib/share-image";
@@ -116,12 +117,15 @@ export default async function SiteLayout({ children, params }: Props) {
                             {
                                 "@context": "https://schema.org",
                                 "@type": "Organization",
+                                "@id": ORGANIZATION_ID,
                                 name: "NiceThings",
                                 url: SITE_URL,
                                 logo: `${SITE_URL}/icons/icon-512.png`,
                                 description: dictionary.meta.defaultDescription,
                                 areaServed: { "@type": "Country", name: "Cameroun", identifier: "CM" },
                                 knowsLanguage: ["fr", "en"],
+                                // Ties the name of the founder to NiceThings on every page.
+                                founder: { "@type": "Person", "@id": FOUNDER_ID, name: FOUNDER.name, url: `${SITE_URL}${paths.about(lang)}` },
                             },
                         ]),
                     }}

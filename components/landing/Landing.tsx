@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock3, Heart, Languages, MapPin, MessageCircle, Navigation, Plus, Search, Sparkles, Store, Volume2 } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
@@ -5,6 +6,7 @@ import EditorialSection from "@/components/editorial/EditorialSection";
 import PinCard from "@/components/place/PinCard";
 import { LanguageSwitch, Logo } from "@/components/site/SiteChrome";
 import { CITIES, type City } from "@/lib/cities";
+import { FOUNDER } from "@/lib/founder";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
 import type { Area } from "@/lib/places/areas";
@@ -372,6 +374,30 @@ export default function Landing({
                         ))}
                     </ul>
                 </div>
+            </section>
+
+            {/* ---------------- The founder ---------------- */}
+            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+                <Link href={paths.about(locale)} className="nt-reveal group grid items-center gap-6 md:grid-cols-[minmax(0,20rem)_1fr] md:gap-14">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-[1.4rem] bg-surface-3 md:aspect-[3/4]">
+                        <Image
+                            src={FOUNDER.photo}
+                            alt={`${FOUNDER.name}, ${FOUNDER.role[locale]}`}
+                            fill
+                            sizes="(min-width: 768px) 320px, 100vw"
+                            className="object-cover object-[50%_16%] transition duration-700 ease-out group-hover:scale-[1.03]"
+                        />
+                    </div>
+                    <div>
+                        <p className="nt-eyebrow">{t.about.homeEyebrow}</p>
+                        <h2 className="nt-serif mt-2 text-[2.1rem] md:text-[3.2rem]">{fill(t.about.homeTitle, { name: FOUNDER.name })}</h2>
+                        <p className="mt-4 max-w-xl leading-relaxed text-text-2">{FOUNDER.lead[locale]}</p>
+                        <span className="mt-5 inline-flex items-center gap-1.5 font-semibold">
+                            {t.about.readStory}
+                            <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                        </span>
+                    </div>
+                </Link>
             </section>
 
             {/* ---------------- FAQ ---------------- */}
