@@ -56,11 +56,15 @@ export default function Landing({
     );
     const otherCities = cities.filter((city) => city.slug !== homeCity.slug);
 
+    // The usual questions, then who made it, asked the way people ask a
+    // search engine.
+    const faq = [...t.landing.faq, { q: t.about.faqQuestion, a: fill(t.about.faqAnswer, { name: FOUNDER.name, school: FOUNDER.school.short }) }];
+
     const jsonLd = [
         {
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: t.landing.faq.map((item) => ({
+            mainEntity: faq.map((item) => ({
                 "@type": "Question",
                 name: item.q,
                 acceptedAnswer: { "@type": "Answer", text: item.a },
@@ -404,7 +408,7 @@ export default function Landing({
             <section className="mx-auto max-w-3xl px-4 pt-20 md:px-6 md:pt-28">
                 <h2 className="nt-reveal nt-serif mb-6 text-[2.3rem] md:text-[3rem]">{t.landing.faqTitle}</h2>
                 <div className="divide-y divide-line border-y border-line">
-                    {t.landing.faq.map((item) => (
+                    {faq.map((item) => (
                         <details key={item.q} className="group py-5">
                             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[1.02rem] font-semibold [&::-webkit-details-marker]:hidden">
                                 {item.q}
