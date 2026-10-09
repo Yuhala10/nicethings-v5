@@ -68,7 +68,10 @@ export const FOUNDER = {
 
     // Public profiles (LinkedIn, Instagram…): shown on the About page and
     // given to search engines as the same person.
-    links: [{ label: "GitHub", url: "https://github.com/Yuhala10" }] as { label: string; url: string }[],
+    links: [
+        { label: "LinkedIn", url: "https://www.linkedin.com/in/yuhala-darren-3234b1403" },
+        { label: "GitHub", url: "https://github.com/Yuhala10" },
+    ] as { label: string; url: string }[],
 };
 
 // Stable identifiers so every page describes the same person and the same
