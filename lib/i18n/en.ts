@@ -89,6 +89,7 @@ export const en: Dictionary = {
         useMine: "Use my location",
         locating: "Locating…",
         chooseArea: "Choose my neighbourhood",
+        chooseAreaShort: "My area",
         aroundMe: "Around me",
         denied: "Location blocked. Pick your neighbourhood to see what's close to you.",
         unavailable: "We couldn't find your location. Pick your neighbourhood.",

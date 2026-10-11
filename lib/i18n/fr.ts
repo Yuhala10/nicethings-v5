@@ -91,6 +91,7 @@ export const fr = {
         useMine: "Utiliser ma position",
         locating: "Localisation…",
         chooseArea: "Choisir mon quartier",
+        chooseAreaShort: "Mon quartier",
         aroundMe: "Autour de moi",
         denied: "Position refusée. Choisis ton quartier pour voir ce qu'il y a près de toi.",
         unavailable: "Impossible de te localiser. Choisis ton quartier.",

@@ -178,10 +178,14 @@ export default function SearchView({
             {/* Title */}
             <div className="mx-auto max-w-5xl px-4 pt-[max(env(safe-area-inset-top),1.25rem)] md:px-6 md:pt-10">
                 <p className="nt-eyebrow min-h-[1.3em]">{greeting ? `${t.greeting[greeting.hello]} · ${city.name}` : city.name}</p>
-                <h1 className="nt-serif mt-2 min-h-[2.04em] text-[2.25rem] leading-[1.02] md:min-h-0 md:text-[3.5rem]">
-                    {greeting ? t.greeting[greeting.question] : t.meta.tagline}
-                </h1>
-                <p className="mt-3 text-[1rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</p>
+                {/* The headline and its line keep the room of a two-line headline on
+                    a phone: the greeting for the hour can replace the default line
+                    without moving the page, and a short one leaves its spare room
+                    below the sentence, where it reads as breathing space. */}
+                <div className="min-h-[8.4rem] md:min-h-0">
+                    <h1 className="nt-serif mt-2 text-[2.25rem] leading-[1.02] md:text-[3.5rem]">{greeting ? t.greeting[greeting.question] : t.meta.tagline}</h1>
+                    <p className="mt-3 text-[1rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</p>
+                </div>
             </div>
 
             {/* Sticky search */}
@@ -195,7 +199,15 @@ export default function SearchView({
                         </button>
                         <button type="button" onClick={() => setAreaPickerOpen(true)} className={`${pill} min-w-0 !shrink`} aria-haspopup="dialog">
                             {origin?.kind === "gps" ? <LocateFixed size={14} className="text-blue-600" /> : <Navigation size={14} />}
-                            <span className="truncate">{locationLabel}</span>
+                            {/* The invitation is said in fewer words on a phone, so it is never cut. */}
+                            {locationLabel === t.location.chooseArea ? (
+                                <>
+                                    <span className="truncate sm:hidden">{t.location.chooseAreaShort}</span>
+                                    <span className="hidden truncate sm:inline">{locationLabel}</span>
+                                </>
+                            ) : (
+                                <span className="truncate">{locationLabel}</span>
+                            )}
                         </button>
                         {/* Carry the search over to the map, in place: never floating over results. */}
                         {/* On a phone the pill is its icon alone (the bottom menu already
