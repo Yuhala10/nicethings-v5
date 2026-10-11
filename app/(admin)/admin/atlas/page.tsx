@@ -45,6 +45,10 @@ type Evidence = {
     path?: string;
     status?: number;
     cities?: { city: string; count: number }[];
+    browser?: string;
+    system?: string;
+    ref?: string | null;
+    message?: string | null;
 };
 type Issue = {
     id: string;
@@ -93,6 +97,13 @@ function actionText(action: Action, tr: Tr): { title: string; detail: string | n
             detail: tr(action.detail ?? "", "Same kind of place, same name, a few metres apart. The listing that stays is the fuller one."),
         };
     }
+    if (action.kind === "place.clean") return { title: tr(action.title, `“${name}”: unusable phone number removed`), detail: null };
+    if (action.kind === "place.unnamed") {
+        return {
+            title: tr(action.title, `“${name}” moved back to drafts: it is not the name of a place`),
+            detail: tr(action.detail ?? "", "The open map gives a kind of place where the name should be. The listing waits for its real name among the drafts."),
+        };
+    }
     if (action.kind === "place.fill") {
         const fields = Object.keys(action.after ?? {})
             .map((key) => FIELDS[key]?.[1])
@@ -107,6 +118,8 @@ function issueText(issue: Issue, tr: Tr): { title: string; detail: string | null
     const e = issue.evidence;
     const place = e.place?.name;
     const post = e.post?.title;
+    // For what a visitor's browser reported: where it happened.
+    const seenOn = [e.path && `Page: ${e.path}`, e.ref && `arriving from ${e.ref}`].filter(Boolean).join(" · ") || null;
     const english: Record<string, () => [string, string | null]> = {
         duplicate: () => [`Likely duplicate: “${e.a?.name}” and “${e.b?.name}” (${e.city})`, `Same name, ${e.meters} m apart.`],
         "generic-name": () => [`“${place}” (${e.city}) is not the name of a place`, "The open map gives a kind of place where the name should be. It needs the real name, or the listing should come down."],
@@ -125,6 +138,10 @@ function issueText(issue: Issue, tr: Tr): { title: string; detail: string | null
         "article-no-cover": () => [`The article “${post}” has no cover image`, null],
         "article-missing-place": () => [`The article “${post}” mentions ${e.slugs?.length ?? 0} place(s) no longer online`, (e.slugs ?? []).join(", ")],
         "search-no-result": () => [`“${e.query}” was searched ${e.times} times and found nothing`, "A place or kind of place people expect and NiceThings does not have."],
+        "health-styles-missing": () => [`Page shown without its design on ${e.browser} (${e.system})`, seenOn],
+        "health-translated": () => [`Page machine-translated by the browser (${e.browser}, ${e.system})`, seenOn],
+        "health-script-error": () => [`Script error on ${e.browser} (${e.system})`, [e.message, seenOn].filter(Boolean).join(" · ")],
+        "health-no-js": () => [`Visit without JavaScript (${e.browser}, ${e.system})`, seenOn],
         "page-down": () => [`The page ${e.path} is not answering properly`, e.status ? `Server answered: ${e.status}.` : "No answer within 12 seconds."],
     };
     const [title, detail] = english[issue.evidence.code]?.() ?? [issue.title, issue.detail];
@@ -144,6 +161,7 @@ const AREAS: [string, [string, string]][] = [
     ["content", ["Articles", "Articles"]],
     ["search", ["Recherche", "Search"]],
     ["pages", ["Pages", "Pages"]],
+    ["health", ["Navigateurs", "Browsers"]],
 ];
 const SEVERITY = { serious: 0, normal: 1, minor: 2 } as const;
 
@@ -238,7 +256,13 @@ export default function AtlasPage() {
                                     value={formatCount(stats.map_answered ?? 0)}
                                     hint={tr(`sur ${formatCount(stats.published ?? 0)} publiés`, `of ${formatCount(stats.published ?? 0)} published`)}
                                 />
-                                <Stat icon={Wand2} tone="good" label={tr("Fiches complétées", "Listings filled in")} value={formatCount(stats.filled ?? 0)} hint={tr("cette nuit-là", "that night")} />
+                                <Stat
+                                    icon={Wand2}
+                                    tone="good"
+                                    label={tr("Fiches complétées ou corrigées", "Listings filled in or put right")}
+                                    value={formatCount((stats.filled ?? 0) + (stats.cleaned ?? 0))}
+                                    hint={tr("à ce passage", "on that shift")}
+                                />
                                 <Stat icon={ScanSearch} tone="brand" label={tr("À valider", "Waiting for you")} value={formatCount(data.proposed?.length ?? 0)} />
                                 <Stat
                                     icon={TriangleAlert}

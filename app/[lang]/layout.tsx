@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { LocaleProvider } from "@/components/site/LocaleProvider";
 import SiteChrome from "@/components/site/SiteChrome";
 import { FOUNDER, FOUNDER_ID, ORGANIZATION_ID } from "@/lib/founder";
+import { HEALTH_SCRIPT } from "@/lib/health-script";
 import { LOCALES, SITE_URL, getDictionary, isLocale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { siteShareImage } from "@/lib/share-image";
@@ -109,6 +110,11 @@ export default async function SiteLayout({ children, params }: Props) {
         <html lang={lang} translate="no" className={`${body.variable} ${editorial.variable}`} suppressHydrationWarning>
             <body>
                 <script dangerouslySetInnerHTML={{ __html: TRANSLATE_GUARD }} />
+                <script dangerouslySetInnerHTML={{ __html: HEALTH_SCRIPT }} />
+                {/* A browser without JavaScript reports itself with this invisible image. */}
+                <noscript>
+                    <img src="/api/health" alt="" width={1} height={1} style={{ position: "absolute" }} />
+                </noscript>
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

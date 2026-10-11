@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { selectAll } from "../admin-places";
 import { SITE_URL } from "../i18n/config";
+import { firstPhone } from "../places/display";
 import { recheckOnMap } from "./osm";
-import { qualityChecks, type Found } from "./quality";
+import { notAName, qualityChecks, type Found } from "./quality";
 import { loadPlaces, readSettings, writePlace, type AtlasAction, type AtlasIssue, type AtlasPlace } from "./store";
 
 // One shift of Atlas: compare the catalogue with the live open map, fill
@@ -40,7 +41,9 @@ async function saveIssues(db: SupabaseClient, found: Found[]) {
     }
 
     const seen = new Set(unique.map((item) => item.fingerprint));
-    const fixed = existing.filter((issue) => issue.status === "open" && !seen.has(issue.fingerprint)).map((issue) => issue.id);
+    // What visitors' browsers report (app/api/health) is not among the
+    // shift's own checks: it stays open until a person closes it.
+    const fixed = existing.filter((issue) => issue.status === "open" && issue.area !== "health" && !seen.has(issue.fingerprint)).map((issue) => issue.id);
     for (let from = 0; from < fixed.length; from += 200) {
         const { error } = await db.from("nt_atlas_issues").update({ status: "fixed", resolved_at: now }).in("id", fixed.slice(from, from + 200));
         if (error) throw error;
@@ -77,7 +80,7 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
         // ---- The open map ------------------------------------------------
         const map = await recheckOnMap(published);
         const past = await selectAll<Pick<AtlasAction, "spot_id" | "kind" | "status">>((from, to) =>
-            db.from("nt_atlas_actions").select("spot_id,kind,status").in("kind", ["place.fill", "place.hide", "place.duplicate"]).range(from, to)
+            db.from("nt_atlas_actions").select("spot_id,kind,status").in("kind", ["place.fill", "place.hide", "place.duplicate", "place.clean", "place.unnamed"]).range(from, to)
         );
         // What a person declined is never proposed again, what a person
         // undid is never redone, and a proposal still waiting is not repeated.
@@ -133,6 +136,33 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
                 });
             }
         }
+        // ---- Housekeeping -------------------------------------------------
+        // Values that are plainly not what the field is for are put right
+        // on the spot; each one is logged and can be undone.
+        let cleaned = 0;
+        for (const place of published) {
+            const logged = { run_id: runId, desk: "inspector", spot_id: place.id, evidence: [], status: "applied", decided_at: now, decided_by: "atlas" };
+            if (place.phone && !firstPhone(place.phone) && !settled.has(`place.clean:${place.id}`)) {
+                await writePlace(db, place.id, { phone: null });
+                actions.push({ ...logged, kind: "place.clean", title: `« ${place.name} » : numéro inutilisable retiré (« ${place.phone} »)`, detail: null, before: { phone: place.phone }, after: { phone: null } });
+                place.phone = null;
+                cleaned++;
+            }
+            if (notAName(place.name) && !settled.has(`place.unnamed:${place.id}`)) {
+                await writePlace(db, place.id, { status: "DRAFT" });
+                actions.push({
+                    ...logged,
+                    kind: "place.unnamed",
+                    title: `« ${place.name} » (${place.city}) repassé en brouillon : ce n'est pas un nom de lieu`,
+                    detail: "La carte ouverte donne un type de lieu à la place du nom. La fiche attend son vrai nom dans les brouillons.",
+                    before: { status: place.status },
+                    after: { status: "DRAFT" },
+                });
+                place.status = "DRAFT";
+                cleaned++;
+            }
+        }
+
         // ---- The platform itself -----------------------------------------
         const found = await qualityChecks(db, places, map.edited);
         const issues = await saveIssues(db, found);
@@ -175,14 +205,15 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
             map_answered: map.answered,
             map_suspicious: suspicious ? 1 : 0,
             filled,
-            proposed: actions.length - filled,
+            cleaned,
+            proposed: actions.filter((action) => action.status === "proposed").length,
             issues_open: issues.open,
             issues_new: issues.added,
             issues_fixed: issues.fixed,
         };
         const finished = await db.from("nt_atlas_runs").update({ status: "done", stats, finished_at: new Date().toISOString() }).eq("id", runId);
         if (finished.error) throw finished.error;
-        return { ran: true, stats, changed: filled > 0 };
+        return { ran: true, stats, changed: filled + cleaned > 0 };
     } catch (error) {
         const message = error instanceof Error ? error.message : String((error as { message?: unknown })?.message ?? error);
         await db.from("nt_atlas_runs").update({ status: "failed", error: message.slice(0, 500), finished_at: new Date().toISOString() }).eq("id", runId);

@@ -42,9 +42,17 @@ function plain(name: string) {
     return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
+// A listing whose "name" is only a kind of place or a stray word. A
+// "Beignetariat" is left alone: the stall is real and that is what people
+// call it.
+export function notAName(name: string) {
+    const text = plain(name);
+    return text !== "beignetariat" && (GENERIC.has(text) || text.replace(/[^a-z]/g, "").length < 3);
+}
+
 function genericNames(published: AtlasPlace[]): Found[] {
     return published
-        .filter((place) => GENERIC.has(plain(place.name)) || plain(place.name).replace(/[^a-z]/g, "").length < 3)
+        .filter((place) => notAName(place.name))
         .map((place) => ({
             fingerprint: `generic-name:${place.id}`,
             area: "catalogue",
