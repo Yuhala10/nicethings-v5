@@ -255,7 +255,9 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     }));
     // No photo of its own: the best-liked photo of its wall opens the page
     // (its credit, when it has one, is in its caption on the wall below).
-    const wallPhoto = wall.error ? undefined : (wall.data ?? []).find((post) => post.kind === "photo");
+    // Among the best-liked ones, the first that was approved (the same choice as in the lists).
+    const wallPhotos = wall.error ? [] : (wall.data ?? []).filter((post) => post.kind === "photo");
+    const wallPhoto = wallPhotos.filter((post) => post.likes === wallPhotos[0].likes).at(-1);
     const photoList = ownPhotos.length || !wallPhoto ? ownPhotos : [{ url: postUrl(wallPhoto.media_path as string), alt: (wallPhoto.caption as string | null) ?? null }];
 
     // Written by the team for places that tell a story; absent (so empty)
@@ -299,7 +301,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v7"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v8"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
