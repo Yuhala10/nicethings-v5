@@ -12,7 +12,7 @@ import { compactPlaces } from "@/lib/places/compact";
 import { knownFacts } from "@/lib/places/display";
 import { editorialRails } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
-import { getAllPlaces } from "@/lib/places/server";
+import { getAllPlaces, getStoryPlaces } from "@/lib/places/server";
 import { getPosts } from "@/lib/blog/server";
 import type { PlaceSummary } from "@/lib/places/types";
 import { AMENITIES, CATEGORIES, GOOD_FOR, VIBES, tagLabel } from "@/lib/tags";
@@ -125,6 +125,11 @@ export default async function HomePage({ params }: Props) {
               }
             : null;
 
+    // The places that carry a story, those with a picture first.
+    const stories = (await getStoryPlaces().catch(() => []))
+        .sort((a, b) => Number(Boolean(b.cover)) - Number(Boolean(a.cover)) || b.standing - a.standing)
+        .slice(0, 7);
+
     const homeAreas = areasOf(homePlaces);
     const demos = t.landing.demoPhrases.map((phrase) => ({ phrase, chips: demoChips(phrase, lang, homeAreas) }));
 
@@ -143,6 +148,7 @@ export default async function HomePage({ params }: Props) {
             posts={await getPosts().catch(() => [])}
             demos={demos}
             nowPlaces={compactPlaces(hostPool(homePlaces, NOW_PLACES))}
+            stories={stories}
         />
     );
 }

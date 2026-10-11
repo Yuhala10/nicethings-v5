@@ -1,3 +1,4 @@
+import type { StoryPlace } from "@/lib/places/server";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock3, Heart, Languages, MapPin, MessageCircle, Navigation, Plus, Search, Sparkles, Store, Volume2 } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
@@ -37,6 +38,7 @@ export default function Landing({
     posts,
     demos,
     nowPlaces,
+    stories,
 }: {
     locale: Locale;
     points: number[];
@@ -46,6 +48,7 @@ export default function Landing({
     picks: PlaceSummary[];
     rails: EditorialRail[];
     coastRail: EditorialRail | null;
+    stories: StoryPlace[];
     homeCity: City;
     homeAreas: Area[];
     posts: PostSummary[];
@@ -143,6 +146,29 @@ export default function Landing({
 
             {/* ---------------- Right now: what the app proposes ---------------- */}
             <NowSection city={homeCity.slug} initial={nowPlaces} />
+
+            {/* ---------------- Places with a story ---------------- */}
+            {/* A mosaic: the first one leads at double width, then one in four. */}
+            {stories.length > 0 && (
+                <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
+                    <div className="nt-reveal max-w-xl">
+                        <p className="nt-eyebrow">{t.culture.eyebrow}</p>
+                        <h2 className="nt-serif mt-2 text-[2.25rem] md:text-[3.5rem]">{t.culture.placesTitle}</h2>
+                        <p className="mt-3 text-[1rem] text-muted">{t.culture.placesLead}</p>
+                    </div>
+                    <ul className="mt-8 grid grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+                        {stories.map((place, index) => (
+                            <li key={place.id} className={index % 5 === 0 ? "col-span-2" : ""}>
+                                <PinCard place={place} shape="portrait" priority={index === 0} />
+                            </li>
+                        ))}
+                    </ul>
+                    <Link href={paths.culture(locale)} className="nt-btn nt-btn-outline mt-6 w-full sm:w-auto">
+                        {t.culture.homeLink}
+                        <ArrowRight size={16} />
+                    </Link>
+                </section>
+            )}
 
             {/* ---------------- The home city, by mood ---------------- */}
             {rails.length > 0 && (
@@ -262,11 +288,6 @@ export default function Landing({
                     </div>
                     <Link href={paths.blog(locale)} className="nt-btn nt-btn-outline mt-2 w-full sm:hidden">
                         {t.blog.back}
-                        <ArrowRight size={16} />
-                    </Link>
-                    {/* The way into the culture zone: stories of peoples, dishes and places. */}
-                    <Link href={paths.culture(locale)} className="nt-btn nt-btn-soft mt-2 w-full sm:mt-6 sm:w-auto">
-                        {t.culture.homeLink}
                         <ArrowRight size={16} />
                     </Link>
                 </section>
