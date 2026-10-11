@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import Landing from "@/components/landing/Landing";
 import { parseDiscoveryText } from "@/lib/concierge/parse";
 import { CITIES, DEFAULT_CITY } from "@/lib/cities";
+import { hostPool } from "@/lib/host/propose";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { formatPriceShort } from "@/lib/i18n/format";
 import { areasOf } from "@/lib/places/areas";
 import { MIN_COLLECTION, rankForEditorial } from "@/lib/places/collections";
+import { compactPlaces } from "@/lib/places/compact";
 import { knownFacts } from "@/lib/places/display";
 import { editorialRails } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
@@ -29,6 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         alternates: { canonical: paths.home(lang), languages: { fr: "/fr", en: "/en", "x-default": "/fr" } },
     };
 }
+
+// How many of the home city's places travel with the page for "right now".
+const NOW_PLACES = 60;
 
 // Cameroon projected onto a 0..1000 grid (same scale on both axes).
 const WEST = 8.4;
@@ -137,6 +142,7 @@ export default async function HomePage({ params }: Props) {
             homeAreas={homeAreas.slice(0, 12)}
             posts={await getPosts().catch(() => [])}
             demos={demos}
+            nowPlaces={compactPlaces(hostPool(homePlaces, NOW_PLACES))}
         />
     );
 }

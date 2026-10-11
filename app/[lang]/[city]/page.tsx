@@ -4,11 +4,14 @@ import { notFound } from "next/navigation";
 import { ArrowRight, MapPin } from "lucide-react";
 import EditorialSection from "@/components/editorial/EditorialSection";
 import GuideView, { CategoryIcon, countBy, plural, sortForGuide } from "@/components/guide/GuideView";
+import NowSection from "@/components/host/NowSection";
 import PinCard from "@/components/place/PinCard";
 import { CITIES, cityBySlug } from "@/lib/cities";
+import { hostPool } from "@/lib/host/propose";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
 import { areasOf } from "@/lib/places/areas";
 import { availableCollections } from "@/lib/places/collections";
+import { compactPlaces } from "@/lib/places/compact";
 import { editorialRails } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
 import { getCityPlaces } from "@/lib/places/server";
@@ -75,13 +78,16 @@ export default async function CityPage({ params }: Props) {
             places={null}
             mapQuery=""
             editorial={
-                rails.length > 0 && (
-                    <div className="pt-6">
-                        {rails.map((rail, index) => (
-                            <EditorialSection key={rail.key} rail={rail} locale={lang} priority={index === 0} />
-                        ))}
-                    </div>
-                )
+                <>
+                    <NowSection city={city.slug} initial={compactPlaces(hostPool(places, 60))} fixed />
+                    {rails.length > 0 && (
+                        <div className="pt-6">
+                            {rails.map((rail, index) => (
+                                <EditorialSection key={rail.key} rail={rail} locale={lang} priority={index === 0} />
+                            ))}
+                        </div>
+                    )}
+                </>
             }
             filters={
                 <>

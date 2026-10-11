@@ -135,6 +135,8 @@ const CUISINES: Record<string, { fr: string; en: string }> = {
     local: { fr: "Cuisine locale", en: "Local cuisine" },
     cameroonian: { fr: "Camerounaise", en: "Cameroonian" },
     camerounaise: { fr: "Camerounaise", en: "Cameroonian" },
+    cameroonaise: { fr: "Camerounaise", en: "Cameroonian" },
+    africaine: { fr: "Africaine", en: "African" },
     african: { fr: "Africaine", en: "African" },
     senegalese: { fr: "Sénégalaise", en: "Senegalese" },
     chicken: { fr: "Poulet", en: "Chicken" },

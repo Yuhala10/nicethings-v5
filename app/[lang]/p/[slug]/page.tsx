@@ -15,7 +15,8 @@ import { OpenBadge, PlaceThumb, PriceLabel, Rating } from "@/components/place/bi
 import { HeroActions, StickyPlaceBar } from "@/components/place/PlaceHeroBits";
 import { getPostsForPlace } from "@/lib/blog/server";
 import { DEFAULT_CITY, cityBySlug } from "@/lib/cities";
-import { SITE_URL, fill, getDictionary, isLocale, type Locale } from "@/lib/i18n";
+import { afterStops } from "@/lib/host/propose";
+import { SITE_URL, fill, getDictionary, isLocale, type Dictionary, type Locale } from "@/lib/i18n";
 import { formatPrice, formatRelativeDays, formatTime } from "@/lib/i18n/format";
 import { SCHEMA_TYPES, categoryStyle, cuisineLabel, firstPhone, formatPhone, isIndexable, knownFacts, posterInk } from "@/lib/places/display";
 import { availableCollections } from "@/lib/places/collections";
@@ -193,6 +194,16 @@ function TagList({ values, vocabulary, locale }: { values: string[]; vocabulary:
     );
 }
 
+// The line under "And after?": what usually follows this kind of place.
+function afterLead(category: string, t: Dictionary) {
+    if (category === "Restaurant") return t.host.afterRestaurant;
+    if (category === "Bar" || category === "Club") return t.host.afterBar;
+    if (category === "Cafe" || category === "Bakery") return t.host.afterCafe;
+    if (category === "Culture" || category === "Nature" || category === "Entertainment") return t.host.afterVisit;
+    if (category === "Hotel") return t.host.afterHotel;
+    return t.host.afterDefault;
+}
+
 // A description in two parts: its opening line (shown under the name) and
 // the rest ("Why go"). One-line descriptions stay whole under "Why go".
 function splitDescription(description: string | null) {
@@ -248,13 +259,17 @@ export default async function PlacePage({ params }: Props) {
     const others = all
         .filter((item) => item.id !== place.id)
         .map((item) => ({ place: item, distance: distanceMeters(place, item) }));
+    // Where to go next (a drink after the table, a coffee after the visit),
+    // then what else is around, without showing a place twice.
+    const next = afterStops(place, all);
+    const nextIds = new Set(next.map(({ place: item }) => item.id));
     const nearby = others
-        .filter(({ distance }) => distance < 1500)
+        .filter(({ place: item, distance }) => distance < 1500 && !nextIds.has(item.id))
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 8);
     const nearbyIds = new Set(nearby.map(({ place: item }) => item.id));
     const similar = others
-        .filter(({ place: item, distance }) => item.category === place.category && distance < 5000 && !nearbyIds.has(item.id))
+        .filter(({ place: item, distance }) => item.category === place.category && distance < 5000 && !nearbyIds.has(item.id) && !nextIds.has(item.id))
         .sort((a, b) => knownFacts(b.place) - knownFacts(a.place) || a.distance - b.distance)
         .slice(0, 8);
 
@@ -590,6 +605,22 @@ export default async function PlacePage({ params }: Props) {
                     </section>
                 )}
             </div>
+
+            {next.length >= 2 && (
+                <section className="mx-auto mt-14 max-w-3xl md:px-6">
+                    <div className="mb-5 px-4 md:px-0">
+                        <h2 className="nt-section-title">{t.host.afterTitle}</h2>
+                        <p className="mt-1.5 text-[0.92rem] leading-relaxed text-muted">{afterLead(place.category, t)}</p>
+                    </div>
+                    <ul className="nt-rail">
+                        {next.map(({ place: item, distance }) => (
+                            <li key={item.id}>
+                                <PinCard place={item} distance={distance} shape="portrait" />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
 
             {nearby.length > 0 && (
                 <section className="mx-auto mt-14 max-w-3xl md:px-6">

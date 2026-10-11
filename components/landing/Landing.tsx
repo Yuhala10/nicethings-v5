@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock3, Heart, Languages, MapPin, MessageCircle, Navigation, Plus, Search, Sparkles, Store, Volume2 } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
 import EditorialSection from "@/components/editorial/EditorialSection";
+import NowSection from "@/components/host/NowSection";
 import PinCard from "@/components/place/PinCard";
 import { LanguageSwitch, Logo } from "@/components/site/SiteChrome";
 import { CITIES, type City } from "@/lib/cities";
@@ -9,6 +10,7 @@ import { FOUNDER } from "@/lib/founder";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
 import type { Area } from "@/lib/places/areas";
+import type { CompactPlace } from "@/lib/places/compact";
 import type { EditorialRail } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
 import type { PlaceSummary } from "@/lib/places/types";
@@ -34,6 +36,7 @@ export default function Landing({
     homeAreas,
     posts,
     demos,
+    nowPlaces,
 }: {
     locale: Locale;
     points: number[];
@@ -47,6 +50,7 @@ export default function Landing({
     homeAreas: Area[];
     posts: PostSummary[];
     demos: Demo[];
+    nowPlaces: CompactPlace[]; // the home city's best-known places, for "right now"
 }) {
     const t = getDictionary(locale);
     const total = Object.values(cityCounts).reduce((sum, value) => sum + value, 0);
@@ -136,6 +140,9 @@ export default function Landing({
                     )}
                 </div>
             </section>
+
+            {/* ---------------- Right now: what the app proposes ---------------- */}
+            <NowSection city={homeCity.slug} initial={nowPlaces} />
 
             {/* ---------------- The home city, by mood ---------------- */}
             {rails.length > 0 && (
