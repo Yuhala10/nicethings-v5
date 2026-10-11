@@ -193,15 +193,16 @@ export default function SearchView({
                             {city.name}
                             <ChevronDown size={14} />
                         </button>
-                        <button type="button" onClick={() => setAreaPickerOpen(true)} className={`${pill} min-w-0`} aria-haspopup="dialog">
+                        <button type="button" onClick={() => setAreaPickerOpen(true)} className={`${pill} min-w-0 !shrink`} aria-haspopup="dialog">
                             {origin?.kind === "gps" ? <LocateFixed size={14} className="text-blue-600" /> : <Navigation size={14} />}
                             <span className="truncate">{locationLabel}</span>
                         </button>
                         {/* Carry the search over to the map, in place: never floating over results. */}
-                        <Link href={mapHref} className={`${pill} ml-auto border border-line-strong !bg-surface`} aria-label={t.searchPage.showMap}>
-                            <MapIcon size={15} />
+                        {/* On a phone the pill is its icon alone (the bottom menu already
+                            says "Carte"), so this row always fits the screen. */}
+                        <Link href={mapHref} className={`${pill} ml-auto w-10 justify-center border border-line-strong !bg-surface !px-0 sm:w-auto sm:!px-3.5`} aria-label={t.searchPage.showMap}>
+                            <MapIcon size={16} />
                             <span className="hidden sm:inline">{t.searchPage.showMap}</span>
-                            <span className="sm:hidden">{t.nav.map}</span>
                         </Link>
                     </div>
                     <form
