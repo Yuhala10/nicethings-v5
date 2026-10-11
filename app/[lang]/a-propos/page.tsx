@@ -172,7 +172,7 @@ export default async function AboutPage({ params }: Props) {
             <section id="pays" className="mt-16 scroll-mt-24 overflow-hidden rounded-[1.6rem] bg-[#15110e] text-white md:mt-28">
                 <div className="grid md:grid-cols-[0.8fr_1.2fr]">
                     <div className="relative aspect-[4/5] md:aspect-auto md:min-h-full">
-                        <Image src={FOUNDER.thirdPhoto} alt={FOUNDER.name} fill sizes="(min-width: 768px) 440px, 100vw" className="object-cover object-[50%_22%]" />
+                        <Image src={FOUNDER.thirdPhoto} alt={FOUNDER.name} fill sizes="(min-width: 768px) 440px, 100vw" className="object-cover object-[50%_22%] grayscale" />
                     </div>
                     <div className="p-6 md:p-12">
                         <p className="text-[0.75rem] font-semibold tracking-[0.16em] text-white/55 uppercase">{FOUNDER.country.eyebrow[lang]}</p>
