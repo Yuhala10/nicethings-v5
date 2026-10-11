@@ -246,7 +246,10 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
                 children
             ) : (
                 <div className="flex min-h-dvh flex-col">
-                    <main id="main" className="flex-1">
+                    {/* At least one screen tall: while a page is still loading or
+                        redirecting, the footer stays below the screen instead of
+                        flashing at the top and being pushed away. */}
+                    <main id="main" className="min-h-dvh flex-1">
                         {children}
                     </main>
                     <SiteFooter />

@@ -38,7 +38,9 @@ export default function PlaceMap({
                     watcher.disconnect();
                 }
             },
-            { rootMargin: "500px 0px" }
+            // No head start: the map sits just under the first screen, and a
+            // margin would fetch it for everyone, scrolling or not.
+            { rootMargin: "0px" }
         );
         watcher.observe(node);
         return () => watcher.disconnect();
