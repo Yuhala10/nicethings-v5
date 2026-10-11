@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock3, Heart, Languages, MapPin, MessageCircle, Navigation, Plus, Search, Sparkles, Store, Volume2 } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
@@ -381,27 +380,18 @@ export default function Landing({
             </section>
 
             {/* ---------------- The founder ---------------- */}
+            {/* A line and a button: his portrait and story are on the About page. */}
             <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
-                <Link href={paths.about(locale)} className="nt-reveal group grid items-center gap-6 md:grid-cols-[minmax(0,20rem)_1fr] md:gap-14">
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-[1.4rem] bg-surface-3 md:aspect-[3/4]">
-                        <Image
-                            src={FOUNDER.photo}
-                            alt={`${FOUNDER.name}, ${FOUNDER.role[locale]}`}
-                            fill
-                            sizes="(min-width: 768px) 320px, 100vw"
-                            className="object-cover object-[50%_16%] transition duration-700 ease-out group-hover:scale-[1.03]"
-                        />
-                    </div>
+                <div className="nt-reveal flex flex-col gap-5 border-y border-line py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:py-10">
                     <div>
                         <p className="nt-eyebrow">{t.about.homeEyebrow}</p>
-                        <h2 className="nt-serif mt-2 text-[2.1rem] md:text-[3.2rem]">{fill(t.about.homeTitle, { name: FOUNDER.name })}</h2>
-                        <p className="mt-4 max-w-xl leading-relaxed text-text-2">{FOUNDER.lead[locale]}</p>
-                        <span className="mt-5 inline-flex items-center gap-1.5 font-semibold">
-                            {t.about.readStory}
-                            <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
-                        </span>
+                        <p className="nt-serif mt-2 text-[1.9rem] md:text-[2.4rem]">{fill(t.about.homeTitle, { name: FOUNDER.name })}</p>
                     </div>
-                </Link>
+                    <Link href={paths.about(locale)} className="nt-btn nt-btn-dark shrink-0 self-start md:self-auto">
+                        {t.about.founderButton}
+                        <ArrowRight size={17} />
+                    </Link>
+                </div>
             </section>
 
             {/* ---------------- FAQ ---------------- */}

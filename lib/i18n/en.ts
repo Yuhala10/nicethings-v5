@@ -537,6 +537,7 @@ export const en: Dictionary = {
         nav: "About",
         homeEyebrow: "Who is behind NiceThings?",
         homeTitle: "Founded and built by {name}.",
+        founderButton: "About the founder",
         readStory: "Read his story",
         storyEyebrow: "His story",
         faqQuestion: "Who founded NiceThings?",

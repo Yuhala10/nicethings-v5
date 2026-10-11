@@ -539,6 +539,7 @@ export const fr = {
         nav: "À propos",
         homeEyebrow: "Qui est derrière NiceThings ?",
         homeTitle: "Fondé et construit par {name}.",
+        founderButton: "À propos du fondateur",
         readStory: "Lire son histoire",
         storyEyebrow: "Son histoire",
         faqQuestion: "Qui a créé NiceThings ?",
