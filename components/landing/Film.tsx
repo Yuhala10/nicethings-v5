@@ -22,7 +22,8 @@ const LABELS = {
 };
 
 // The photo at the size the screen needs, through the site's own image service.
-const sized = (photo: FilmPhoto, wide: boolean) => `/_next/image?url=${encodeURIComponent(photo.src)}&w=${wide ? 1920 : 828}&q=75`;
+// (On a phone the whole film weighs well under a megabyte.)
+const sized = (photo: FilmPhoto, wide: boolean) => `/_next/image?url=${encodeURIComponent(photo.src)}&w=${wide ? 1200 : 828}&q=75`;
 const photosOf = (scene: FilmScene) => (scene.kind === "shot" ? [scene.photo] : scene.kind === "montage" ? scene.photos : []);
 
 function Picture({ photo, wide, seconds, delay = 0 }: { photo: FilmPhoto; wide: boolean; seconds: number; delay?: number }) {
@@ -254,10 +255,13 @@ export default function Film() {
         return () => sound.current?.stop();
     }, [loud, running]);
 
-    // The next pictures are fetched one scene ahead.
+    // The next pictures are fetched three scenes ahead, so a slow connection
+    // still has them when their turn comes.
     useEffect(() => {
         if (step < 0) return;
-        for (const photo of photosOf(FILM[(step + 1) % FILM.length])) new window.Image().src = sized(photo, wide);
+        for (let ahead = 1; ahead <= 3; ahead++) {
+            for (const photo of photosOf(FILM[(step + ahead) % FILM.length])) new window.Image().src = sized(photo, wide);
+        }
     }, [step, wide]);
 
     const begin = useCallback(() => {
