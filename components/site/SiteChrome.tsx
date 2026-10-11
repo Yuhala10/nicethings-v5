@@ -83,6 +83,7 @@ function SiteHeader() {
         { href: paths.explore(locale, city), label: t.nav.map, match: "/carte" },
         { href: paths.city(locale, city), label: t.nav.guide },
         { href: paths.blog(locale), label: t.nav.blog, match: "/blog" },
+        { href: paths.culture(locale), label: t.nav.culture, match: "/culture" },
         { href: paths.saved(locale), label: t.nav.saved },
     ];
 
@@ -167,6 +168,7 @@ function SiteFooter() {
     const links = [
         { href: paths.map(locale), label: t.nav.map },
         { href: paths.blog(locale), label: t.nav.blog },
+        { href: paths.culture(locale), label: t.nav.culture },
         { href: paths.about(locale), label: t.about.nav },
         { href: paths.submit(locale), label: t.nav.suggest },
         { href: paths.privacy(locale), label: t.footer.privacy },

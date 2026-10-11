@@ -264,6 +264,11 @@ export default function Landing({
                         {t.blog.back}
                         <ArrowRight size={16} />
                     </Link>
+                    {/* The way into the culture zone: stories of peoples, dishes and places. */}
+                    <Link href={paths.culture(locale)} className="nt-btn nt-btn-soft mt-2 w-full sm:mt-6 sm:w-auto">
+                        {t.culture.homeLink}
+                        <ArrowRight size={16} />
+                    </Link>
                 </section>
             )}
 

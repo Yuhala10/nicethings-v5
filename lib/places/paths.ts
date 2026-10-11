@@ -97,6 +97,7 @@ export const paths = {
     terms: (locale: Locale) => `/${locale}/conditions`,
     about: (locale: Locale) => `/${locale}/a-propos`,
     blog: (locale: Locale) => `/${locale}/blog`,
+    culture: (locale: Locale) => `/${locale}/culture`,
     post: (locale: Locale, slug: string) => `/${locale}/blog/${slug}`,
     pro: (locale: Locale) => `/${locale}/pro`,
     claim: (locale: Locale, slug: string) => `/${locale}/pro/revendiquer/${slug}`,

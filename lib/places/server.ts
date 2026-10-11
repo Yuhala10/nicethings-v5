@@ -162,6 +162,34 @@ export const getAllPlaces = unstable_cache(loadAllPlaces, ["places:all:v3"], {
     tags: [PLACES_TAG],
 });
 
+// The places that deserve more than an address (database script 005):
+// those worth the trip and those with a story, the most important first.
+// Empty until places have been marked in the team console.
+export type StoryPlace = PlaceSummary & { standing: 1 | 2 };
+
+async function loadStoryPlaces(): Promise<StoryPlace[]> {
+    const db = publicClient();
+    const { data, error } = await db.from("nt_spots").select(`${SUMMARY_COLUMNS},standing`).in("status", VISIBLE_STATUSES).gt("standing", 0).not("latitude", "is", null).not("longitude", "is", null).order("standing", { ascending: false }).order("name", { ascending: true }).limit(80);
+    if (error || !data?.length) return [];
+    const rows = data as unknown as (SpotRow & { standing: number })[];
+    const photos = await db
+        .from("nt_spot_photos")
+        .select("spot_id,image_url,sort_order")
+        .in(
+            "spot_id",
+            rows.map((row) => row.id)
+        )
+        .order("sort_order", { ascending: true });
+    const covers = new Map<string, string>();
+    for (const photo of photos.data ?? []) if (!covers.has(photo.spot_id)) covers.set(photo.spot_id, photo.image_url);
+    return rows.map((row) => ({ ...toSummary(row, covers.get(row.id) ?? null), standing: row.standing === 2 ? 2 : 1 }));
+}
+
+export const getStoryPlaces = unstable_cache(loadStoryPlaces, ["places:stories:v1"], {
+    revalidate: REVALIDATE_SECONDS,
+    tags: [PLACES_TAG],
+});
+
 async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     const db = publicClient();
     const { data: row, error } = await db
