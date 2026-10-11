@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Languages } from "lucide-react";
 import FounderPortrait from "@/components/site/FounderPortrait";
 import { expandBlocks, outline, placesIn, plainText } from "@/lib/blog/blocks";
+import { getComments } from "@/lib/blog/comments";
 import { getPosts, localised, type Post } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
 import { cityBySlug } from "@/lib/cities";
@@ -14,6 +15,7 @@ import type { PlaceSummary } from "@/lib/places/types";
 import { postShareImage } from "@/lib/share-image";
 import ArticleBody from "./ArticleBody";
 import ArticleMap from "./ArticleMap";
+import Comments from "./Comments";
 import PostCard from "./PostCard";
 import ReadingProgress from "./ReadingProgress";
 import ShareBar from "./ShareBar";
@@ -40,6 +42,9 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
     const byFounder = isFounder(post.author);
 
     const all = await getPosts().catch(() => []);
+    // Not on the preview of a draft: nobody can comment on what is not out.
+    const day = new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Douala" });
+    const comments = preview ? null : ((await getComments(post.id).catch(() => null))?.map((comment) => ({ id: comment.id, name: comment.name, body: comment.body, date: day.format(new Date(comment.createdAt)) })) ?? null);
     const related = all
         .filter((other) => other.id !== post.id)
         .map((other) => ({
@@ -233,6 +238,13 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                     </div>
                 </aside>
             </div>
+
+            {/* What readers think, and a place to say it (once the team has read it). */}
+            {comments && (
+                <section id="commentaires" className="mx-auto mt-16 max-w-3xl scroll-mt-24 px-4 md:px-6">
+                    <Comments postId={post.id} comments={comments} />
+                </section>
+            )}
 
             {related.length > 0 && (
                 <section className="mx-auto mt-16 max-w-6xl px-4 md:px-6">
