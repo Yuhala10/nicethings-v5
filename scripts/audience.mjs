@@ -62,7 +62,9 @@ async function main() {
         const { data: rows, error: failed } = await db
             .from("nt_searches")
             .select("query,result_count")
-            .gte("created_at", since)
+            // Searches count from when the log stopped taking crawlers
+            // (SEARCH_LOG_SINCE in lib/analytics.ts).
+            .gte("created_at", since > "2026-10-11T04:00:00Z" ? since : "2026-10-11T04:00:00Z")
             .range(from, from + 999);
         if (failed) throw failed;
         for (const row of rows) {

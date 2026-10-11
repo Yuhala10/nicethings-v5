@@ -86,6 +86,15 @@ export function isHumanSign(value: unknown): value is HumanSign {
 const AUTOMATED =
     /(?:^|[^a-z])bot(?:[^a-z]|$)|[a-z]bot[/;),]|crawl|spider|slurp|scrap|googleother|google-|feedfetcher|headless|phantomjs|puppeteer|playwright|selenium|webdriver|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|preview|python|curl|wget|httpclient|okhttp|axios|node-fetch|go-http|java\/|libwww|archiver|scanner/i;
 
+// The search log only counts from this moment: before it, crawlers opening
+// links that carry a search (?q=…) were logged as if someone had typed it.
+export const SEARCH_LOG_SINCE = "2026-10-11T04:00:00Z";
+
+// The later of a period's start and the moment the search log became clean.
+export function searchLogSince(since: string) {
+    return since > SEARCH_LOG_SINCE ? since : SEARCH_LOG_SINCE;
+}
+
 export function looksAutomated(agent: string) {
     return !agent.trim() || AUTOMATED.test(agent);
 }

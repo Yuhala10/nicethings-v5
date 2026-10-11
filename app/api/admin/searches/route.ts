@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fail, requireAdmin } from "@/lib/admin-api";
+import { searchLogSince } from "@/lib/analytics";
 import { selectAll } from "@/lib/admin-places";
 
 // What visitors search for over the last N days: most asked, and the
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
                 db
                     .from("nt_searches")
                     .select("query,filters,result_count,created_at")
-                    .gte("created_at", since)
+                    .gte("created_at", searchLogSince(since))
                     .order("created_at", { ascending: false })
                     .range(from, to)
         );

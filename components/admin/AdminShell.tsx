@@ -3,10 +3,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BadgeCheck, BarChart3, Camera, ExternalLink, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Newspaper, Search, type LucideIcon } from "lucide-react";
+import { BadgeCheck, BarChart3, Camera, ExternalLink, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Menu, Newspaper, Search, X, type LucideIcon } from "lucide-react";
 import { adminGet, adminPost } from "@/lib/admin-client";
 import { TEAM_KEY, VISITOR_KEY } from "@/lib/analytics";
-import { AdminLangProvider, LangSwitch, useTr } from "./i18n";
+import { AdminLangProvider, LangSwitch, useTr, type AdminLang } from "./i18n";
 import { AdminToastProvider } from "./ui";
 
 type Counts = { submissions: number; reports: number; claims: number };
@@ -42,7 +42,7 @@ const GROUPS: { title: [string, string]; items: Item[] }[] = [
 ];
 const NAV = GROUPS.flatMap((group) => group.items);
 
-// On phone: five tabs at the bottom, the rest in the top bar.
+// On phone: five tabs at the bottom; every page, by name, in the menu.
 const TABS = ["/admin", "/admin/spots", "/admin/submissions", "/admin/reports", "/admin/revendications"];
 
 function Frame({ children }: { children: ReactNode }) {
@@ -51,6 +51,20 @@ function Frame({ children }: { children: ReactNode }) {
     const router = useRouter();
     const [counts, setCounts] = useState<Counts>({ submissions: 0, reports: 0, claims: 0 });
     const [signingOut, setSigningOut] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    // The phone menu closes when a page is chosen, and on Escape.
+    useEffect(() => setMenuOpen(false), [pathname]);
+    useEffect(() => {
+        if (!menuOpen) return;
+        const onKey = (event: KeyboardEvent) => event.key === "Escape" && setMenuOpen(false);
+        window.addEventListener("keydown", onKey);
+        document.body.style.overflow = "hidden";
+        return () => {
+            window.removeEventListener("keydown", onKey);
+            document.body.style.overflow = "";
+        };
+    }, [menuOpen]);
 
     useEffect(() => {
         adminGet<Counts>("counts")
@@ -150,24 +164,73 @@ function Frame({ children }: { children: ReactNode }) {
                 <Link href="/admin" className="flex shrink-0 items-center gap-2">
                     <img src="/brand/mark.svg" alt="" width={28} height={28} />
                 </Link>
-                <div className="flex min-w-0 items-center gap-0.5">
-                    {NAV.filter((item) => !TABS.includes(item.href)).map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            aria-current={active(item) ? "page" : undefined}
-                            className={`grid h-10 w-10 place-items-center rounded-full ${active(item) ? "bg-ink text-white" : "text-text-2"}`}
-                            aria-label={label(item)}
-                        >
-                            <item.icon size={19} strokeWidth={1.8} />
-                        </Link>
-                    ))}
-                    <LangSwitch className="ml-1" />
-                    <button type="button" onClick={signOut} className="grid h-10 w-10 place-items-center rounded-full text-text-2" aria-label={tr("Se déconnecter", "Sign out")}>
-                        <LogOut size={19} strokeWidth={1.8} />
-                    </button>
-                </div>
+                <Link href="/admin" className="mr-auto text-[1rem] font-bold tracking-[-0.03em]">
+                    NiceThings
+                </Link>
+                <LangSwitch />
+                <button
+                    type="button"
+                    onClick={() => setMenuOpen(true)}
+                    aria-haspopup="dialog"
+                    aria-expanded={menuOpen}
+                    className="inline-flex h-10 items-center gap-2 rounded-full border border-line-strong bg-card pr-4 pl-3 text-sm font-semibold"
+                >
+                    <Menu size={18} strokeWidth={1.9} />
+                    Menu
+                </button>
             </header>
+
+            {/* Menu (phone): every page by name, grouped as on a computer. */}
+            {menuOpen && (
+                <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+                    <button type="button" aria-label={tr("Fermer", "Close")} className="absolute inset-0 bg-ink/45" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute inset-x-0 top-0 max-h-dvh overflow-y-auto rounded-b-[1.6rem] bg-paper px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-5 shadow-xl">
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-2 text-[1rem] font-bold tracking-[-0.03em]">
+                                <img src="/brand/mark.svg" alt="" width={28} height={28} />
+                                {tr("Espace équipe", "Team console")}
+                            </span>
+                            <button type="button" onClick={() => setMenuOpen(false)} aria-label={tr("Fermer", "Close")} className="grid h-10 w-10 place-items-center rounded-full border border-line-strong bg-card">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <nav className="mt-5 flex flex-col gap-5">
+                            {GROUPS.map((group) => (
+                                <div key={group.title[0]}>
+                                    <p className="a-eyebrow mb-2 px-1">{tr(...group.title)}</p>
+                                    <div className="flex flex-col gap-1.5">
+                                        {group.items.map((item) => (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                aria-current={active(item) ? "page" : undefined}
+                                                onClick={() => setMenuOpen(false)}
+                                                className={`flex h-12 items-center gap-3 rounded-xl px-3.5 text-[0.95rem] font-semibold ${
+                                                    active(item) ? "bg-ink text-white" : "border border-line bg-card text-ink"
+                                                }`}
+                                            >
+                                                <item.icon size={19} strokeWidth={active(item) ? 2.1 : 1.8} />
+                                                {label(item)}
+                                                {badge(item)}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </nav>
+                        <div className="mt-5 grid grid-cols-2 gap-2 border-t border-line pt-4">
+                            <a href="/fr" target="_blank" rel="noreferrer" className="a-btn a-btn-soft text-sm">
+                                <ExternalLink size={16} />
+                                {tr("Voir le site", "Open the site")}
+                            </a>
+                            <button type="button" onClick={signOut} disabled={signingOut} className="a-btn a-btn-soft text-sm">
+                                <LogOut size={16} />
+                                {signingOut ? tr("Déconnexion…", "Signing out…") : tr("Se déconnecter", "Sign out")}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <main className="min-w-0 flex-1 px-4 pt-6 pb-32 md:px-10 md:pt-10 md:pb-14">
                 <div className="mx-auto max-w-6xl">{children}</div>
@@ -201,9 +264,9 @@ function Frame({ children }: { children: ReactNode }) {
 
 // The team console frame: sidebar on computer, top bar + bottom tabs on
 // phone. Badges show what is waiting, refreshed on every page change.
-export default function AdminShell({ children }: { children: ReactNode }) {
+export default function AdminShell({ lang, children }: { lang: AdminLang; children: ReactNode }) {
     return (
-        <AdminLangProvider>
+        <AdminLangProvider initial={lang}>
             <AdminToastProvider>
                 <Frame>{children}</Frame>
             </AdminToastProvider>

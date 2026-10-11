@@ -1,10 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextResponse, userAgent } from "next/server";
+import { looksAutomated } from "@/lib/analytics";
 import { cityBySlug } from "@/lib/cities";
 import { publicWriteClient } from "@/lib/feedback";
 
 // Anonymous search log: the words typed, the city and how many places
 // matched. No visitor id, no position. Feeds the admin "Recherches" page.
 export async function POST(request: Request) {
+    // Programs that announce themselves are not people searching.
+    const agent = userAgent(request);
+    if (agent.isBot || looksAutomated(agent.ua)) return NextResponse.json({ ok: true });
+
     let body: Record<string, unknown>;
     try {
         body = await request.json();

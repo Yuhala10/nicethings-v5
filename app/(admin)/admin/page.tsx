@@ -114,7 +114,40 @@ export default function DashboardPage() {
                         <p className="text-sm text-muted">{tr("Ce qui manque le plus : c'est là que le travail de terrain rapporte.", "What's missing most: that's where field work pays off.")}</p>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                {/* Phone: one block per city, the four rates side by side. */}
+                <ul className="divide-y divide-line md:hidden">
+                    {(data?.cities ?? []).map((row) => {
+                        const slug = cityByName(row.city)?.slug ?? "";
+                        const rate = (value: number) => (row.published ? Math.round((value / row.published) * 100) : 0);
+                        const rates = [
+                            { label: tr("Photos", "Photos"), value: rate(row.photos), tone: "#c0471b", href: `/admin/spots?city=${slug}&missing=photo&status=APPROVED` },
+                            { label: tr("Horaires", "Hours"), value: rate(row.hours), tone: "#0891b2", href: `/admin/spots?city=${slug}&missing=hours&status=APPROVED` },
+                            { label: tr("Prix", "Prices"), value: rate(row.prices), tone: "#7c3aed", href: `/admin/spots?city=${slug}&missing=price&status=APPROVED` },
+                            { label: tr("Vérifiés", "Verified"), value: rate(row.verified), tone: "#15803d", href: `/admin/spots?city=${slug}` },
+                        ];
+                        return (
+                            <li key={row.city} className="px-5 py-4">
+                                <Link href={`/admin/spots?city=${slug}`} className="flex items-baseline justify-between gap-3">
+                                    <span className="font-bold">{row.city}</span>
+                                    <span className="text-sm text-muted tabular-nums">
+                                        {number(row.published)} {tr("lieux", "places")}
+                                    </span>
+                                </Link>
+                                <div className="mt-2.5 grid grid-cols-4 gap-2">
+                                    {rates.map((item) => (
+                                        <Link key={item.label} href={item.href} className="min-w-0">
+                                            <span className="block text-[1.05rem] leading-none font-bold tabular-nums" style={{ color: item.tone }}>
+                                                {item.value}%
+                                            </span>
+                                            <span className="mt-1 block truncate text-[0.7rem] text-muted">{item.label}</span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+                <div className="hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[640px] text-sm">
                         <thead>
                             <tr className="text-left text-xs text-muted">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { HUMAN_KEY } from "../analytics";
 import { buildRails } from "../concierge/discover";
 import { parseDiscoveryText } from "../concierge/parse";
 import { INTENTS, isEmptyQuery, mergeQueries, type DiscoveryQuery, type IntentKey } from "../concierge/query";
@@ -22,6 +23,16 @@ export type BudgetKey = (typeof BUDGETS)[number]["key"];
 // Chips only appear once enough places carry the data behind them.
 export const MIN_PRICED_FOR_BUDGETS = 30;
 export const MIN_OPEN_FOR_CHIP = 5;
+
+// A real person has already touched, typed or scrolled in this browser
+// (noted by components/site/Analytics.tsx).
+function knownHuman() {
+    try {
+        return localStorage.getItem(HUMAN_KEY) === "1";
+    } catch {
+        return false;
+    }
+}
 
 function budgetQuery(key: BudgetKey | null): DiscoveryQuery | null {
     const band = BUDGETS.find((item) => item.key === key);
@@ -59,7 +70,9 @@ export function useDiscovery({
     const [sort, setSort] = useState<SortMode>("best");
     const [removed, setRemoved] = useState<string[]>([]); // understood tokens the visitor dismissed
 
+    const typed = useRef(false); // the visitor has typed in the field themselves
     const setText = (value: string) => {
+        typed.current = true;
         setTextState(value);
         setRemoved([]);
     };
@@ -122,8 +135,8 @@ export function useDiscovery({
     const logged = useRef(new Set<string>());
     useEffect(() => {
         const query = deferredText.trim().toLowerCase();
-        if (query.length < 3 || !city || logged.current.has(query)) return;
-        const timer = window.setTimeout(() => {
+        if (query.length < 3 || !city || logged.current.has(query) || navigator.webdriver) return;
+        const log = () => {
             logged.current.add(query);
             fetch("/api/searches", {
                 method: "POST",
@@ -131,8 +144,26 @@ export function useDiscovery({
                 body: JSON.stringify({ query, city, results: rankedCount.current }),
                 keepalive: true,
             }).catch(() => {});
-        }, 1800);
-        return () => window.clearTimeout(timer);
+        };
+
+        // Typed here, or in a browser where a person has already been seen.
+        if (typed.current || knownHuman()) {
+            const timer = window.setTimeout(log, 1800);
+            return () => window.clearTimeout(timer);
+        }
+        // Words that came with the link (?q=…): crawlers open those links
+        // too and were filling the log with words nobody typed. They count
+        // at the first sign of a person, like page views do.
+        const signs = ["pointerdown", "touchstart", "keydown", "wheel"] as const;
+        const options = { capture: true, passive: true } as const;
+        const stop = () => signs.forEach((name) => window.removeEventListener(name, onSign, options));
+        function onSign(event: Event) {
+            if (!event.isTrusted) return;
+            stop();
+            log();
+        }
+        signs.forEach((name) => window.addEventListener(name, onSign, options));
+        return stop;
     }, [deferredText, city]);
 
     const pricedCount = useMemo(() => places.filter((place) => place.priceMin || place.priceMax).length, [places]);

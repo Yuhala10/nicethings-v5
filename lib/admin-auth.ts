@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { ADMIN_LANG_COOKIE, pickAdminLang } from "./admin-lang";
 
 const COOKIE_NAME = "nt_admin_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
@@ -78,4 +79,11 @@ export async function clearAdminSession() {
 export async function hasAdminSession() {
     const store = await cookies();
     return verifyToken(store.get(COOKIE_NAME)?.value);
+}
+
+// The language to render the console in: the team member's saved choice,
+// otherwise the language of their phone or computer.
+export async function adminLangPreference() {
+    const [store, sent] = await Promise.all([cookies(), headers()]);
+    return pickAdminLang(store.get(ADMIN_LANG_COOKIE)?.value, sent.get("accept-language"));
 }

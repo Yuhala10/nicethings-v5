@@ -18,13 +18,21 @@ export default function SearchesPage() {
     const { data, loading } = useAdminData<Insights>(`searches?days=${days}`);
     const max = Math.max(1, ...(data?.perDay ?? []).map((day) => day.count));
 
-    const cityNames = (cities: string[]) => cities.map((slug) => cityBySlug(slug)?.name ?? slug).join(", ");
+    // A few cities by name, then how many more: a word searched everywhere
+    // used to list all twenty.
+    const cityNames = (cities: string[]) => {
+        const names = cities.map((slug) => cityBySlug(slug)?.name ?? slug);
+        return names.length > 3 ? `${names.slice(0, 3).join(", ")} +${names.length - 3}` : names.join(", ");
+    };
 
     return (
         <>
             <PageHeader
                 title={tr("Recherches", "Searches")}
-                subtitle={tr("Ce que les visiteurs tapent dans la recherche (anonyme).", "What visitors type in search (anonymous).")}
+                subtitle={tr(
+                    "Ce que les visiteurs tapent dans la recherche (anonyme). Les robots sont écartés : le compte repart du 11 octobre 2026.",
+                    "What visitors type in search (anonymous). Robots are left out: the count restarts from 11 October 2026."
+                )}
                 actions={
                     <div className="flex gap-1.5">
                         {[7, 30, 90].map((value) => (
@@ -61,7 +69,7 @@ export default function SearchesPage() {
                     </section>
 
                     <div className="grid gap-4 lg:grid-cols-2">
-                        <section className="a-card p-5">
+                        <section className="a-card min-w-0 p-5">
                             <h2 className="a-serif mb-3 text-[1.55rem]">{tr("Les plus demandées", "Most requested")}</h2>
                             <ol className="divide-y divide-line">
                                 {data.top.map((bucket, index) => (
@@ -77,7 +85,7 @@ export default function SearchesPage() {
                             </ol>
                         </section>
 
-                        <section className="a-card p-5">
+                        <section className="a-card min-w-0 p-5">
                             <h2 className="a-serif mb-1 flex items-center gap-2 text-[1.55rem]">
                                 <SearchX size={19} className="text-bad" />
                                 {tr("Sans résultat", "No result")}
@@ -91,12 +99,12 @@ export default function SearchesPage() {
                                         <li key={bucket.query} className="flex items-center gap-3 py-2.5">
                                             <span className="min-w-0 flex-1">
                                                 <span className="block truncate font-semibold">« {bucket.query} »</span>
-                                                <span className="block text-xs text-muted">
+                                                <span className="block truncate text-xs text-muted">
                                                     {tr(`${bucket.zero} fois sans résultat`, `${bucket.zero} time${bucket.zero > 1 ? "s" : ""} without result`)}
                                                     {bucket.cities.length ? ` · ${cityNames(bucket.cities)}` : ""}
                                                 </span>
                                             </span>
-                                            <Link href="/admin/spots/new" className="a-btn a-btn-soft h-9 px-3 text-xs">
+                                            <Link href="/admin/spots/new" className="a-btn a-btn-soft h-9 shrink-0 px-3 text-xs">
                                                 <Plus size={14} />
                                                 {tr("Ajouter", "Add")}
                                             </Link>

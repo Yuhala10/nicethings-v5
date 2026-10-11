@@ -103,12 +103,12 @@ export default function BlogAdminPage() {
                     {data.rows.map((row) => {
                         const [fr, en, style] = state(row);
                         return (
-                            <li key={row.id}>
-                                <Link href={`/admin/blog/${row.id}`} className="a-card flex items-center gap-4 p-3 transition hover:border-line-strong hover:shadow-sm">
+                            <li key={row.id} className="min-w-0">
+                                <Link href={`/admin/blog/${row.id}`} className="a-card flex min-w-0 items-center gap-3 p-3 transition hover:border-line-strong hover:shadow-sm md:gap-4">
                                     {row.cover_url ? (
-                                        <img src={row.cover_url} alt="" className="h-20 w-24 shrink-0 rounded-xl object-cover" />
+                                        <img src={row.cover_url} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover md:w-24" />
                                     ) : (
-                                        <span className="grid h-20 w-24 shrink-0 place-items-center rounded-xl bg-soft text-muted">
+                                        <span className="grid h-20 w-20 shrink-0 place-items-center rounded-xl bg-soft text-muted md:w-24">
                                             <Newspaper size={22} />
                                         </span>
                                     )}
@@ -121,7 +121,7 @@ export default function BlogAdminPage() {
                                             {row.featured && <Star size={13} className="fill-brand-500 text-brand-500" />}
                                             {row.title_en && <span className="rounded bg-soft px-1.5 text-[0.65rem] font-bold text-text-2">EN</span>}
                                         </span>
-                                        <span className="mt-1 block truncate font-bold">{row.title_fr}</span>
+                                        <span className="mt-1 line-clamp-2 leading-snug font-bold md:line-clamp-1">{row.title_fr}</span>
                                         <span className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted">
                                             <span>{row.reading_minutes} min</span>
                                             <span className="inline-flex items-center gap-1">

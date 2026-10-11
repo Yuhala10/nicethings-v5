@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fail, requireAdmin } from "@/lib/admin-api";
 import { photoCounts, selectAll } from "@/lib/admin-places";
+import { searchLogSince } from "@/lib/analytics";
 
 // Everything the dashboard shows in one call: headline numbers, how
 // complete each city's listings are, what is waiting, and recent activity.
@@ -30,7 +31,7 @@ export async function GET() {
             photoCounts(db),
             db.from("nt_spot_submissions").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
             db.from("nt_reports").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
-            db.from("nt_searches").select("id", { count: "exact", head: true }).gte("created_at", since),
+            db.from("nt_searches").select("id", { count: "exact", head: true }).gte("created_at", searchLogSince(since)),
             db.from("nt_spot_submissions").select("id,name,city,neighborhood,category,created_at").eq("status", "PENDING").order("created_at", { ascending: false }).limit(5),
             db.from("nt_reports").select("id,reason,description,spot_id,created_at").eq("status", "PENDING").order("created_at", { ascending: false }).limit(5),
             // Visitors this week (if analytics is set up; otherwise left out).
