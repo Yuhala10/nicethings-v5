@@ -7,7 +7,6 @@ import NowSection from "@/components/host/NowSection";
 import PinCard from "@/components/place/PinCard";
 import { LanguageSwitch, Logo } from "@/components/site/SiteChrome";
 import { CITIES, type City } from "@/lib/cities";
-import { FOUNDER } from "@/lib/founder";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
 import type { Area } from "@/lib/places/areas";
@@ -64,7 +63,8 @@ export default function Landing({
 
     // The usual questions, then who made it, asked the way people ask a
     // search engine.
-    const faq = [...t.landing.faq, { q: t.about.faqQuestion, a: fill(t.about.faqAnswer, { name: FOUNDER.name, school: FOUNDER.school.short }) }];
+    // The founder is met on his own page only: no question about him here.
+    const faq = t.landing.faq;
 
     const jsonLd = [
         {
