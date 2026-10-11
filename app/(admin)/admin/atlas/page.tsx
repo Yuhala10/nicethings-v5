@@ -104,6 +104,12 @@ function actionText(action: Action, tr: Tr): { title: string; detail: string | n
             detail: tr(action.detail ?? "", "The open map gives a kind of place where the name should be. The listing waits for its real name among the drafts."),
         };
     }
+    if (action.kind === "place.private") {
+        return {
+            title: tr(action.title, `“${name}” moved back to drafts: it looks like a private home`),
+            detail: tr(action.detail ?? "", "The open map files this plot or house among the gardens. It is not a place to send visitors to."),
+        };
+    }
     if (action.kind === "city.areas") {
         const after = action.after as { city?: string; count?: number; groups?: Record<string, string[]> } | null;
         const largest = Object.entries(after?.groups ?? {})

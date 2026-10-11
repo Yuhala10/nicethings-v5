@@ -5,7 +5,7 @@ import { firstPhone } from "../places/display";
 import { distanceMeters } from "../places/geo";
 import { AREA_POINTS } from "./area-points";
 import { recheckOnMap } from "./osm";
-import { notAName, qualityChecks, type Found } from "./quality";
+import { notAName, privateHome, qualityChecks, type Found } from "./quality";
 import { loadPlaces, readSettings, writePlace, writePlaces, type AtlasAction, type AtlasIssue, type AtlasPlace } from "./store";
 
 // One shift of Atlas: compare the catalogue with the live open map, fill
@@ -86,7 +86,7 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
         // ---- The open map ------------------------------------------------
         const map = await recheckOnMap(published);
         const past = await selectAll<Pick<AtlasAction, "spot_id" | "kind" | "status">>((from, to) =>
-            db.from("nt_atlas_actions").select("spot_id,kind,status").in("kind", ["place.fill", "place.hide", "place.duplicate", "place.clean", "place.unnamed"]).range(from, to)
+            db.from("nt_atlas_actions").select("spot_id,kind,status").in("kind", ["place.fill", "place.hide", "place.duplicate", "place.clean", "place.unnamed", "place.private"]).range(from, to)
         );
         // What a person declined is never proposed again, what a person
         // undid is never redone, and a proposal still waiting is not repeated.
@@ -161,6 +161,19 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
                     kind: "place.unnamed",
                     title: `« ${place.name} » (${place.city}) repassé en brouillon : ce n'est pas un nom de lieu`,
                     detail: "La carte ouverte donne un type de lieu à la place du nom. La fiche attend son vrai nom dans les brouillons.",
+                    before: { status: place.status },
+                    after: { status: "DRAFT" },
+                });
+                place.status = "DRAFT";
+                cleaned++;
+            }
+            if (place.status !== "DRAFT" && place.source === "osm" && privateHome(place) && !settled.has(`place.private:${place.id}`)) {
+                await writePlace(db, place.id, { status: "DRAFT" });
+                actions.push({
+                    ...logged,
+                    kind: "place.private",
+                    title: `« ${place.name} » (${place.city}) repassé en brouillon : cela ressemble à un domicile privé`,
+                    detail: "La carte ouverte range ce terrain ou cette maison parmi les jardins. Ce n'est pas un lieu où envoyer des visiteurs.",
                     before: { status: place.status },
                     after: { status: "DRAFT" },
                 });

@@ -55,6 +55,9 @@ function placeArea(place: PlaceDetail) {
 
 function describe(place: PlaceDetail, locale: Locale) {
     const t = getDictionary(locale);
+    // A place with a story is best told by its opening lines, in the page's language.
+    const opening = (place.guide.story[locale] ?? place.guide.story.fr)?.split("\n")[0];
+    if (opening) return opening.length <= 158 ? opening : `${opening.slice(0, 155).replace(/\s+\S*$/, "")}…`;
     if (place.description) return place.description.slice(0, 158);
     return fill(t.spot.descriptionFallback, {
         name: place.name,
@@ -295,6 +298,9 @@ export default async function PlacePage({ params }: Props) {
     const articles = await getPostsForPlace(place.slug);
     const hasHours = Boolean(place.hours.opens && place.hours.closes);
     const hasPrice = Boolean(place.priceMin || place.priceMax);
+    // A lake or a mountain keeps no hours and has no price per head: nothing
+    // is "to confirm" there, so those lines only show when something is known.
+    const outdoors = place.category === "Nature";
     const updatedAgo = formatRelativeDays(place.updatedAt, lang);
     const nameSize =
         place.name.length > 26 ? "text-[1.75rem] md:text-[2.75rem]" : place.name.length > 16 ? "text-[2.25rem] md:text-[3.5rem]" : "text-[2.75rem] md:text-[4.5rem]";
@@ -339,7 +345,7 @@ export default async function PlacePage({ params }: Props) {
                 </h1>
                 <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{tagline(place, lang, cityName)}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 [&>*:empty]:hidden">
-                    <OpenBadge hours={place.hours} />
+                    {(hasHours || !outdoors) && <OpenBadge hours={place.hours} />}
                     {hasPrice && <PriceLabel min={place.priceMin} max={place.priceMax} className="text-[0.875rem]" />}
                     {place.reviewCount > 0 && <Rating rating={place.rating} count={place.reviewCount} />}
                 </div>
@@ -440,24 +446,28 @@ export default async function PlacePage({ params }: Props) {
                 {/* Practical info: one fact per row. */}
                 <Section title={t.spot.practical}>
                     <div className="-my-4 divide-y divide-line">
-                        <InfoRow icon={Clock3} label={t.spot.hours}>
-                            {hasHours ? (
-                                <HoursTable hours={place.hours} />
-                            ) : (
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-muted">{t.spot.hoursUnknown}</span>
-                                    <ReportButton
-                                        slug={place.slug}
-                                        initialReason="hours"
-                                        label={t.spot.hoursHelp}
-                                        className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-brand-600 hover:underline"
-                                    />
-                                </div>
-                            )}
-                        </InfoRow>
-                        <InfoRow icon={Wallet} label={t.spot.price}>
-                            <PriceLabel min={place.priceMin} max={place.priceMax} showUnknown />
-                        </InfoRow>
+                        {(hasHours || !outdoors) && (
+                            <InfoRow icon={Clock3} label={t.spot.hours}>
+                                {hasHours ? (
+                                    <HoursTable hours={place.hours} />
+                                ) : (
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-muted">{t.spot.hoursUnknown}</span>
+                                        <ReportButton
+                                            slug={place.slug}
+                                            initialReason="hours"
+                                            label={t.spot.hoursHelp}
+                                            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-brand-600 hover:underline"
+                                        />
+                                    </div>
+                                )}
+                            </InfoRow>
+                        )}
+                        {(hasPrice || !outdoors) && (
+                            <InfoRow icon={Wallet} label={t.spot.price}>
+                                <PriceLabel min={place.priceMin} max={place.priceMax} showUnknown />
+                            </InfoRow>
+                        )}
                         <InfoRow icon={MapPin} label={t.spot.address}>
                             <span className="text-text">{[place.address, area, cityName].filter(Boolean).join(", ")}</span>
                             {place.landmark && (

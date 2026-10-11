@@ -50,6 +50,12 @@ export function notAName(name: string) {
     return text !== "beignetariat" && (GENERIC.has(text) || text.replace(/[^a-z]/g, "").length < 3);
 }
 
+// Someone's home or plot, drawn on the open map as a garden: "Aunty Nicole's
+// Residence", "Sidrene's Land". Not a place to send visitors to.
+export function privateHome(place: { name: string; category: string }) {
+    return place.category === "Nature" && /\b(residence|grandma|grandpa|mom|dad|land|estate)$/.test(plain(place.name));
+}
+
 function genericNames(published: AtlasPlace[]): Found[] {
     return published
         .filter((place) => notAName(place.name))
