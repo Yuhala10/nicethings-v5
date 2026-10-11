@@ -166,8 +166,8 @@ function InfoRow({
     const content = (
         <>
             <Icon size={18} strokeWidth={1.8} className="mt-0.5 shrink-0 text-muted" />
-            <span className="min-w-0 flex-1 text-[0.92rem]">
-                <span className="mb-0.5 block text-[0.78rem] text-muted">{label}</span>
+            <span className="min-w-0 flex-1 text-[0.875rem]">
+                <span className="mb-0.5 block text-[0.75rem] text-muted">{label}</span>
                 {children}
             </span>
             {href && <ChevronRight size={17} className="mt-3 shrink-0 text-muted" />}
@@ -186,7 +186,7 @@ function TagList({ values, vocabulary, locale }: { values: string[]; vocabulary:
     return (
         <ul className="flex flex-wrap gap-2">
             {values.map((value) => (
-                <li key={value} className="rounded-full border border-line-strong px-3.5 py-1.5 text-[0.88rem] font-medium text-text-2">
+                <li key={value} className="rounded-full border border-line-strong px-3.5 py-1.5 text-[0.875rem] font-medium text-text-2">
                     {tagLabel(vocabulary, value, locale)}
                 </li>
             ))}
@@ -284,7 +284,7 @@ export default async function PlacePage({ params }: Props) {
     const hasPrice = Boolean(place.priceMin || place.priceMax);
     const updatedAgo = formatRelativeDays(place.updatedAt, lang);
     const nameSize =
-        place.name.length > 26 ? "text-[1.95rem] md:text-[3rem]" : place.name.length > 16 ? "text-[2.35rem] md:text-[3.8rem]" : "text-[2.8rem] md:text-[4.4rem]";
+        place.name.length > 26 ? "text-[1.75rem] md:text-[2.75rem]" : place.name.length > 16 ? "text-[2.25rem] md:text-[3.5rem]" : "text-[2.75rem] md:text-[4.5rem]";
 
     return (
         <article className="pb-4">
@@ -301,7 +301,7 @@ export default async function PlacePage({ params }: Props) {
 
             {/* Name, place in the city, the line that sums it up. */}
             <header className="mx-auto max-w-3xl px-4 pt-7 md:px-6 md:pt-10">
-                <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1.5 text-[0.8rem] text-muted">
+                <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1.5 text-[0.875rem] text-muted">
                     <Link href={paths.city(lang, place.city)} className="nt-tap transition-colors hover:text-text">
                         {cityName}
                     </Link>
@@ -323,10 +323,10 @@ export default async function PlacePage({ params }: Props) {
                     <span className="min-w-0 truncate pb-[0.08em]">{place.name}</span>
                     {place.verified && <VerifiedTick size={26} className="md:h-9 md:w-9" label={t.trust.verifiedTitle} />}
                 </h1>
-                <p className="mt-3 max-w-2xl text-[1.04rem] leading-relaxed text-text-2">{tagline(place, lang, cityName)}</p>
+                <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{tagline(place, lang, cityName)}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 [&>*:empty]:hidden">
                     <OpenBadge hours={place.hours} />
-                    {hasPrice && <PriceLabel min={place.priceMin} max={place.priceMax} className="text-[0.85rem]" />}
+                    {hasPrice && <PriceLabel min={place.priceMin} max={place.priceMax} className="text-[0.875rem]" />}
                     {place.reviewCount > 0 && <Rating rating={place.rating} count={place.reviewCount} />}
                 </div>
             </header>
@@ -345,7 +345,7 @@ export default async function PlacePage({ params }: Props) {
                                 className="h-full w-full"
                             />
                             {place.photos.length > 1 && (
-                                <span className="absolute right-3 bottom-3 rounded-full bg-black/50 px-2.5 py-1 text-[0.72rem] font-semibold text-white backdrop-blur-md">
+                                <span className="absolute right-3 bottom-3 rounded-full bg-black/50 px-2.5 py-1 text-[0.75rem] font-semibold text-white backdrop-blur-md">
                                     1 / {place.photos.length}
                                 </span>
                             )}
@@ -358,8 +358,8 @@ export default async function PlacePage({ params }: Props) {
                         >
                             <style.icon size={240} strokeWidth={0.8} className="absolute -right-10 -bottom-14 rotate-[-10deg] opacity-[0.13]" />
                             <div className="absolute bottom-0 left-0 p-5 md:p-7">
-                                <p className="text-[0.66rem] font-semibold tracking-[0.16em] text-[#f6efe4]/65 uppercase">{kind}</p>
-                                <p className="nt-serif mt-1 text-[1.9rem] italic md:text-[2.6rem]">{area ?? cityName}</p>
+                                <p className="text-[0.75rem] font-semibold tracking-[0.16em] text-[#f6efe4]/65 uppercase">{kind}</p>
+                                <p className="nt-serif mt-1 text-[1.75rem] italic md:text-[2.75rem]">{area ?? cityName}</p>
                             </div>
                         </div>
                     )}
@@ -371,7 +371,7 @@ export default async function PlacePage({ params }: Props) {
 
                 {place.vibes.length > 0 && (
                     <Section title={t.spot.vibes}>
-                        <p className="nt-serif text-[1.9rem] leading-tight text-text md:text-[2.3rem]">
+                        <p className="nt-serif text-[1.75rem] leading-tight text-text md:text-[2.25rem]">
                             {place.vibes.map((value) => tagLabel(VIBES, value, lang)).join(" · ")}
                         </p>
                     </Section>
@@ -385,7 +385,7 @@ export default async function PlacePage({ params }: Props) {
 
                 {about && (
                     <Section title={t.spot.about}>
-                        <p className="text-[1.04rem] leading-[1.75] whitespace-pre-line text-text-2">{about}</p>
+                        <p className="text-[1rem] leading-[1.75] whitespace-pre-line text-text-2">{about}</p>
                     </Section>
                 )}
 
@@ -466,11 +466,11 @@ export default async function PlacePage({ params }: Props) {
                     <Section title={t.spot.menu}>
                         <ul className="divide-y divide-line">
                             {place.menu.map((item) => (
-                                <li key={item.name} className="flex justify-between gap-4 py-3 text-[0.92rem]">
+                                <li key={item.name} className="flex justify-between gap-4 py-3 text-[0.875rem]">
                                     <span>
                                         <span className="font-semibold">{item.name}</span>
                                         {item.popular && (
-                                            <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-[0.7rem] font-semibold text-brand-700 dark:bg-brand-700/25 dark:text-brand-200">
+                                            <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-[0.75rem] font-semibold text-brand-700 dark:bg-brand-700/25 dark:text-brand-200">
                                                 {t.spot.popular}
                                             </span>
                                         )}
@@ -489,7 +489,7 @@ export default async function PlacePage({ params }: Props) {
                             {place.reviews
                                 .filter((review) => review.comment)
                                 .map((review) => (
-                                    <li key={review.id} className="rounded-[1.1rem] bg-surface-2 p-4 text-[0.92rem]">
+                                    <li key={review.id} className="rounded-[1.1rem] bg-surface-2 p-4 text-[0.875rem]">
                                         <div className="mb-1 flex justify-between text-xs font-semibold">
                                             <span>{"★".repeat(review.rating)}</span>
                                             <span className="text-muted">{formatRelativeDays(review.createdAt, lang)}</span>
@@ -618,7 +618,7 @@ export default async function PlacePage({ params }: Props) {
                 <section className="mx-auto mt-14 max-w-3xl md:px-6">
                     <div className="mb-5 px-4 md:px-0">
                         <h2 className="nt-section-title">{t.host.afterTitle}</h2>
-                        <p className="mt-1.5 text-[0.92rem] leading-relaxed text-muted">{afterLead(place.category, t)}</p>
+                        <p className="mt-1.5 text-[0.875rem] leading-relaxed text-muted">{afterLead(place.category, t)}</p>
                     </div>
                     <ul className="nt-rail">
                         {next.map(({ place: item, distance }) => (

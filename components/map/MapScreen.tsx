@@ -52,19 +52,19 @@ function MapCard({ place, distance, active }: { place: PlaceSummary; distance: n
             </Link>
             <div className="flex min-w-0 flex-1 flex-col py-0.5 pr-1">
                 <Link href={paths.place(locale, place.slug)} className="min-w-0">
-                    <h3 className="truncate font-display text-[1.02rem] font-bold">{place.name}</h3>
-                    <p className="truncate text-[0.8rem] text-muted">{meta.join(" · ")}</p>
+                    <h3 className="truncate font-display text-[1rem] font-bold">{place.name}</h3>
+                    <p className="truncate text-[0.875rem] text-muted">{meta.join(" · ")}</p>
                 </Link>
-                <div className="mt-1 flex min-h-[1.1rem] items-center gap-2 text-[0.8rem]">
+                <div className="mt-1 flex min-h-[1.1rem] items-center gap-2 text-[0.875rem]">
                     <OpenBadge hours={place.hours} compact />
                     <PriceLabel min={place.priceMin} max={place.priceMax} className="truncate" />
                 </div>
                 <div className="mt-auto flex gap-1.5 pt-2">
-                    <Link href={paths.directions(locale, place.slug)} className="nt-btn nt-btn-primary h-9 flex-1 rounded-xl px-2 text-[0.82rem]">
+                    <Link href={paths.directions(locale, place.slug)} className="nt-btn nt-btn-primary h-9 flex-1 rounded-xl px-2 text-[0.875rem]">
                         <Navigation size={14} />
                         {t.spot.directions}
                     </Link>
-                    <Link href={paths.place(locale, place.slug)} className="nt-btn nt-btn-soft h-9 rounded-xl px-3 text-[0.82rem]">
+                    <Link href={paths.place(locale, place.slug)} className="nt-btn nt-btn-soft h-9 rounded-xl px-3 text-[0.875rem]">
                         {t.common.seeMore}
                     </Link>
                 </div>
@@ -194,7 +194,7 @@ export default function MapScreen({
 
     const listHref = `${paths.search(locale, city.slug)}${d.handoff ? `?${d.handoff}` : ""}`;
     const count = d.ranked.length === 1 ? t.search.resultsCountOne : fill(t.search.resultsCount, { count: d.ranked.length });
-    const glassPill = "nt-glass-strong inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-[0.85rem] font-bold shadow-card transition active:scale-95";
+    const glassPill = "nt-glass-strong inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-[0.875rem] font-bold shadow-card transition active:scale-95";
 
     return (
         <div className="fixed inset-0 overflow-hidden bg-bg">

@@ -394,7 +394,7 @@ export default function Navigator({
                             >
                                 <span className="absolute top-1.5 left-1/2 h-1 w-9 -translate-x-1/2 rounded-full bg-line-strong" />
                                 <span className="min-w-0 flex-1 pt-1.5">
-                                    <span className="block truncate font-display text-[1.02rem] font-extrabold">{place.name}</span>
+                                    <span className="block truncate font-display text-[1rem] font-extrabold">{place.name}</span>
                                     <span className="block truncate text-sm font-semibold text-muted">
                                         {route ? `${formatDuration(route.duration, locale)} · ${formatDistance(route.distance, locale)}` : t.route.loading}
                                     </span>
@@ -434,7 +434,7 @@ export default function Navigator({
                                 aria-label={t.route.showMap}
                             >
                                 <span className="h-1.5 w-11 rounded-full bg-line-strong" />
-                                <span className="inline-flex items-center gap-1 text-[0.72rem] font-bold text-muted">
+                                <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold text-muted">
                                     <ChevronDown size={14} />
                                     {t.route.showMap}
                                 </span>
@@ -449,7 +449,7 @@ export default function Navigator({
                                 </span>
                                 <div className="min-w-0">
                                     <p className="nt-eyebrow">{t.route.title}</p>
-                                    <h1 id="route-title" className="truncate text-xl leading-tight font-extrabold">
+                                    <h1 id="route-title" className="truncate text-[1.125rem] leading-tight font-extrabold">
                                         {place.name}
                                     </h1>
                                 </div>
@@ -529,7 +529,7 @@ export default function Navigator({
                             {route && (
                                 <div className="mb-5">
                                     <div className="flex items-baseline gap-3">
-                                        <p className="font-display text-[2.4rem] leading-none font-extrabold">{formatDuration(route.duration, locale)}</p>
+                                        <p className="font-display text-[2.25rem] leading-none font-extrabold">{formatDuration(route.duration, locale)}</p>
                                         <p className="text-sm font-semibold text-muted">{formatDistance(route.distance, locale)}</p>
                                     </div>
                                     <p className="mt-1.5 text-sm text-text-2">{fill(t.route.arrival, { time: arrival })}</p>
@@ -556,7 +556,7 @@ export default function Navigator({
                                 type="button"
                                 onClick={begin}
                                 disabled={!route}
-                                className="nt-btn nt-btn-primary h-14 w-full text-[1.05rem] disabled:opacity-50"
+                                className="nt-btn nt-btn-primary h-14 w-full text-[1rem] disabled:opacity-50"
                             >
                                 <Navigation size={20} />
                                 {geo.position || demo ? t.route.start : t.route.enableLocation}
@@ -638,10 +638,10 @@ export default function Navigator({
                                         <ManeuverIcon step={next} size={34} strokeWidth={2.4} />
                                     </span>
                                     <div className="min-w-0">
-                                        <p className="font-display text-[2rem] leading-none font-extrabold" aria-live="polite">
+                                        <p className="font-display text-[2.25rem] leading-none font-extrabold" aria-live="polite">
                                             {formatDistance(nav.toManeuver, locale)}
                                         </p>
-                                        <p className="mt-1 line-clamp-2 text-[0.95rem] font-semibold text-white/85">{next ? instruction(next, locale) : ""}</p>
+                                        <p className="mt-1 line-clamp-2 text-[1rem] font-semibold text-white/85">{next ? instruction(next, locale) : ""}</p>
                                     </div>
                                 </div>
                                 {after && after !== next && (
@@ -663,7 +663,7 @@ export default function Navigator({
                         >
                             <div className="nt-glass flex items-center gap-3 rounded-[1.6rem] border border-line p-3 pl-5 shadow-float">
                                 <div className="min-w-0 flex-1">
-                                    <p className="font-display text-[1.6rem] leading-none font-extrabold text-open">{arrival}</p>
+                                    <p className="font-display text-[1.5rem] leading-none font-extrabold text-open">{arrival}</p>
                                     <p className="mt-1 text-sm font-semibold text-muted">
                                         {formatDuration(remainingSeconds, locale)} · {formatDistance(remainingMeters, locale)}
                                     </p>

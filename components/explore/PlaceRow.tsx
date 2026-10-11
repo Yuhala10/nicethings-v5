@@ -39,14 +39,14 @@ export default function PlaceRow({
             />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                    <h3 className="min-w-0 truncate text-[0.97rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
+                    <h3 className="min-w-0 truncate text-[1rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
                     <VerifiedMark verified={place.verified} />
                     <span className="ml-auto">
                         <Rating rating={place.rating} count={place.reviewCount} />
                     </span>
                 </div>
-                <p className="truncate text-[0.8rem] text-muted">{meta.join(" · ")}</p>
-                <div className="flex items-center gap-2 text-[0.8rem] empty:hidden">
+                <p className="truncate text-[0.875rem] text-muted">{meta.join(" · ")}</p>
+                <div className="flex items-center gap-2 text-[0.875rem] empty:hidden">
                     <PriceLabel min={place.priceMin} max={place.priceMax} className="truncate" />
                     <OpenBadge hours={place.hours} compact />
                 </div>

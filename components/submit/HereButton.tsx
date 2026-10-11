@@ -142,7 +142,7 @@ export default function HereButton({
                                 </span>
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className="block font-display text-[1.08rem] leading-tight font-extrabold">
+                                <span className="block font-display text-[1.125rem] leading-tight font-extrabold">
                                     {state === "locating" ? t.submit.locating : t.submit.here}
                                 </span>
                                 <span className="mt-0.5 block text-sm text-muted">

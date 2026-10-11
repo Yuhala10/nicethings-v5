@@ -97,8 +97,8 @@ export default async function AboutPage({ params }: Props) {
             <header className="grid gap-7 md:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] md:items-center md:gap-16">
                 <div className="nt-rise order-2 md:order-1">
                     <p className="nt-eyebrow">{FOUNDER.role[lang]}</p>
-                    <h1 className="nt-serif mt-3 text-[3.3rem] leading-[0.98] md:text-[5.6rem]">{FOUNDER.name}</h1>
-                    <p className="mt-5 max-w-lg text-[1.05rem] leading-relaxed text-text-2 md:mt-7 md:text-[1.2rem]">{FOUNDER.lead[lang]}</p>
+                    <h1 className="nt-serif mt-3 text-[3.5rem] leading-[0.98] md:text-[4.5rem]">{FOUNDER.name}</h1>
+                    <p className="mt-5 max-w-lg text-[1rem] leading-relaxed text-text-2 md:mt-7 md:text-[1.125rem]">{FOUNDER.lead[lang]}</p>
                     <div className="mt-7 flex flex-wrap items-center gap-2.5">
                         <a href={`mailto:${FOUNDER.email}`} className="nt-btn nt-btn-dark">
                             <Mail size={17} />
@@ -121,7 +121,7 @@ export default async function AboutPage({ params }: Props) {
             </header>
 
             {/* ---------------- The line the story turns on ---------------- */}
-            <p className="nt-serif mx-auto mt-16 max-w-4xl text-center text-[2.3rem] leading-[1.08] md:mt-28 md:text-[4.2rem]">
+            <p className="nt-serif mx-auto mt-16 max-w-4xl text-center text-[2.25rem] leading-[1.08] md:mt-28 md:text-[4.5rem]">
                 {pullFirst} <em className="text-brand-600">{pullSecond}</em>
             </p>
 
@@ -141,7 +141,7 @@ export default async function AboutPage({ params }: Props) {
                         <div className="relative aspect-[4/5] overflow-hidden rounded-[1.1rem] bg-surface-3">
                             <Image src={FOUNDER.secondPhoto} alt={FOUNDER.name} fill sizes="(min-width: 768px) 272px, 100vw" className="object-cover object-top grayscale" />
                         </div>
-                        <dl className="mt-6 divide-y divide-line border-y border-line text-[0.92rem]">
+                        <dl className="mt-6 divide-y divide-line border-y border-line text-[0.875rem]">
                             <div className="flex items-baseline justify-between gap-4 py-3">
                                 <dt className="text-muted">{t.about.studies}</dt>
                                 <dd className="text-right font-semibold">
@@ -150,7 +150,7 @@ export default async function AboutPage({ params }: Props) {
                             </div>
                             {FOUNDER.works.map((work) => (
                                 <div key={work.name} className="py-3">
-                                    <dt className="nt-serif text-[1.3rem]">
+                                    <dt className="nt-serif text-[1.125rem]">
                                         {work.url ? (
                                             <a href={work.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-brand-600">
                                                 {work.name}
@@ -175,8 +175,8 @@ export default async function AboutPage({ params }: Props) {
                     <dl className="mt-4 grid grid-cols-3 gap-4 border-y border-line py-8 md:py-10">
                         {figures.map((figure) => (
                             <div key={figure.label} className="flex flex-col-reverse justify-end gap-1.5">
-                                <dt className="text-[0.8rem] leading-snug text-muted md:text-[0.9rem]">{figure.label}</dt>
-                                <dd className="nt-serif text-[2.2rem] md:text-[3.6rem]">{formatNumber(figure.value, lang)}</dd>
+                                <dt className="text-[0.875rem] leading-snug text-muted md:text-[0.875rem]">{figure.label}</dt>
+                                <dd className="nt-serif text-[2.25rem] md:text-[3.5rem]">{formatNumber(figure.value, lang)}</dd>
                             </div>
                         ))}
                     </dl>
@@ -185,13 +185,13 @@ export default async function AboutPage({ params }: Props) {
 
             {/* ---------------- How it is made ---------------- */}
             <section className="mt-14 md:mt-20">
-                <h2 className="nt-serif text-[2.1rem] md:text-[2.7rem]">{t.about.howTitle}</h2>
+                <h2 className="nt-serif text-[2.25rem] md:text-[2.75rem]">{t.about.howTitle}</h2>
                 <ul className="mt-7 grid gap-7 md:grid-cols-3 md:gap-10">
                     {how.map((item) => (
                         <li key={item.title}>
                             <item.icon size={22} strokeWidth={1.8} className="text-brand-600" />
                             <p className="mt-3 font-semibold">{item.title}</p>
-                            <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted">{item.body}</p>
+                            <p className="mt-1.5 text-[1rem] leading-relaxed text-muted">{item.body}</p>
                         </li>
                     ))}
                 </ul>
@@ -212,8 +212,8 @@ export default async function AboutPage({ params }: Props) {
 
             {/* ---------------- Get in touch ---------------- */}
             <section className="mt-16 rounded-[1.6rem] bg-[#15110e] p-6 text-white md:mt-24 md:p-12">
-                <h2 className="nt-serif max-w-xl text-[2rem] md:text-[2.8rem]">{t.about.contactTitle}</h2>
-                <p className="mt-3 text-[0.95rem] text-white/65">{t.about.contactBody}</p>
+                <h2 className="nt-serif max-w-xl text-[2.25rem] md:text-[2.75rem]">{t.about.contactTitle}</h2>
+                <p className="mt-3 text-[1rem] text-white/65">{t.about.contactBody}</p>
                 <div className="mt-6 flex flex-wrap gap-2.5">
                     <a href={`mailto:${FOUNDER.email}`} className="nt-btn nt-btn-primary">
                         <Mail size={17} />

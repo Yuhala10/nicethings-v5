@@ -74,7 +74,7 @@ export function StickyPlaceBar({ slug, name }: { slug: string; name: string }) {
                     className="nt-glass fixed inset-x-0 top-0 z-40 border-b border-line pt-[env(safe-area-inset-top)] md:top-16"
                 >
                     <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4 md:px-6">
-                        <p className="nt-serif min-w-0 flex-1 truncate text-[1.35rem]">{name}</p>
+                        <p className="nt-serif min-w-0 flex-1 truncate text-[1.5rem]">{name}</p>
                         <Link href={paths.directions(locale, slug)} className="nt-btn nt-btn-primary h-10 px-4 text-sm">
                             <Navigation size={16} />
                             {t.spot.directions}

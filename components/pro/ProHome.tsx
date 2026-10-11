@@ -41,7 +41,7 @@ export default function ProHome() {
                     <Store size={14} />
                     {t.pro.title}
                 </p>
-                <h1 className="relative mt-4 font-display text-[2.1rem] leading-[1.05] font-extrabold tracking-tight md:text-5xl">{t.pro.heroTitle}</h1>
+                <h1 className="relative mt-4 font-display text-[2.25rem] leading-[1.05] font-extrabold tracking-tight md:text-[2.75rem]">{t.pro.heroTitle}</h1>
                 <p className="relative mt-3 max-w-xl text-white/75 md:text-lg">{t.pro.heroLead}</p>
                 {!loading && !data?.user && (
                     <div className="relative mt-6 max-w-sm">
@@ -77,7 +77,7 @@ export default function ProHome() {
                             <span className="nt-sunset grid h-12 w-12 place-items-center rounded-full font-bold text-white">{(data.user.name ?? "?")[0]}</span>
                         )}
                         <div className="min-w-0 flex-1">
-                            <p className="truncate font-display text-xl font-extrabold">{fill(t.pro.hello, { name: data.user.name?.split(" ")[0] ?? "" })}</p>
+                            <p className="truncate font-display text-[1.125rem] font-extrabold">{fill(t.pro.hello, { name: data.user.name?.split(" ")[0] ?? "" })}</p>
                             <p className="truncate text-sm text-muted">{data.user.email}</p>
                         </div>
                         <button

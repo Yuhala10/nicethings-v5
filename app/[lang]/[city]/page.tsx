@@ -94,7 +94,7 @@ export default async function CityPage({ params }: Props) {
                     {collections.length > 0 && (
                         <section className="nt-reveal mt-6">
                             <h2 className="nt-section-title">{fill(t.city.collectionsIn, { city: city.name })}</h2>
-                            <p className="mt-1.5 text-[0.92rem] text-muted">{t.city.collectionsLead}</p>
+                            <p className="mt-1.5 text-[0.875rem] text-muted">{t.city.collectionsLead}</p>
                             <ul className="mt-5 flex flex-wrap gap-2">
                                 {collections.map(({ collection, count }) => (
                                     <li key={collection.key}>
@@ -120,7 +120,7 @@ export default async function CityPage({ params }: Props) {
                                         >
                                             <CategoryIcon category={category} />
                                             <span className="min-w-0">
-                                                <span className="block truncate text-[0.9rem] font-semibold">{plural(category, lang)}</span>
+                                                <span className="block truncate text-[0.875rem] font-semibold">{plural(category, lang)}</span>
                                                 <span className="text-xs text-muted">{fill(t.city.placesCount, { count })}</span>
                                             </span>
                                         </Link>
@@ -167,8 +167,8 @@ export default async function CityPage({ params }: Props) {
                 className="nt-reveal nt-pressable group mt-14 flex items-center justify-between gap-4 rounded-[1.25rem] border border-line bg-surface p-5"
             >
                 <span>
-                    <span className="nt-serif block text-[1.6rem]">{fill(t.searchPage.title, { city: city.name })}</span>
-                    <span className="mt-1 block text-[0.9rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</span>
+                    <span className="nt-serif block text-[1.5rem]">{fill(t.searchPage.title, { city: city.name })}</span>
+                    <span className="mt-1 block text-[0.875rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</span>
                 </span>
                 <ArrowRight size={20} className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>

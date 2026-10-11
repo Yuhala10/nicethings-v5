@@ -45,7 +45,7 @@ export default function SavedList() {
 
     return (
         <div className="mx-auto max-w-6xl px-4 pt-6 md:px-6 md:pt-10">
-            <h1 className="text-[1.9rem] leading-tight font-extrabold md:text-4xl">{t.saved.title}</h1>
+            <h1 className="text-[1.75rem] leading-tight font-extrabold md:text-4xl">{t.saved.title}</h1>
             {state.status === "done" && places.length > 0 && (
                 <p className="mt-1 text-sm text-muted">
                     {places.length === 1 ? t.city.placesCountOne : fill(t.city.placesCount, { count: places.length })}

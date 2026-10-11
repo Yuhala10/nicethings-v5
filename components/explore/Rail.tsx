@@ -23,13 +23,13 @@ export default function Rail({
             <div className="mb-4 flex items-end justify-between gap-3 px-4">
                 <div className="min-w-0">
                     <h2 className="nt-section-title truncate">{title}</h2>
-                    {subtitle && <p className="truncate text-[0.8rem] text-muted">{subtitle}</p>}
+                    {subtitle && <p className="truncate text-[0.875rem] text-muted">{subtitle}</p>}
                 </div>
                 {onSeeAll && (
                     <button
                         type="button"
                         onClick={onSeeAll}
-                        className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-3 text-[0.85rem] font-semibold text-text transition hover:bg-surface-2"
+                        className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-3 text-[0.875rem] font-semibold text-text transition hover:bg-surface-2"
                     >
                         {t.discover.seeAll}
                         <ChevronRight size={16} />

@@ -117,7 +117,7 @@ export default function OwnerDashboard({ slug }: { slug: string }) {
             <header className="flex flex-wrap items-center gap-3">
                 <div className="min-w-0 flex-1">
                     <p className="nt-eyebrow">{t.pro.title}</p>
-                    <h1 className="flex items-center gap-2 font-display text-[1.7rem] leading-tight font-extrabold md:text-3xl">
+                    <h1 className="flex items-center gap-2 font-display text-[1.75rem] leading-tight font-extrabold md:text-[1.75rem]">
                         <span className="truncate">{data.place.name}</span>
                         <BadgeCheck size={24} className="shrink-0 text-open" />
                     </h1>
@@ -140,7 +140,7 @@ export default function OwnerDashboard({ slug }: { slug: string }) {
                     ).map(([Icon, count, label]) => (
                         <div key={label} className="rounded-2xl bg-white/[0.07] p-3">
                             <Icon size={18} className="text-brand-400" />
-                            <dd className="mt-2 font-display text-3xl font-extrabold">{count.toLocaleString(locale === "fr" ? "fr-FR" : "en-GB")}</dd>
+                            <dd className="mt-2 font-display text-[1.75rem] font-extrabold">{count.toLocaleString(locale === "fr" ? "fr-FR" : "en-GB")}</dd>
                             <dt className="text-xs font-semibold text-white/60">{label}</dt>
                         </div>
                     ))}

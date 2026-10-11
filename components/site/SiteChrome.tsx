@@ -66,7 +66,7 @@ export function Logo({ compact = false, light = false }: { compact?: boolean; li
         <Link href={paths.home(locale)} className="flex items-center gap-2" aria-label="NiceThings">
             { }
             <img src="/brand/mark.svg" alt="" width={compact ? 28 : 32} height={compact ? 28 : 32} />
-            <span className={`text-[1.15rem] font-bold tracking-[-0.03em] ${light ? "text-white" : "text-text"}`}>
+            <span className={`text-[1.125rem] font-bold tracking-[-0.03em] ${light ? "text-white" : "text-text"}`}>
                 Nice<span className="nt-sunset-text">Things</span>
             </span>
         </Link>
@@ -90,7 +90,7 @@ function SiteHeader() {
         <header className="nt-glass sticky top-0 z-40 hidden border-b border-line md:block">
             <div className="mx-auto flex h-16 max-w-6xl items-center gap-10 px-6">
                 <Logo />
-                <nav className="flex items-center gap-6 text-[0.9rem] font-medium">
+                <nav className="flex items-center gap-6 text-[0.875rem] font-medium">
                     {links.map((link) => {
                         const active = link.exact
                             ? pathname === link.href
@@ -114,7 +114,7 @@ function SiteHeader() {
                     })}
                 </nav>
                 <div className="ml-auto flex items-center gap-2">
-                    <Link href={paths.submit(locale)} className="nt-btn nt-btn-outline h-10 px-4 text-[0.88rem]">
+                    <Link href={paths.submit(locale)} className="nt-btn nt-btn-outline h-10 px-4 text-[0.875rem]">
                         <Plus size={16} />
                         {t.nav.suggest}
                     </Link>
@@ -149,7 +149,7 @@ export function TabBar() {
                         <Link
                             href={href}
                             prefetch={key === "map" || key === "search" ? false : undefined}
-                            className="nt-tab flex h-[3.3rem] w-[clamp(4.1rem,21vw,4.8rem)] flex-col items-center justify-center gap-[0.2rem] rounded-[1.05rem] text-[0.66rem] font-semibold tracking-[0.01em]"
+                            className="nt-tab flex h-[3.3rem] w-[clamp(4.1rem,21vw,4.8rem)] flex-col items-center justify-center gap-[0.2rem] rounded-[1.05rem] text-[0.75rem] font-semibold tracking-[0.01em]"
                             aria-current={active ? "page" : undefined}
                         >
                             <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
@@ -178,7 +178,7 @@ function SiteFooter() {
             <div className="mx-auto grid max-w-6xl gap-12 px-5 pt-16 pb-32 md:grid-cols-[1.4fr_1fr_0.8fr] md:px-6 md:pb-14">
                 <div>
                     <Logo light />
-                    <p className="nt-serif mt-6 max-w-sm text-[1.85rem] text-white/90">{t.footer.motto}</p>
+                    <p className="nt-serif mt-6 max-w-sm text-[1.75rem] text-white/90">{t.footer.motto}</p>
                     <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/55">{t.footer.about}</p>
                     <Link
                         href={paths.pro(locale)}
@@ -188,8 +188,8 @@ function SiteFooter() {
                     </Link>
                 </div>
                 <nav aria-label={t.nav.cities}>
-                    <p className="mb-4 text-[0.7rem] font-semibold tracking-[0.14em] text-white/40 uppercase">{t.nav.cities}</p>
-                    <ul className="grid grid-cols-2 gap-x-4 text-[0.9rem]">
+                    <p className="mb-4 text-[0.75rem] font-semibold tracking-[0.14em] text-white/40 uppercase">{t.nav.cities}</p>
+                    <ul className="grid grid-cols-2 gap-x-4 text-[0.875rem]">
                         {CITIES.slice(0, 12).map((city) => (
                             <li key={city.slug}>
                                 <Link href={paths.city(locale, city.slug)} className="block py-2.5 text-white/75 transition-colors hover:text-white">
@@ -199,8 +199,8 @@ function SiteFooter() {
                         ))}
                     </ul>
                 </nav>
-                <nav aria-label="Footer" className="flex flex-col text-[0.9rem]">
-                    <p className="mb-4 text-[0.7rem] font-semibold tracking-[0.14em] text-white/40 uppercase">NiceThings</p>
+                <nav aria-label="Footer" className="flex flex-col text-[0.875rem]">
+                    <p className="mb-4 text-[0.75rem] font-semibold tracking-[0.14em] text-white/40 uppercase">NiceThings</p>
                     {links.map((link) => (
                         <Link key={link.href} href={link.href} className="py-2.5 text-white/75 transition-colors hover:text-white">
                             {link.label}

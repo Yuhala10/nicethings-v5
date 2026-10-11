@@ -62,7 +62,7 @@ export default function CityPicker({
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-xl font-extrabold">{t.cities.pick}</h2>
+                            <h2 className="text-[1.125rem] font-extrabold">{t.cities.pick}</h2>
                             <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-full bg-surface-2" aria-label={t.common.close}>
                                 <X size={18} />
                             </button>
@@ -81,7 +81,7 @@ export default function CityPicker({
                                             className={`nt-pressable flex items-center justify-between gap-2 rounded-2xl border p-3 ${active ? "border-transparent nt-sunset text-white shadow-[var(--nt-glow)]" : "border-line bg-surface"}`}
                                         >
                                             <span className="min-w-0">
-                                                <span className="block truncate font-display text-[0.98rem] font-bold">{city.name}</span>
+                                                <span className="block truncate font-display text-[1rem] font-bold">{city.name}</span>
                                                 <span className={`text-xs ${active ? "text-white/85" : "text-muted"}`}>
                                                     {fill(t.city.placesCount, { count: counts[city.slug] ?? 0 })}
                                                 </span>

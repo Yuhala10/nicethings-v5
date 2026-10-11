@@ -50,14 +50,14 @@ export default function PlaceCard({
             </div>
             <div className="px-0.5 pt-2.5">
                 <div className="flex items-center gap-1.5">
-                    <h3 className="min-w-0 truncate text-[0.95rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
+                    <h3 className="min-w-0 truncate text-[1rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
                     <VerifiedMark verified={place.verified} />
                     <span className="ml-auto">
                         <Rating rating={place.rating} count={place.reviewCount} />
                     </span>
                 </div>
-                <p className="truncate text-[0.8rem] text-muted">{meta.join(" · ")}</p>
-                <div className="mt-0.5 flex min-h-[1.1rem] items-center gap-2 text-[0.8rem]">
+                <p className="truncate text-[0.875rem] text-muted">{meta.join(" · ")}</p>
+                <div className="mt-0.5 flex min-h-[1.1rem] items-center gap-2 text-[0.875rem]">
                     <PriceLabel min={place.priceMin} max={place.priceMax} className="truncate" />
                     <OpenBadge hours={place.hours} compact />
                 </div>

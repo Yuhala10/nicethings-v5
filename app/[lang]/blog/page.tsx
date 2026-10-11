@@ -60,7 +60,7 @@ export default async function BlogPage({ params }: Props) {
             <header className="mb-8 flex items-end justify-between gap-4 md:mb-10">
                 <div>
                     <p className="nt-eyebrow">NiceThings</p>
-                    <h1 className="nt-serif mt-2 text-[3rem] leading-none md:text-[5rem]">{t.blog.title}</h1>
+                    <h1 className="nt-serif mt-2 text-[2.75rem] leading-none md:text-[4.5rem]">{t.blog.title}</h1>
                     <p className="mt-4 max-w-xl leading-relaxed text-text-2">{t.blog.lead}</p>
                 </div>
                 <a href={`/${lang}/blog/rss.xml`} className="hidden items-center gap-1.5 rounded-full border border-line-strong px-3 py-2 text-xs font-semibold text-muted hover:text-text sm:inline-flex">
@@ -87,10 +87,10 @@ export default async function BlogPage({ params }: Props) {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
                         <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-white px-3 py-1 text-[0.66rem] font-semibold tracking-[0.1em] text-[#1b1612] uppercase">{t.blog.featured}</span>
-                                <span className="rounded-full border border-white/30 px-3 py-1 text-[0.66rem] font-semibold tracking-[0.1em] uppercase">{topicLabel(lead.topic, lang)}</span>
+                                <span className="rounded-full bg-white px-3 py-1 text-[0.75rem] font-semibold tracking-[0.1em] text-[#1b1612] uppercase">{t.blog.featured}</span>
+                                <span className="rounded-full border border-white/30 px-3 py-1 text-[0.75rem] font-semibold tracking-[0.1em] uppercase">{topicLabel(lead.topic, lang)}</span>
                             </div>
-                            <h2 className="nt-serif mt-4 max-w-3xl text-[2.3rem] leading-[1.02] md:text-[3.8rem]">
+                            <h2 className="nt-serif mt-4 max-w-3xl text-[2.25rem] leading-[1.02] md:text-[3.5rem]">
                                 {localised(lead, lang).title}
                             </h2>
                             {localised(lead, lang).excerpt && <p className="mt-3 line-clamp-2 max-w-2xl text-white/80 md:text-lg">{localised(lead, lang).excerpt}</p>}
@@ -111,7 +111,7 @@ export default async function BlogPage({ params }: Props) {
             {!lead && (
                 <div className="rounded-[1.6rem] border border-dashed border-line-strong px-6 py-16 text-center">
                     <Newspaper size={24} strokeWidth={1.6} className="mx-auto text-muted" />
-                    <p className="nt-serif mx-auto mt-4 max-w-md text-[1.9rem] leading-tight">{t.blog.empty}</p>
+                    <p className="nt-serif mx-auto mt-4 max-w-md text-[1.75rem] leading-tight">{t.blog.empty}</p>
                     <Link href={paths.city(lang, "yaounde")} className="nt-btn nt-btn-outline mt-7">
                         {fill(t.searchPage.guideLink, { city: "Yaoundé" })}
                         <ArrowRight size={17} />

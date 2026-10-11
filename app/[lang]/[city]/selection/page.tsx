@@ -56,7 +56,7 @@ export default async function CollectionsPage({ params }: Props) {
         >
             {collections.length === 0 ? (
                 <div className="mt-4 rounded-[1.6rem] border border-dashed border-line-strong px-6 py-14 text-center">
-                    <p className="nt-serif text-[1.7rem]">{t.city.emptyTitle}</p>
+                    <p className="nt-serif text-[1.75rem]">{t.city.emptyTitle}</p>
                     <Link href={paths.city(lang, city.slug)} className="nt-btn nt-btn-outline mt-6">
                         {fill(t.searchPage.guideLink, { city: city.name })}
                     </Link>
@@ -73,9 +73,9 @@ export default async function CollectionsPage({ params }: Props) {
                                 >
                                     <span>
                                         <span className="nt-serif block text-[1.75rem]">{collection.name[lang]}</span>
-                                        <span className="mt-1.5 block text-[0.9rem] leading-relaxed text-muted">{collection.blurb[lang]}</span>
+                                        <span className="mt-1.5 block text-[0.875rem] leading-relaxed text-muted">{collection.blurb[lang]}</span>
                                     </span>
-                                    <span className="flex items-end justify-between gap-4 text-[0.82rem]">
+                                    <span className="flex items-end justify-between gap-4 text-[0.875rem]">
                                         <span className="min-w-0 truncate text-text-2">{sample.map((place) => place.name).join(" · ")}</span>
                                         <span className="flex shrink-0 items-center gap-1.5 font-semibold">
                                             {fill(t.city.placesCount, { count })}

@@ -127,11 +127,11 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
                     </p>
                     {copy ? (
                         <div className="nt-rise">
-                            <h2 id="now-title" className="nt-serif mt-2 text-[2.3rem] md:text-[3.2rem]">
+                            <h2 id="now-title" className="nt-serif mt-2 text-[2.25rem] md:text-[3.5rem]">
                                 {copy.headline}
                             </h2>
-                            <p className="mt-3 max-w-2xl text-[0.98rem] leading-relaxed text-text-2">{copy.lead}</p>
-                            {copy.note && <p className="mt-2 max-w-2xl text-[0.86rem] leading-relaxed text-muted">{copy.note}</p>}
+                            <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{copy.lead}</p>
+                            {copy.note && <p className="mt-2 max-w-2xl text-[0.875rem] leading-relaxed text-muted">{copy.note}</p>}
                         </div>
                     ) : (
                         <div aria-hidden>
@@ -176,33 +176,33 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
                             />
                             <div className="min-w-0 p-5 md:p-7">
                                 <p className="nt-eyebrow">{t.host.pickEyebrow}</p>
-                                <h3 className="nt-serif mt-2 flex items-center gap-2 text-[1.9rem] md:text-[2.3rem]">
+                                <h3 className="nt-serif mt-2 flex items-center gap-2 text-[1.75rem] md:text-[2.25rem]">
                                     <span className="min-w-0 [overflow-wrap:anywhere]">{pick.place.name}</span>
                                     <VerifiedMark verified={pick.place.verified} className="shrink-0" />
                                 </h3>
-                                <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[0.9rem] text-muted">
+                                <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[0.875rem] text-muted">
                                     {[placeKind(pick.place, locale), pick.place.neighborhood, pick.distance !== null ? formatDistance(pick.distance, locale) : null]
                                         .filter(Boolean)
                                         .join(" · ")}
                                 </p>
                                 <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 empty:hidden">
                                     <OpenBadge hours={pick.place.hours} compact />
-                                    <PriceLabel min={pick.place.priceMin} max={pick.place.priceMax} className="text-[0.85rem]" />
+                                    <PriceLabel min={pick.place.priceMin} max={pick.place.priceMax} className="text-[0.875rem]" />
                                 </div>
 
                                 <div className="mt-5 flex flex-wrap gap-2">
-                                    <Link href={paths.directions(locale, pick.place.slug)} className="nt-btn nt-btn-primary h-11 px-4 text-[0.9rem]">
+                                    <Link href={paths.directions(locale, pick.place.slug)} className="nt-btn nt-btn-primary h-11 px-4 text-[0.875rem]">
                                         <Navigation size={16} />
                                         {t.spot.directions}
                                     </Link>
-                                    <Link href={paths.place(locale, pick.place.slug)} className="nt-btn nt-btn-outline h-11 px-4 text-[0.9rem]">
+                                    <Link href={paths.place(locale, pick.place.slug)} className="nt-btn nt-btn-outline h-11 px-4 text-[0.875rem]">
                                         {t.blog.openPlace}
                                     </Link>
-                                    <button type="button" onClick={surprise} className="nt-btn nt-btn-soft h-11 px-4 text-[0.9rem]">
+                                    <button type="button" onClick={surprise} className="nt-btn nt-btn-soft h-11 px-4 text-[0.875rem]">
                                         <Shuffle size={16} />
                                         {t.host.another}
                                     </button>
-                                    <button type="button" onClick={send} className="nt-btn nt-btn-soft h-11 px-4 text-[0.9rem]">
+                                    <button type="button" onClick={send} className="nt-btn nt-btn-soft h-11 px-4 text-[0.875rem]">
                                         <Send size={16} />
                                         {t.host.send}
                                     </button>
@@ -218,7 +218,7 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
                                                         <MapPin size={16} className="shrink-0 text-muted" />
                                                         <span className="min-w-0 flex-1">
                                                             <span className="block truncate font-semibold">{item.place.name}</span>
-                                                            <span className="block truncate text-[0.82rem] text-muted">
+                                                            <span className="block truncate text-[0.875rem] text-muted">
                                                                 {placeKind(item.place, locale)}
                                                                 {item.distance !== null && ` · ${fill(t.host.fromHere, { distance: formatDistance(item.distance, locale) })}`}
                                                             </span>

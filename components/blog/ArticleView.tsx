@@ -126,8 +126,8 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                                 </span>
                                 {city && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur-md">{city.name}</span>}
                             </div>
-                            <h1 className="nt-serif mt-4 text-[2.6rem] leading-[1.02] md:text-[4.2rem]">{title}</h1>
-                            {excerpt && <p className="mt-4 text-lg leading-relaxed text-white/80 md:text-xl">{excerpt}</p>}
+                            <h1 className="nt-serif mt-4 text-[2.75rem] leading-[1.02] md:text-[4.5rem]">{title}</h1>
+                            {excerpt && <p className="mt-4 text-lg leading-relaxed text-white/80 md:text-[1.125rem]">{excerpt}</p>}
                             <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold text-white/75">
                                 {byFounder ? (
                                     <Link href={paths.about(lang)} rel="author" className="underline decoration-white/40 underline-offset-4 hover:decoration-white">
@@ -162,7 +162,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                     {contents.length >= 3 && (
                         <nav aria-label={t.blog.contents} className="mb-8 rounded-[1.5rem] border border-line bg-surface p-5 lg:hidden">
                             <p className="nt-eyebrow">{t.blog.contents}</p>
-                            <ol className="mt-3 space-y-2 text-[0.95rem] font-semibold">
+                            <ol className="mt-3 space-y-2 text-[1rem] font-semibold">
                                 {contents.map((item, index) => (
                                     <li key={item.id} className="flex gap-3">
                                         <span className="text-brand-600 tabular-nums">{String(index + 1).padStart(2, "0")}</span>
@@ -180,7 +180,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                     {places.length >= 2 && <ArticleMap places={places} />}
 
                     <div className="mt-10 flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="nt-serif text-[1.6rem]">{t.blog.share}</p>
+                        <p className="nt-serif text-[1.5rem]">{t.blog.share}</p>
                         <ShareBar title={title} path={paths.post(lang, slug)} preview={shareImage} />
                     </div>
 
@@ -191,7 +191,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                             <span className="min-w-0 flex-1">
                                 <span className="nt-eyebrow block">{t.blog.writtenBy}</span>
                                 <span className="nt-serif mt-1 block text-[1.5rem]">{FOUNDER.name}</span>
-                                <span className="mt-0.5 block text-[0.88rem] text-muted">{FOUNDER.role[lang]}</span>
+                                <span className="mt-0.5 block text-[0.875rem] text-muted">{FOUNDER.role[lang]}</span>
                             </span>
                             <ArrowRight size={18} className="shrink-0 text-muted transition-transform duration-200 group-hover:translate-x-0.5" />
                         </Link>

@@ -23,7 +23,7 @@ function Action({ icon: Icon, label, primary = false, active = false }: { icon: 
             >
                 <Icon size={21} strokeWidth={primary ? 2.1 : 1.8} className={active ? "nt-pop fill-brand-500 text-brand-500" : ""} />
             </span>
-            <span className={`mt-1.5 block truncate text-center text-[0.74rem] font-semibold ${primary ? "text-text" : "text-text-2"}`}>{label}</span>
+            <span className={`mt-1.5 block truncate text-center text-[0.75rem] font-semibold ${primary ? "text-text" : "text-text-2"}`}>{label}</span>
         </>
     );
 }

@@ -34,7 +34,7 @@ export function countBy<T extends string>(places: PlaceSummary[], key: (place: P
 
 function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
     return (
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 text-[0.8rem] text-muted">
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 text-[0.875rem] text-muted">
             {items.map((item, index) => (
                 <span key={item.label} className="inline-flex items-center gap-1">
                     {index > 0 && <ChevronRight size={13} className="opacity-60" />}
@@ -105,13 +105,13 @@ function GuideHero({
         <header className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1.25rem)] md:px-6 md:pt-12">
             <Breadcrumbs items={crumbs} />
             {eyebrow && <p className="nt-eyebrow">{eyebrow}</p>}
-            <h1 className="nt-rise nt-serif mt-2 max-w-4xl text-[2.6rem] leading-[1] sm:text-[3.2rem] md:text-[4.2rem]">{title}</h1>
-            <p className="mt-4 max-w-2xl text-[1rem] leading-relaxed text-text-2 md:text-[1.08rem]">{intro}</p>
+            <h1 className="nt-rise nt-serif mt-2 max-w-4xl text-[2.75rem] leading-[1] sm:text-[3.5rem] md:text-[4.5rem]">{title}</h1>
+            <p className="mt-4 max-w-2xl text-[1rem] leading-relaxed text-text-2 md:text-[1.125rem]">{intro}</p>
             {stats && stats.length > 0 && (
                 <dl className="mt-7 flex flex-wrap gap-x-10 gap-y-4">
                     {stats.map((stat) => (
                         <div key={stat.label}>
-                            <dd className="nt-serif text-[2rem] leading-none">{stat.value}</dd>
+                            <dd className="nt-serif text-[2.25rem] leading-none">{stat.value}</dd>
                             <dt className="mt-1 text-[0.75rem] text-muted">{stat.label}</dt>
                         </div>
                     ))}
@@ -192,11 +192,11 @@ export default function GuideView({
                 stats={stats}
                 actions={
                     <>
-                        <Link href={paths.search(locale, city, mapQuery || undefined)} className="nt-btn nt-btn-dark h-11 text-[0.9rem]">
+                        <Link href={paths.search(locale, city, mapQuery || undefined)} className="nt-btn nt-btn-dark h-11 text-[0.875rem]">
                             <Search size={17} />
                             {t.nav.search}
                         </Link>
-                        <Link href={mapHref} className="nt-btn nt-btn-outline h-11 text-[0.9rem]">
+                        <Link href={mapHref} className="nt-btn nt-btn-outline h-11 text-[0.875rem]">
                             <MapIcon size={17} />
                             {t.city.seeOnMap}
                         </Link>
@@ -219,7 +219,7 @@ export default function GuideView({
                     </ul>
                 ) : (
                     <div className="mt-8 rounded-[1.6rem] border border-dashed border-line-strong px-6 py-14 text-center">
-                        <p className="nt-serif text-[1.7rem]">{t.city.emptyTitle}</p>
+                        <p className="nt-serif text-[1.75rem]">{t.city.emptyTitle}</p>
                         <p className="mx-auto mt-2 mb-6 max-w-sm text-text-2">{t.city.emptyGuide}</p>
                         <Link href={paths.submit(locale)} className="nt-btn nt-btn-primary">
                             <Plus size={18} />

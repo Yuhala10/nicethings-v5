@@ -135,17 +135,17 @@ export default function SearchView({
         return [...counts.entries()].sort((a, b) => b[1] - a[1]);
     }, [places]);
 
-    const pill = "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-[0.82rem] font-bold text-text transition active:scale-95";
+    const pill = "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-[0.875rem] font-bold text-text transition active:scale-95";
 
     return (
         <div className="pb-32">
             {/* Title */}
             <div className="mx-auto max-w-5xl px-4 pt-[max(env(safe-area-inset-top),1.25rem)] md:px-6 md:pt-10">
                 <p className="nt-eyebrow min-h-[1.3em]">{greeting ? `${t.greeting[greeting.hello]} · ${city.name}` : city.name}</p>
-                <h1 className="nt-serif mt-2 text-[2.5rem] leading-[1.02] md:text-[3.6rem]">
+                <h1 className="nt-serif mt-2 text-[2.25rem] leading-[1.02] md:text-[3.5rem]">
                     {greeting ? t.greeting[greeting.question] : t.meta.tagline}
                 </h1>
-                <p className="mt-3 text-[0.95rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</p>
+                <p className="mt-3 text-[1rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</p>
             </div>
 
             {/* Sticky search */}
@@ -282,7 +282,7 @@ export default function SearchView({
                                 <div className="relative flex items-start gap-3.5">
                                     <LocateFixed size={22} strokeWidth={1.8} className="mt-1 shrink-0 text-brand-600" />
                                     <div>
-                                        <p className="nt-serif text-[1.55rem]">{t.explore.primerTitle}</p>
+                                        <p className="nt-serif text-[1.5rem]">{t.explore.primerTitle}</p>
                                         <p className="mt-1 text-sm text-muted">{t.explore.primerBody}</p>
                                     </div>
                                 </div>
@@ -346,7 +346,7 @@ export default function SearchView({
                                                     style={{ "--tone": style.tone } as React.CSSProperties}
                                                 >
                                                     <Icon size={64} strokeWidth={1} className="absolute -top-2 -right-2 opacity-20" />
-                                                    <span className="relative text-[0.95rem] leading-tight font-semibold">
+                                                    <span className="relative text-[1rem] leading-tight font-semibold">
                                                         {CATEGORY_PLURALS[category as Category]?.[locale] ?? category}
                                                     </span>
                                                     <span className="relative text-xs text-white/70">{fill(t.city.placesCount, { count: total })}</span>
@@ -408,7 +408,7 @@ export default function SearchView({
                 ) : (
                     <section className="pt-4">
                         <div className="flex items-center justify-between gap-2 px-4 pb-2">
-                            <h2 className="nt-serif text-[1.6rem]" aria-live="polite">
+                            <h2 className="nt-serif text-[1.5rem]" aria-live="polite">
                                 {count}
                             </h2>
                             <div className="flex items-center gap-3">
@@ -432,7 +432,7 @@ export default function SearchView({
                         </div>
                         {d.ranked.length === 0 ? (
                             <div className="mx-4 mt-4 rounded-[1.6rem] border border-dashed border-line-strong px-6 py-14 text-center">
-                                <p className="nt-serif text-[1.9rem]">{t.search.noResultsTitle}</p>
+                                <p className="nt-serif text-[1.75rem]">{t.search.noResultsTitle}</p>
                                 <p className="mx-auto mt-2 mb-6 max-w-xs text-text-2">{t.search.noResults}</p>
                                 <div className="flex flex-wrap justify-center gap-2">
                                     <button type="button" onClick={d.clearAll} className="nt-btn nt-btn-dark">

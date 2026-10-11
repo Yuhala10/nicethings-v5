@@ -55,7 +55,7 @@ function ProofCard({ icon: Icon, title, badge, done, children }: { icon: LucideI
                     {done ? <Check size={20} strokeWidth={2.6} /> : <Icon size={20} />}
                 </span>
                 <div className="min-w-0 flex-1">
-                    <p className="text-[0.7rem] font-extrabold tracking-wider text-brand-600 uppercase">{badge}</p>
+                    <p className="text-[0.75rem] font-extrabold tracking-wider text-brand-600 uppercase">{badge}</p>
                     <h3 className="font-display text-lg leading-tight font-extrabold">{title}</h3>
                 </div>
             </div>
@@ -152,7 +152,7 @@ export default function ClaimWizard({ place }: { place: PlaceSummary }) {
             <PlaceThumb cover={place.cover} category={place.category} name={place.name} sizes="80px" className="h-20 w-20 shrink-0 rounded-[1.4rem]" iconSize={28} />
             <div className="min-w-0">
                 <p className="nt-eyebrow">{t.pro.title}</p>
-                <h1 className="font-display text-[1.6rem] leading-tight font-extrabold md:text-3xl">{fill(t.claim.title, { name: place.name })}</h1>
+                <h1 className="font-display text-[1.5rem] leading-tight font-extrabold md:text-[1.75rem]">{fill(t.claim.title, { name: place.name })}</h1>
             </div>
         </header>
     );
@@ -185,7 +185,7 @@ export default function ClaimWizard({ place }: { place: PlaceSummary }) {
                 {header}
                 <div className="mt-6 rounded-3xl bg-open/10 p-6 text-center">
                     <BadgeCheck size={40} className="mx-auto text-open" />
-                    <p className="mt-2 font-display text-xl font-extrabold">{t.claim.alreadyOwner}</p>
+                    <p className="mt-2 font-display text-[1.125rem] font-extrabold">{t.claim.alreadyOwner}</p>
                     <Link href={paths.manage(locale, place.slug)} className="nt-btn nt-btn-primary mt-4">
                         {t.claim.manageNow}
                     </Link>
@@ -212,7 +212,7 @@ export default function ClaimWizard({ place }: { place: PlaceSummary }) {
             <div className="rounded-[1.6rem] bg-ink p-5 text-white">
                 <p className="text-xs font-bold tracking-wider text-white/60 uppercase">{t.claim.yourCode}</p>
                 <div className="mt-1 flex items-center gap-3">
-                    <p className="font-mono text-3xl font-extrabold tracking-[0.12em]">{claim.code}</p>
+                    <p className="font-mono text-[1.75rem] font-extrabold tracking-[0.12em]">{claim.code}</p>
                     <button
                         type="button"
                         onClick={async () => {
@@ -417,7 +417,7 @@ export default function ClaimWizard({ place }: { place: PlaceSummary }) {
                 </motion.div>
             ) : claim.status === "REJECTED" || claim.status === "WITHDRAWN" ? (
                 <div className="mt-6 rounded-3xl bg-surface-2 p-6">
-                    <p className="font-display text-xl font-extrabold">{claim.status === "REJECTED" ? t.claim.rejectedTitle : t.pro.status.WITHDRAWN}</p>
+                    <p className="font-display text-[1.125rem] font-extrabold">{claim.status === "REJECTED" ? t.claim.rejectedTitle : t.pro.status.WITHDRAWN}</p>
                     {claim.message_to_owner && <p className="mt-2 text-text-2">« {claim.message_to_owner} »</p>}
                 </div>
             ) : (

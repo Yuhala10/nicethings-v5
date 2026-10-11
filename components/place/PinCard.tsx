@@ -53,7 +53,7 @@ export default function PinCard({
     // kind and the area, so only the mood is added.
     const away = distance !== null && !photo ? formatDistance(distance, locale) : null;
     const context = (photo ? [kind, mood, place.neighborhood] : [away, mood]).filter(Boolean).join(" · ");
-    const long = place.name.length > 30 ? "text-[1.2rem]" : place.name.length > 16 ? "text-[1.45rem]" : "text-[1.75rem]";
+    const long = place.name.length > 30 ? "text-[1.125rem]" : place.name.length > 16 ? "text-[1.5rem]" : "text-[1.75rem]";
 
     return (
         <Link href={paths.place(locale, place.slug)} className="group nt-pressable block">
@@ -76,14 +76,14 @@ export default function PinCard({
                         className="nt-poster absolute inset-0 flex flex-col justify-between p-4"
                         style={{ "--poster": `linear-gradient(${pick(ANGLES, place.slug)}deg, color-mix(in oklab, ${posterInk(place.slug)} 86%, #f6efe4) 0%, ${posterInk(place.slug)} 70%)` } as React.CSSProperties}
                     >
-                        <span className="flex items-center gap-1.5 pr-10 text-[0.64rem] font-semibold tracking-[0.14em] text-[#f6efe4]/70 uppercase">
+                        <span className="flex items-center gap-1.5 pr-10 text-[0.75rem] font-semibold tracking-[0.14em] text-[#f6efe4]/70 uppercase">
                             <Icon size={13} strokeWidth={1.8} className="shrink-0" />
                             <span className="truncate">{kind}</span>
                         </span>
                         <span className="relative">
                             <span className={`nt-serif line-clamp-4 block [overflow-wrap:anywhere] ${long}`}>{place.name}</span>
                             {place.neighborhood && (
-                                <span className="mt-2 flex items-center gap-1 text-[0.72rem] font-medium text-[#f6efe4]/70">
+                                <span className="mt-2 flex items-center gap-1 text-[0.75rem] font-medium text-[#f6efe4]/70">
                                     <MapPin size={11} />
                                     <span className="truncate">{place.neighborhood}</span>
                                 </span>
@@ -93,7 +93,7 @@ export default function PinCard({
                 )}
                 <SaveButton slug={place.slug} className="absolute top-2.5 right-2.5 h-9 w-9" />
                 {photo && distance !== null && (
-                    <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/45 px-2.5 py-1 text-[0.68rem] font-semibold text-white backdrop-blur-md">
+                    <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/45 px-2.5 py-1 text-[0.75rem] font-semibold text-white backdrop-blur-md">
                         {formatDistance(distance, locale)}
                     </span>
                 )}
@@ -101,12 +101,12 @@ export default function PinCard({
             <div className="px-0.5 pt-2.5">
                 {photo && (
                     <div className="flex items-center gap-1.5">
-                        <h3 className="min-w-0 truncate text-[0.95rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
+                        <h3 className="min-w-0 truncate text-[1rem] font-semibold tracking-[-0.01em] text-text">{place.name}</h3>
                         <VerifiedMark verified={place.verified} />
                     </div>
                 )}
                 {(context || (!photo && place.verified) || place.reviewCount > 0) && (
-                    <p className="flex items-center gap-1.5 text-[0.8rem] text-muted">
+                    <p className="flex items-center gap-1.5 text-[0.875rem] text-muted">
                         {!photo && <VerifiedMark verified={place.verified} />}
                         <span className="truncate">{context}</span>
                         <span className="ml-auto">
@@ -114,7 +114,7 @@ export default function PinCard({
                         </span>
                     </p>
                 )}
-                <div className="flex min-h-[1.15rem] items-center gap-2 text-[0.78rem] empty:hidden">
+                <div className="flex min-h-[1.15rem] items-center gap-2 text-[0.75rem] empty:hidden">
                     <OpenBadge hours={place.hours} compact />
                     <PriceLabel min={place.priceMin} max={place.priceMax} className="truncate !font-semibold" />
                 </div>

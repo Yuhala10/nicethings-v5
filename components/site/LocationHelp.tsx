@@ -77,7 +77,7 @@ export default function LocationHelp() {
                                 <X size={18} />
                             </button>
                         </div>
-                        <h2 id="location-help-title" className="text-xl font-extrabold">
+                        <h2 id="location-help-title" className="text-[1.125rem] font-extrabold">
                             {t.locationHelp.title}
                         </h2>
                         <p className="mt-1.5 text-sm text-text-2">{device === "inApp" ? t.locationHelp.inAppIntro : t.locationHelp.intro}</p>
