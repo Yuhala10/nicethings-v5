@@ -18,7 +18,7 @@ export default function EditorialSection({ rail, locale, priority = false }: { r
                     <p className="mt-1.5 text-[0.92rem] leading-relaxed text-muted">{rail.blurb}</p>
                 </div>
                 {rail.href && (
-                    <Link href={rail.href} className="group hidden shrink-0 items-center gap-1.5 text-[0.88rem] font-semibold text-text sm:inline-flex">
+                    <Link href={rail.href} className="nt-tap group hidden shrink-0 items-center gap-1.5 text-[0.88rem] font-semibold text-text sm:inline-flex">
                         {t.common.seeAll}
                         <span className="text-muted">{rail.count}</span>
                         <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -35,8 +35,8 @@ export default function EditorialSection({ rail, locale, priority = false }: { r
                 </ul>
             </div>
             {rail.href && (
-                <div className="px-4 pt-4 sm:hidden">
-                    <Link href={rail.href} className="inline-flex items-center gap-1.5 text-[0.88rem] font-semibold text-text">
+                <div className="px-4 pt-2 sm:hidden">
+                    <Link href={rail.href} className="inline-flex min-h-11 items-center gap-1.5 text-[0.88rem] font-semibold text-text">
                         {t.common.seeAll} · {rail.count}
                         <ArrowRight size={15} />
                     </Link>

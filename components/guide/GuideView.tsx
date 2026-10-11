@@ -34,12 +34,12 @@ export function countBy<T extends string>(places: PlaceSummary[], key: (place: P
 
 function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
     return (
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1 text-[0.8rem] text-muted">
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 text-[0.8rem] text-muted">
             {items.map((item, index) => (
                 <span key={item.label} className="inline-flex items-center gap-1">
                     {index > 0 && <ChevronRight size={13} className="opacity-60" />}
                     {item.href ? (
-                        <Link href={item.href} className="transition-colors hover:text-text">
+                        <Link href={item.href} className="nt-tap transition-colors hover:text-text">
                             {item.label}
                         </Link>
                     ) : (

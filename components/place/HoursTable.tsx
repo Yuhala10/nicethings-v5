@@ -5,9 +5,8 @@ import { cityNow } from "@/lib/places/hours";
 import { DAY_KEYS, type PlaceHours } from "@/lib/places/types";
 import { useNow } from "@/lib/hooks/useNow";
 import { useLocale } from "../site/LocaleProvider";
-import { OpenBadge } from "./bits";
-
-// Weekly hours with today highlighted (in Yaoundé time).
+// Weekly hours with today highlighted (in Yaoundé time). Whether the place
+// is open right now is said once, at the top of the page.
 export default function HoursTable({ hours }: { hours: PlaceHours }) {
     const { locale, t } = useLocale();
     const now = useNow();
@@ -18,20 +17,14 @@ export default function HoursTable({ hours }: { hours: PlaceHours }) {
 
     if (hours.days.length === 7) {
         return (
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="font-semibold text-text">
-                    {t.spot.everyDay} · {range}
-                </span>
-                <OpenBadge hours={hours} />
-            </div>
+            <p className="text-sm font-semibold text-text">
+                {t.spot.everyDay} · {range}
+            </p>
         );
     }
 
     return (
         <div>
-            <div className="mb-2">
-                <OpenBadge hours={hours} />
-            </div>
             <ul className="divide-y divide-line text-sm">
                 {DAY_KEYS.map((day) => {
                     const open = hours.days.includes(day);

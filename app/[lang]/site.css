@@ -748,19 +748,34 @@
         }
     }
 
-    /* The mobile tab bar: separate tiles that float above the page. */
-    .nt-tab {
-        background: var(--nt-surface);
+    /* The mobile tab bar: one bar that floats above the page. Solid, so
+       nothing of the page shows through between its buttons. */
+    .nt-tabbar {
+        background: color-mix(in oklab, var(--nt-surface) 97%, transparent);
         border: 1px solid var(--nt-line);
-        color: var(--nt-muted);
         box-shadow:
             0 1px 2px rgba(27, 22, 18, 0.05),
-            0 10px 24px -12px rgba(27, 22, 18, 0.28);
+            0 12px 28px -12px rgba(27, 22, 18, 0.32);
+    }
+
+    .nt-tab {
+        color: var(--nt-muted);
         transition:
             background 240ms var(--ease-out),
             color 240ms var(--ease-out),
-            border-color 240ms var(--ease-out),
             transform 160ms var(--ease-out);
+    }
+
+    /* A small text link a thumb can still hit: its touch area grows to
+       about 44px without moving anything around it. */
+    .nt-tap {
+        position: relative;
+    }
+
+    .nt-tap::after {
+        content: "";
+        position: absolute;
+        inset: -0.8rem -0.35rem;
     }
 
     .nt-tab:active {
@@ -769,7 +784,6 @@
 
     .nt-tab[aria-current="page"] {
         background: var(--nt-ink);
-        border-color: var(--nt-ink);
         color: var(--nt-on-ink);
     }
 }

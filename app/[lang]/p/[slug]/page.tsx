@@ -12,7 +12,7 @@ import PinCard from "@/components/place/PinCard";
 import PlaceMap from "@/components/place/PlaceMap";
 import ReportButton from "@/components/place/ReportButton";
 import { OpenBadge, PlaceThumb, PriceLabel, Rating } from "@/components/place/bits";
-import { HeroActions, StickyPlaceBar } from "@/components/place/PlaceHeroBits";
+import { StickyPlaceBar } from "@/components/place/PlaceHeroBits";
 import { getPostsForPlace } from "@/lib/blog/server";
 import { DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { afterStops } from "@/lib/host/propose";
@@ -294,26 +294,25 @@ export default async function PlacePage({ params }: Props) {
             />
             <StickyPlaceBar slug={place.slug} name={place.name} />
 
-            {/* Top bar: back, share, keep. */}
+            {/* Top bar: back. Sharing and keeping are in the row of actions below, once. */}
             <div className="mx-auto flex max-w-3xl items-center justify-between px-4 pt-[max(env(safe-area-inset-top),0.75rem)] md:px-6 md:pt-8">
                 <BackButton className="border border-line !bg-surface !shadow-none !backdrop-blur-none" />
-                <HeroActions slug={place.slug} name={place.name} preview={preview} />
             </div>
 
             {/* Name, place in the city, the line that sums it up. */}
             <header className="mx-auto max-w-3xl px-4 pt-7 md:px-6 md:pt-10">
-                <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1 text-[0.8rem] text-muted">
-                    <Link href={paths.city(lang, place.city)} className="transition-colors hover:text-text">
+                <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1.5 text-[0.8rem] text-muted">
+                    <Link href={paths.city(lang, place.city)} className="nt-tap transition-colors hover:text-text">
                         {cityName}
                     </Link>
                     {area && (
                         <>
                             <ChevronRight size={13} className="opacity-60" />
-                            <Link href={paths.neighborhood(lang, place.city, area)} className="transition-colors hover:text-text">
+                            <Link href={paths.neighborhood(lang, place.city, area)} className="nt-tap transition-colors hover:text-text">
                                 {area}
                             </Link>
                             <ChevronRight size={13} className="opacity-60" />
-                            <Link href={paths.neighborhoodCategory(lang, place.city, area, place.category)} className="transition-colors hover:text-text">
+                            <Link href={paths.neighborhoodCategory(lang, place.city, area, place.category)} className="nt-tap transition-colors hover:text-text">
                                 {CATEGORY_PLURALS[place.category as keyof typeof CATEGORY_PLURALS]?.[lang] ?? category}
                             </Link>
                         </>

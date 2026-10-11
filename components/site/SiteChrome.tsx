@@ -143,13 +143,13 @@ export function TabBar() {
             className="pointer-events-none fixed inset-x-0 bottom-0 z-50 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:hidden"
             aria-label={t.nav.menu}
         >
-            <ul className="pointer-events-auto mx-auto flex w-fit gap-2">
+            <ul className="nt-tabbar pointer-events-auto mx-auto flex w-fit gap-1 rounded-[1.45rem] p-1.5">
                 {tabs.map(({ key, href, label, icon: Icon, active }) => (
                     <li key={key}>
                         <Link
                             href={href}
                             prefetch={key === "map" || key === "search" ? false : undefined}
-                            className="nt-tab flex h-[3.55rem] w-[clamp(4rem,20vw,4.6rem)] flex-col items-center justify-center gap-[0.2rem] rounded-[1.1rem] text-[0.66rem] font-semibold tracking-[0.01em]"
+                            className="nt-tab flex h-[3.3rem] w-[clamp(4.1rem,21vw,4.8rem)] flex-col items-center justify-center gap-[0.2rem] rounded-[1.05rem] text-[0.66rem] font-semibold tracking-[0.01em]"
                             aria-current={active ? "page" : undefined}
                         >
                             <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
@@ -189,20 +189,20 @@ function SiteFooter() {
                 </div>
                 <nav aria-label={t.nav.cities}>
                     <p className="mb-4 text-[0.7rem] font-semibold tracking-[0.14em] text-white/40 uppercase">{t.nav.cities}</p>
-                    <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[0.9rem]">
+                    <ul className="grid grid-cols-2 gap-x-4 text-[0.9rem]">
                         {CITIES.slice(0, 12).map((city) => (
                             <li key={city.slug}>
-                                <Link href={paths.city(locale, city.slug)} className="text-white/75 transition-colors hover:text-white">
+                                <Link href={paths.city(locale, city.slug)} className="block py-2.5 text-white/75 transition-colors hover:text-white">
                                     {city.name}
                                 </Link>
                             </li>
                         ))}
                     </ul>
                 </nav>
-                <nav aria-label="Footer" className="flex flex-col gap-2.5 text-[0.9rem]">
-                    <p className="mb-1.5 text-[0.7rem] font-semibold tracking-[0.14em] text-white/40 uppercase">NiceThings</p>
+                <nav aria-label="Footer" className="flex flex-col text-[0.9rem]">
+                    <p className="mb-4 text-[0.7rem] font-semibold tracking-[0.14em] text-white/40 uppercase">NiceThings</p>
                     {links.map((link) => (
-                        <Link key={link.href} href={link.href} className="text-white/75 transition-colors hover:text-white">
+                        <Link key={link.href} href={link.href} className="py-2.5 text-white/75 transition-colors hover:text-white">
                             {link.label}
                         </Link>
                     ))}

@@ -29,7 +29,7 @@ export default function Rail({
                     <button
                         type="button"
                         onClick={onSeeAll}
-                        className="-mr-1 inline-flex shrink-0 items-center gap-0.5 rounded-full px-2 py-1 text-[0.85rem] font-semibold text-text transition hover:bg-surface-2"
+                        className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-3 text-[0.85rem] font-semibold text-text transition hover:bg-surface-2"
                     >
                         {t.discover.seeAll}
                         <ChevronRight size={16} />
