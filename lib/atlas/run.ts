@@ -2,9 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { selectAll } from "../admin-places";
 import { SITE_URL } from "../i18n/config";
 import { firstPhone } from "../places/display";
+import { distanceMeters } from "../places/geo";
+import { AREA_POINTS } from "./area-points";
 import { recheckOnMap } from "./osm";
 import { notAName, qualityChecks, type Found } from "./quality";
-import { loadPlaces, readSettings, writePlace, type AtlasAction, type AtlasIssue, type AtlasPlace } from "./store";
+import { loadPlaces, readSettings, writePlace, writePlaces, type AtlasAction, type AtlasIssue, type AtlasPlace } from "./store";
 
 // One shift of Atlas: compare the catalogue with the live open map, fill
 // what the map can prove, propose what needs a person's eye, and go over
@@ -58,6 +60,10 @@ function weight(place: AtlasPlace) {
     const facts = [place.phone, place.website, place.instagram, place.opening_time, place.minimum_price, place.cuisine, place.neighborhood].filter(Boolean).length;
     return facts + (place.verified ? 6 : 0) + (place.source !== "osm" ? 3 : 0);
 }
+
+// A place takes a neighbourhood from the map only when it sits this close to
+// it, in metres: further away, the nearest name known may be the wrong one.
+const AREA_REACH = 700;
 
 const FIELD_NAMES: Record<string, string> = { phone: "téléphone", whatsapp: "WhatsApp", website: "site web", instagram: "Instagram", cuisine: "cuisine", opening_time: "horaires" };
 
@@ -163,6 +169,62 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
             }
         }
 
+        // ---- Neighbourhoods -----------------------------------------------
+        // A published place with no neighbourhood takes the nearest one the
+        // open map knows (lib/atlas/area-points.ts) when it is close enough
+        // to be the same area. One line per city in the log; undoing that
+        // line takes them all back, and they are not given again.
+        const takenBack = new Set<string>();
+        const undone = await db.from("nt_atlas_actions").select("after").eq("kind", "city.areas").eq("status", "undone");
+        if (undone.error) throw undone.error;
+        for (const row of undone.data ?? []) {
+            for (const ids of Object.values((row.after as { groups?: Record<string, string[]> } | null)?.groups ?? {})) ids.forEach((id) => takenBack.add(id));
+        }
+        const areas = new Map<string, Map<string, AtlasPlace[]>>();
+        for (const place of published) {
+            const points = AREA_POINTS[place.city];
+            if (!points || place.neighborhood || place.status !== "APPROVED" || place.latitude == null || place.longitude == null || takenBack.has(place.id)) continue;
+            let best: { name: string; meters: number } | null = null;
+            for (const [name, lat, lng] of points) {
+                const meters = distanceMeters({ lat: place.latitude, lng: place.longitude }, { lat, lng });
+                if (!best || meters < best.meters) best = { name, meters };
+            }
+            if (!best || best.meters > AREA_REACH) continue;
+            const city = areas.get(place.city) ?? new Map<string, AtlasPlace[]>();
+            city.set(best.name, [...(city.get(best.name) ?? []), place]);
+            areas.set(place.city, city);
+        }
+        let arranged = 0;
+        for (const [city, groups] of areas) {
+            const saved: Record<string, string[]> = {};
+            for (const [name, group] of groups) {
+                await writePlaces(db, group.map((place) => place.id), { neighborhood: name });
+                for (const place of group) place.neighborhood = name;
+                saved[name] = group.map((place) => place.id);
+            }
+            const count = Object.values(saved).reduce((sum, ids) => sum + ids.length, 0);
+            arranged += count;
+            const largest = Object.entries(saved)
+                .sort((a, b) => b[1].length - a[1].length)
+                .slice(0, 6)
+                .map(([name, ids]) => `${name} (${ids.length})`)
+                .join(", ");
+            actions.push({
+                run_id: runId,
+                desk: "inspector",
+                kind: "city.areas",
+                spot_id: null,
+                title: `${city} : ${count} lieu(x) rangé(s) dans ${groups.size} quartier(s) d'après la carte ouverte`,
+                detail: `${largest}${groups.size > 6 ? "…" : ""}. Chaque lieu prend le quartier le plus proche connu de la carte, à moins de ${AREA_REACH} m.`,
+                evidence: [],
+                before: null,
+                after: { city, count, groups: saved },
+                status: "applied",
+                decided_at: now,
+                decided_by: "atlas",
+            });
+        }
+
         // ---- The platform itself -----------------------------------------
         const found = await qualityChecks(db, places, map.edited);
         const issues = await saveIssues(db, found);
@@ -206,6 +268,7 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
             map_suspicious: suspicious ? 1 : 0,
             filled,
             cleaned,
+            arranged,
             proposed: actions.filter((action) => action.status === "proposed").length,
             issues_open: issues.open,
             issues_new: issues.added,
@@ -213,7 +276,7 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
         };
         const finished = await db.from("nt_atlas_runs").update({ status: "done", stats, finished_at: new Date().toISOString() }).eq("id", runId);
         if (finished.error) throw finished.error;
-        return { ran: true, stats, changed: filled + cleaned > 0 };
+        return { ran: true, stats, changed: filled + cleaned + arranged > 0 };
     } catch (error) {
         const message = error instanceof Error ? error.message : String((error as { message?: unknown })?.message ?? error);
         await db.from("nt_atlas_runs").update({ status: "failed", error: message.slice(0, 500), finished_at: new Date().toISOString() }).eq("id", runId);

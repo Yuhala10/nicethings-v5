@@ -104,6 +104,18 @@ function actionText(action: Action, tr: Tr): { title: string; detail: string | n
             detail: tr(action.detail ?? "", "The open map gives a kind of place where the name should be. The listing waits for its real name among the drafts."),
         };
     }
+    if (action.kind === "city.areas") {
+        const after = action.after as { city?: string; count?: number; groups?: Record<string, string[]> } | null;
+        const largest = Object.entries(after?.groups ?? {})
+            .sort((a, b) => b[1].length - a[1].length)
+            .slice(0, 6)
+            .map(([area, ids]) => `${area} (${ids.length})`)
+            .join(", ");
+        return {
+            title: tr(action.title, `${after?.city}: ${after?.count} places given a neighbourhood from the open map`),
+            detail: tr(action.detail ?? "", `${largest}. Each place takes the nearest neighbourhood the map knows, within 700 m. Undo takes them all back.`),
+        };
+    }
     if (action.kind === "place.fill") {
         const fields = Object.keys(action.after ?? {})
             .map((key) => FIELDS[key]?.[1])
@@ -260,7 +272,7 @@ export default function AtlasPage() {
                                     icon={Wand2}
                                     tone="good"
                                     label={tr("Fiches complétées ou corrigées", "Listings filled in or put right")}
-                                    value={formatCount((stats.filled ?? 0) + (stats.cleaned ?? 0))}
+                                    value={formatCount((stats.filled ?? 0) + (stats.cleaned ?? 0) + (stats.arranged ?? 0))}
                                     hint={tr("à ce passage", "on that shift")}
                                 />
                                 <Stat icon={ScanSearch} tone="brand" label={tr("À valider", "Waiting for you")} value={formatCount(data.proposed?.length ?? 0)} />

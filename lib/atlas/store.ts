@@ -116,6 +116,7 @@ const WRITABLE = new Set([
     "saturday_open",
     "sunday_open",
     "status",
+    "neighborhood",
 ]);
 
 export async function writePlace(db: SupabaseClient, spotId: string, values: Record<string, unknown>) {
@@ -131,10 +132,20 @@ export async function readSettings(db: SupabaseClient): Promise<AtlasSettings> {
     return data ?? { paused: false, daily_cap_usd: 2, model: "claude-opus-5-5", places_per_night: 30 };
 }
 
+// The same change on many places at once (a whole neighbourhood).
+export async function writePlaces(db: SupabaseClient, spotIds: string[], values: Record<string, unknown>) {
+    const allowed = Object.fromEntries(Object.entries(values).filter(([key]) => WRITABLE.has(key)));
+    if (!Object.keys(allowed).length) return;
+    for (let from = 0; from < spotIds.length; from += 100) {
+        const { error } = await db.from("nt_spots").update(allowed).in("id", spotIds.slice(from, from + 100));
+        if (error) throw error;
+    }
+}
+
 // A person's verdict on what Atlas did or proposed. Approving applies the
 // change, undoing puts the place back exactly as it was before.
 export async function decide(db: SupabaseClient, id: string, verdict: "approve" | "decline" | "undo") {
-    const { data: action, error } = await db.from("nt_atlas_actions").select("id,spot_id,status,before,after").eq("id", id).maybeSingle();
+    const { data: action, error } = await db.from("nt_atlas_actions").select("id,kind,spot_id,status,before,after").eq("id", id).maybeSingle();
     if (error) throw error;
     if (!action) return null;
 
@@ -145,7 +156,18 @@ export async function decide(db: SupabaseClient, id: string, verdict: "approve" 
     } else if (verdict === "decline" && action.status === "proposed") {
         status = "declined";
     } else if (verdict === "undo" && action.status === "applied") {
-        if (action.spot_id && action.before) await writePlace(db, action.spot_id, action.before);
+        if (action.kind === "city.areas") {
+            // A city's neighbourhoods given in one go are taken back from
+            // the places that still carry them (a person may have corrected
+            // some since: those are left alone).
+            const groups = ((action.after as { groups?: Record<string, string[]> } | null)?.groups ?? {}) as Record<string, string[]>;
+            for (const [name, ids] of Object.entries(groups)) {
+                for (let from = 0; from < ids.length; from += 100) {
+                    const cleared = await db.from("nt_spots").update({ neighborhood: null }).in("id", ids.slice(from, from + 100)).eq("neighborhood", name);
+                    if (cleared.error) throw cleared.error;
+                }
+            }
+        } else if (action.spot_id && action.before) await writePlace(db, action.spot_id, action.before);
         status = "undone";
     } else {
         // Already settled (two people, or two taps): nothing to do.

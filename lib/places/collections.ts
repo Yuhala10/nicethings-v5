@@ -41,6 +41,17 @@ function hoursOf(place: PlaceSummary) {
 const has = (list: string[], ...values: string[]) => values.some((value) => list.includes(value));
 const average = (place: PlaceSummary) => place.priceMin ?? place.priceMax;
 
+// What a place says it serves: the open map's cuisine tags
+// ("fish;grill;african") and the words of its own name, without accents
+// ("Poisson Braisé chez Mado" → poisson, braise, chez, mado).
+const plain = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const serves = (place: PlaceSummary, ...values: string[]) =>
+    (place.cuisine ?? "").split(/[;,]/).some((part) => values.includes(plain(part).replace(/_/g, " ").trim()));
+const words = (place: PlaceSummary) => plain(place.name).split(/[^a-z0-9]+/);
+const named = (place: PlaceSummary, ...starts: string[]) => words(place).some((word) => starts.some((start) => word.startsWith(start)));
+const called = (place: PlaceSummary, ...exact: string[]) => words(place).some((word) => exact.includes(word));
+const atTable = (place: PlaceSummary) => ["Restaurant", "Bar", "Cafe", "Bakery", "Club"].includes(place.category);
+
 export const COLLECTIONS: Collection[] = [
     {
         key: "open-late",
@@ -194,6 +205,74 @@ export const COLLECTIONS: Collection[] = [
             en: "{count} bars and restaurants in {city} with screens to follow the match.",
         },
         test: (place) => has(place.goodFor, "football") || has(place.amenities, "screens"),
+    },
+    // ---- What people here go out to eat. Read from what the place says of
+    // itself: the cuisine the open map gives and the words of its own name.
+    {
+        key: "braise",
+        slug: { fr: "braise-et-grillades", en: "grilled-fish-and-barbecue" },
+        name: { fr: "Braise et grillades", en: "Grilled fish & barbecue" },
+        title: { fr: "Poisson braisé et grillades à {city}", en: "Grilled fish and barbecue in {city}" },
+        blurb: {
+            fr: "Poisson braisé, soya, porc ou brochettes : ici, ça se passe au feu.",
+            en: "Grilled fish, soya, pork or skewers: here it all happens over the fire.",
+        },
+        intro: {
+            fr: "{count} adresses de {city} où l'on vient pour la braise : poisson, viande ou brochettes, d'après leur nom ou ce que la carte en dit. Un appel avant de se déplacer reste le plus sûr.",
+            en: "{count} places in {city} people go to for the grill: fish, meat or skewers, going by their name or what the map says. A call before you go is still the safest.",
+        },
+        test: (place) =>
+            atTable(place) &&
+            (serves(place, "fish", "seafood", "barbecue", "grill", "bbq") || named(place, "brais", "grill") || called(place, "poisson", "poissons", "soya", "barbecue", "bbq", "porc")),
+    },
+    {
+        key: "local",
+        slug: { fr: "cuisine-du-pays", en: "local-cooking" },
+        name: { fr: "Cuisine du pays", en: "Local cooking" },
+        title: { fr: "Où manger la cuisine du pays à {city}", en: "Where to eat local food in {city}" },
+        blurb: { fr: "Les plats d'ici et du continent, comme à la maison.", en: "Dishes from here and across the continent, like at home." },
+        intro: {
+            fr: "{count} tables de {city} qui annoncent une cuisine du pays ou du continent, d'après la carte ouverte.",
+            en: "{count} tables in {city} that say they serve local or African cooking, according to the open map.",
+        },
+        test: (place) =>
+            atTable(place) && serves(place, "regional", "african", "local", "cameroonian", "camerounaise", "cameroonaise", "contemporary cameroonian", "african dishes", "africaine"),
+    },
+    {
+        key: "snack",
+        slug: { fr: "snack-bars", en: "snack-bars" },
+        name: { fr: "Les snack-bars", en: "Snack-bars" },
+        title: { fr: "Snack-bars à {city}", en: "Snack-bars in {city}" },
+        blurb: { fr: "Le bar à la camerounaise : de la musique et de quoi boire frais.", en: "The Cameroonian kind of bar: music and something cold to drink." },
+        intro: {
+            fr: "{count} adresses de {city} qui se présentent elles-mêmes comme des snack-bars.",
+            en: "{count} places in {city} that call themselves snack-bars.",
+        },
+        test: (place) => called(place, "snack", "snackbar") && place.category !== "Hotel",
+    },
+    {
+        key: "chicken",
+        slug: { fr: "poulet", en: "chicken" },
+        name: { fr: "Envie de poulet", en: "In the mood for chicken" },
+        title: { fr: "Où manger du poulet à {city}", en: "Where to eat chicken in {city}" },
+        blurb: { fr: "Braisé, frit ou à la broche.", en: "Grilled, fried or off the spit." },
+        intro: {
+            fr: "{count} adresses de {city} qui mettent le poulet en avant, d'après leur nom ou ce que la carte en dit.",
+            en: "{count} places in {city} that put chicken first, going by their name or what the map says.",
+        },
+        test: (place) => atTable(place) && (serves(place, "chicken") || called(place, "poulet", "poulets", "chicken")),
+    },
+    {
+        key: "beignets",
+        slug: { fr: "beignets-haricots", en: "beignets-and-beans" },
+        name: { fr: "Beignets-haricots", en: "Beignets & beans" },
+        title: { fr: "Beignets, haricots, bouillie à {city}", en: "Beignets, beans and bouillie in {city}" },
+        blurb: { fr: "Le trio du matin et du soir, servi au coin de la rue.", en: "The morning-and-evening trio, served on the street corner." },
+        intro: {
+            fr: "{count} beignetariats repérés à {city}. Beaucoup d'autres n'ont pas d'enseigne : si tu en connais un, ajoute-le.",
+            en: "{count} beignet stalls spotted in {city}. Many more have no sign: if you know one, add it.",
+        },
+        test: (place) => named(place, "beignet") || called(place, "bhb", "bouillie"),
     },
 ];
 
