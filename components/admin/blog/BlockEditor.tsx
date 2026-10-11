@@ -102,6 +102,13 @@ function ImageField({ postId, block, onChange }: { postId: string; block: Extrac
                 <input value={block.alt} onChange={(event) => onChange({ ...block, alt: event.target.value })} placeholder={tr("Description de la photo (pour Google et l'accessibilité)", "Photo description (for Google and accessibility)")} className="a-input" />
                 <input value={block.caption} onChange={(event) => onChange({ ...block, caption: event.target.value })} placeholder={tr("Légende (facultatif)", "Caption (optional)")} className="a-input" />
             </div>
+            <input
+                value={block.overlay ?? ""}
+                onChange={(event) => onChange({ ...block, overlay: event.target.value })}
+                placeholder={tr("Phrase écrite sur la photo, en grand (facultatif)", "A line written over the photo, in large type (optional)")}
+                maxLength={90}
+                className="a-input"
+            />
             {block.url && (
                 <button type="button" onClick={() => input.current?.click()} disabled={busy} className="a-btn a-btn-soft h-9 w-fit px-3 text-xs">
                     {busy ? tr("Envoi…", "Uploading…") : tr("Changer la photo", "Change photo")}

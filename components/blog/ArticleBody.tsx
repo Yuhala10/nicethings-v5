@@ -40,8 +40,14 @@ export default function ArticleBody({ blocks, places, t }: { blocks: Block[]; pl
                     case "image":
                         return (
                             <figure key={index} className="my-8">
-                                <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-surface-2">
+                                <div className={`relative overflow-hidden rounded-[1.75rem] bg-surface-2 ${block.overlay ? "aspect-[4/5] sm:aspect-[16/11]" : "aspect-[4/3]"}`}>
                                     <Image src={block.url} alt={block.alt} fill sizes="(min-width: 768px) 672px, 100vw" className="object-cover" />
+                                    {/* A line written over the picture: taller frame, and a shade so it reads on any photo. */}
+                                    {block.overlay && (
+                                        <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 md:p-9">
+                                            <span className="nt-serif block max-w-[15ch] text-[2.25rem] leading-[1.02] text-white md:text-[3.5rem]">{block.overlay}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 {block.caption && <figcaption className="mt-2.5 px-1 text-center text-sm text-muted">{block.caption}</figcaption>}
                             </figure>

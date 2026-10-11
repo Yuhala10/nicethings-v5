@@ -7,7 +7,9 @@ export type Block =
     | { type: "p"; text: string }
     | { type: "h2"; text: string }
     | { type: "h3"; text: string }
-    | { type: "image"; url: string; alt: string; caption: string }
+    // `overlay`: a short line written over the picture itself, for the
+    // pictures that open a section.
+    | { type: "image"; url: string; alt: string; caption: string; overlay?: string }
     | { type: "place"; slug: string; note: string }
     | { type: "places"; title: string; slugs: string[] }
     | { type: "quote"; text: string; cite: string }
@@ -63,7 +65,8 @@ export function cleanBlocks(input: unknown): Block[] {
             }
             case "image": {
                 const url = safeUrl(item.url);
-                if (url) blocks.push({ type: "image", url, alt: str(item.alt, 200).trim(), caption: str(item.caption, 300).trim() });
+                const overlay = str(item.overlay, 90).replace(/\s+/g, " ").trim();
+                if (url) blocks.push({ type: "image", url, alt: str(item.alt, 200).trim(), caption: str(item.caption, 300).trim(), ...(overlay && { overlay }) });
                 break;
             }
             case "place": {
