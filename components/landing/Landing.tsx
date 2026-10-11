@@ -1,3 +1,4 @@
+import Film from "./Film";
 import SectionIndex from "./SectionIndex";
 import type { StoryPlace } from "@/lib/places/server";
 import { isWide } from "@/lib/places/stories";
@@ -116,6 +117,9 @@ export default function Landing({
                 <Logo compact />
                 <LanguageSwitch />
             </div>
+
+            {/* ---------------- The opening film: Cameroon in a minute ---------------- */}
+            <Film />
 
             {/* ---------------- Hero ---------------- */}
             <section className="mx-auto max-w-6xl px-4 pt-10 md:px-6 md:pt-20">

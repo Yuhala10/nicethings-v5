@@ -892,6 +892,203 @@
     }
 }
 
+/* ---- The opening film (components/landing/Film.tsx) ----------------------
+   Scenes are stacked; each new one comes in over the last with its own
+   entrance, its photo drifts slowly, its words rise. Everything here stops
+   when the film is paused or off screen. */
+.nt-film[data-paused="true"] * {
+    animation-play-state: paused !important;
+}
+
+.nt-film-scene {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.nt-film-photo {
+    animation: nt-film-drift linear both;
+    will-change: transform;
+}
+
+.nt-film-in-fade {
+    animation: nt-film-fade 0.35s ease both;
+}
+
+.nt-film-in-zoom {
+    animation: nt-film-zoom 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.nt-film-in-wipe-x {
+    animation: nt-film-wipe-x 0.5s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.nt-film-in-wipe-y {
+    animation: nt-film-wipe-y 0.5s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.nt-film-in-iris {
+    animation: nt-film-iris 0.6s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.nt-film-line {
+    animation: nt-film-line 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.nt-film-cut {
+    animation: nt-film-cut 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.nt-film-title {
+    animation: nt-film-title 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.nt-film-rule {
+    transform-origin: left;
+    animation: nt-film-rule 0.7s 0.2s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.nt-film-name {
+    animation: nt-film-name linear both;
+}
+
+.nt-film-bar {
+    animation: nt-film-bar linear both;
+}
+
+.nt-film-hint {
+    animation: nt-film-hint 1.8s ease-in-out infinite;
+}
+
+@keyframes nt-film-drift {
+    from {
+        transform: scale(1.06);
+    }
+    to {
+        transform: scale(1.2) translate3d(-1.5%, -1.5%, 0);
+    }
+}
+
+@keyframes nt-film-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes nt-film-zoom {
+    from {
+        opacity: 0;
+        transform: scale(1.35);
+        filter: blur(6px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+        filter: none;
+    }
+}
+
+@keyframes nt-film-wipe-x {
+    from {
+        clip-path: inset(0 0 0 100%);
+    }
+    to {
+        clip-path: inset(0);
+    }
+}
+
+@keyframes nt-film-wipe-y {
+    from {
+        clip-path: inset(100% 0 0 0);
+    }
+    to {
+        clip-path: inset(0);
+    }
+}
+
+@keyframes nt-film-iris {
+    from {
+        clip-path: circle(0% at 50% 55%);
+    }
+    to {
+        clip-path: circle(125% at 50% 55%);
+    }
+}
+
+@keyframes nt-film-line {
+    from {
+        opacity: 0;
+        transform: translateY(0.6em);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes nt-film-cut {
+    from {
+        opacity: 0;
+        transform: scale(1.18);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes nt-film-title {
+    from {
+        opacity: 0;
+        transform: scale(1.3);
+        filter: blur(10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+        filter: none;
+    }
+}
+
+@keyframes nt-film-rule {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes nt-film-name {
+    0% {
+        opacity: 0;
+        transform: scale(1.3);
+    }
+    14% {
+        opacity: 1;
+        transform: none;
+    }
+    86% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+}
+
+@keyframes nt-film-bar {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes nt-film-hint {
+    50% {
+        opacity: 0.55;
+    }
+}
+
 /* Map chrome in the brand style */
 .nt-fullmap .maplibregl-ctrl-top-left {
     top: calc(env(safe-area-inset-top) + 9.5rem);
