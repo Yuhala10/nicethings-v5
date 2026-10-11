@@ -221,9 +221,9 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
                             onClick={(event) => event.stopPropagation()}
                         >
                             {current.kind === "video" ? (
-                                <video key={current.id} src={current.url} poster={current.poster ?? undefined} autoPlay loop playsInline controls className="max-h-full max-w-full" />
+                                <video key={current.id} src={current.url} poster={current.poster ?? undefined} autoPlay loop playsInline controls className="h-full w-full object-contain" />
                             ) : (
-                                <img src={current.url} alt={current.caption ?? ""} draggable={false} className="max-h-full max-w-full object-contain select-none" />
+                                <img src={current.url} alt={current.caption ?? ""} draggable={false} className="h-full w-full object-contain select-none" />
                             )}
                         </motion.div>
 
