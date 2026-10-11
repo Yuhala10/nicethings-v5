@@ -62,7 +62,7 @@ export default async function CulturePage({ params }: Props) {
                 <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[3.5rem]">{t.culture.storiesTitle}</h2>
                 <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-muted">{t.culture.storiesLead}</p>
                 {stories.length > 0 ? (
-                    <div className="nt-masonry mt-8 columns-2 md:columns-3">
+                    <div className="nt-masonry nt-settle mt-8 columns-2 md:columns-3">
                         {stories.map((post, index) => (
                             <div key={post.id}>
                                 <PostCard post={post} locale={lang} priority={index < 2} />

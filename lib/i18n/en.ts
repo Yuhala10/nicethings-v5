@@ -450,6 +450,7 @@ export const en: Dictionary = {
         submissionTitle: "Suggested by the community",
         submissionBody: "A visitor told us about this place. We reviewed it before publishing.",
         viewSource: "View on OpenStreetMap",
+        viewWikidata: "View the source (Wikidata)",
         helpUs: "Know this place? Help us complete its listing.",
         suggestEdit: "Suggest a correction",
         updated: "Listing updated {ago}",

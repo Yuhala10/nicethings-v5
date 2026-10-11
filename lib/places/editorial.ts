@@ -64,7 +64,7 @@ const ORDER = [
     "collection:snack",
     "collection:chicken",
     "collection:beignets",
-    "category:Nature",
+    "collection:nature",
     "collection:early",
     "collection:terrace",
     "category:Culture",

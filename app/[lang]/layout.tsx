@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, Instrument_Serif } from "next/font/google";
 import { notFound } from "next/navigation";
 import { LocaleProvider } from "@/components/site/LocaleProvider";
+import ScrollReveal from "@/components/site/ScrollReveal";
 import SiteChrome from "@/components/site/SiteChrome";
 import { FOUNDER, FOUNDER_ID, ORGANIZATION_ID } from "@/lib/founder";
 import { HEALTH_SCRIPT } from "@/lib/health-script";
@@ -139,6 +140,7 @@ export default async function SiteLayout({ children, params }: Props) {
                 <LocaleProvider locale={lang} dictionary={dictionary}>
                     <SiteChrome>{children}</SiteChrome>
                 </LocaleProvider>
+                <ScrollReveal />
             </body>
         </html>
     );

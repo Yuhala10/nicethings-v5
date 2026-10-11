@@ -452,6 +452,7 @@ export const fr = {
         submissionTitle: "Proposé par la communauté",
         submissionBody: "Un visiteur nous a signalé ce lieu. Nous l'avons relu avant de le publier.",
         viewSource: "Voir sur OpenStreetMap",
+        viewWikidata: "Voir la source (Wikidata)",
         helpUs: "Tu connais ce lieu ? Aide-nous à compléter sa fiche.",
         suggestEdit: "Proposer une correction",
         updated: "Fiche mise à jour {ago}",

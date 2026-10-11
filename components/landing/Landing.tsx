@@ -297,7 +297,7 @@ export default function Landing({
                             <ArrowRight size={16} />
                         </Link>
                     </div>
-                    <div className="nt-masonry mt-8 columns-2 md:columns-4">
+                    <div className="nt-masonry nt-settle mt-8 columns-2 md:columns-4">
                         {posts.slice(0, 4).map((post) => (
                             <div key={post.id}>
                                 <PostCard post={post} locale={locale} />

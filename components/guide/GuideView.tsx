@@ -210,7 +210,7 @@ export default function GuideView({
                 {filters}
 
                 {places === null ? null : shown.length ? (
-                    <ul className="nt-masonry mt-8 columns-2 md:columns-3 lg:columns-4">
+                    <ul className="nt-masonry nt-settle mt-8 columns-2 md:columns-3 lg:columns-4">
                         {shown.map((place, index) => (
                             <li key={place.id}>
                                 <PinCard place={place} priority={index < 2} />

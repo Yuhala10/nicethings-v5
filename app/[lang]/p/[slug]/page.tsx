@@ -31,7 +31,7 @@ import { AMENITIES, CATEGORIES, GOOD_FOR, VIBES, tagLabel } from "@/lib/tags";
 export const revalidate = 300;
 
 // Open datasets places can come from (scripts/import_open_places.py).
-const OPEN_DATA: Record<string, string> = { overture: "Overture Maps", foursquare: "Foursquare" };
+const OPEN_DATA: Record<string, string> = { overture: "Overture Maps", foursquare: "Foursquare", wikidata: "Wikidata" };
 export const dynamicParams = true;
 
 // The best-known places are built at deploy time; every other page is
@@ -620,6 +620,17 @@ export default async function PlacePage({ params }: Props) {
                                 className="inline-flex items-center gap-1 text-sm text-muted hover:text-text"
                             >
                                 {t.trust.viewSource}
+                                <ExternalLink size={13} />
+                            </a>
+                        )}
+                        {place.source === "wikidata" && place.sourceRef && (
+                            <a
+                                href={`https://www.wikidata.org/wiki/${place.sourceRef}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-sm text-muted hover:text-text"
+                            >
+                                {t.trust.viewWikidata}
                                 <ExternalLink size={13} />
                             </a>
                         )}

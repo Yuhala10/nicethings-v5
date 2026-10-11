@@ -111,7 +111,7 @@ export default async function CityPage({ params }: Props) {
                     {categories.length > 0 && (
                         <section className="nt-reveal mt-14">
                             <h2 className="nt-section-title mb-5">{t.city.categories}</h2>
-                            <ul className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
+                            <ul className="nt-settle grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
                                 {categories.map(([category, count]) => (
                                     <li key={category}>
                                         <Link
@@ -152,7 +152,7 @@ export default async function CityPage({ params }: Props) {
             {picks.length > 0 && (
                 <section className="nt-reveal mt-14">
                     <h2 className="nt-section-title mb-5">{t.city.ideas}</h2>
-                    <ul className="nt-masonry columns-2 md:columns-4">
+                    <ul className="nt-masonry nt-settle columns-2 md:columns-4">
                         {picks.map((place, index) => (
                             <li key={place.id}>
                                 <PinCard place={place} priority={index < 2} />

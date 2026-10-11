@@ -65,7 +65,7 @@ export default function BlogIndex({ posts, cards }: { posts: PostSummary[]; card
             {shown.length === 0 ? (
                 <p className="rounded-3xl bg-surface-2 px-6 py-14 text-center font-semibold text-muted">{t.blog.noResults}</p>
             ) : (
-                <div className="nt-masonry columns-2 sm:columns-3 lg:columns-4">
+                <div className="nt-masonry nt-settle columns-2 sm:columns-3 lg:columns-4">
                     {shown.map((post) => (
                         <div key={post.id}>{cards[post.id]}</div>
                     ))}

@@ -274,6 +274,22 @@ export const COLLECTIONS: Collection[] = [
         },
         test: (place) => named(place, "beignet") || called(place, "bhb", "bouillie"),
     },
+    // ---- Out of town. Read from the name again: a lake, falls, a mountain,
+    // an island, a park, never a guess about what the place is like.
+    {
+        key: "nature",
+        slug: { fr: "nature-et-grand-air", en: "nature-and-fresh-air" },
+        name: { fr: "Nature et grand air", en: "Nature & fresh air" },
+        title: { fr: "Lacs, chutes et montagnes autour de {city}", en: "Lakes, waterfalls and mountains around {city}" },
+        blurb: { fr: "Lacs, chutes, montagnes et parcs : de quoi prendre l'air.", en: "Lakes, waterfalls, mountains and parks: room to breathe." },
+        intro: {
+            fr: "{count} lieux de nature à {city} et autour : lacs, chutes, montagnes, îles et parcs. Certains demandent de la route : lis comment y aller sur chaque fiche, et renseigne-toi avant de partir.",
+            en: "{count} places in and around {city} for nature: lakes, waterfalls, mountains, islands and parks. Some take a drive: read how to get there on each listing, and ask around before you leave.",
+        },
+        test: (place) =>
+            place.category === "Nature" &&
+            (named(place, "lac", "lake", "chute", "cascade", "mont", "mount", "parc", "park", "grotte", "bois", "jardin", "foret", "plage", "beach") || called(place, "ile", "iles", "dent")),
+    },
 ];
 
 export function collectionByKey(key: string) {

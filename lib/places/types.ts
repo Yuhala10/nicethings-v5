@@ -51,7 +51,8 @@ export type PlaceSummary = {
     featured: boolean;
     cover: string | null;
     // Where the listing came from: "field" (checked in person), "osm"
-    // (OpenStreetMap import) or "submission" (sent by a visitor).
+    // (OpenStreetMap import), "wikidata" (a documented landmark read from
+    // that open base) or "submission" (sent by a visitor).
     source: string;
 };
 

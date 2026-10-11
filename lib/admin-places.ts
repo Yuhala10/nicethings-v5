@@ -48,9 +48,12 @@ export type NewPlace = {
     phone: string | null;
     description: string | null;
     status: "DRAFT" | "APPROVED";
-    source: "field" | "submission";
+    source: "field" | "submission" | "wikidata";
     source_ref?: string | null;
 };
+
+// A Wikidata item, the reference a place taken from that open base carries.
+const WIKIDATA_ID = /^Q\d{1,12}$/;
 
 // Validates and normalises an admin "new place" payload.
 export function readNewPlace(body: Record<string, unknown>): NewPlace | string {
@@ -62,6 +65,9 @@ export function readNewPlace(body: Record<string, unknown>): NewPlace | string {
     const lat = Number(body.latitude);
     const lng = Number(body.longitude);
     const hasPosition = Number.isFinite(lat) && Number.isFinite(lng) && body.latitude !== null && body.latitude !== "";
+    // A place nobody on the team has seen says where it comes from: "wikidata"
+    // only with the item it was read from.
+    const wikidata = body.source === "wikidata" && typeof body.source_ref === "string" && WIKIDATA_ID.test(body.source_ref) ? body.source_ref : null;
     return {
         name,
         category,
@@ -73,6 +79,7 @@ export function readNewPlace(body: Record<string, unknown>): NewPlace | string {
         phone: text(body.phone, 40),
         description: text(body.description, 1500),
         status: body.status === "APPROVED" && hasPosition ? "APPROVED" : "DRAFT",
-        source: body.source === "submission" ? "submission" : "field",
+        source: wikidata ? "wikidata" : body.source === "submission" ? "submission" : "field",
+        ...(wikidata && { source_ref: wikidata }),
     };
 }
