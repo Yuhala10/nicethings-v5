@@ -1,5 +1,6 @@
 import SectionIndex from "./SectionIndex";
 import type { StoryPlace } from "@/lib/places/server";
+import { isWide } from "@/lib/places/stories";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock3, Heart, Languages, MapPin, MessageCircle, Navigation, Plus, Search, Sparkles, Store, Volume2 } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
@@ -166,7 +167,7 @@ export default function Landing({
             </div>
 
             {/* ---------------- Places with a story ---------------- */}
-            {/* A mosaic: the first one leads at double width, then one in four. */}
+            {/* A mosaic: one wide tile, then two side by side. */}
             {stories.length > 0 && (
                 <section id="lieux" className="scroll-mt-28 mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                     <div className="nt-reveal max-w-xl">
@@ -176,8 +177,8 @@ export default function Landing({
                     </div>
                     <ul className="nt-settle mt-8 grid grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                         {stories.map((place, index) => (
-                            <li key={place.id} className={index % 5 === 0 ? "col-span-2" : ""}>
-                                <PinCard place={place} shape="portrait" priority={index === 0} />
+                            <li key={place.id} className={isWide(index) ? "col-span-2" : ""}>
+                                <PinCard place={place} shape={isWide(index) ? "wide" : "portrait"} priority={index === 0} />
                             </li>
                         ))}
                     </ul>

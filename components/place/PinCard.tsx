@@ -40,7 +40,8 @@ export default function PinCard({
     place: PlaceSummary;
     distance?: number | null;
     priority?: boolean;
-    shape?: "auto" | "portrait";
+    // "wide" is for a tile that spans two columns of a mosaic.
+    shape?: "auto" | "portrait" | "wide";
 }) {
     const { locale } = useLocale();
     const [broken, setBroken] = useState(false);
@@ -48,7 +49,8 @@ export default function PinCard({
     const kind = placeKind(place, locale);
     const mood = place.vibes[0] ? tagLabel(VIBES, place.vibes[0], locale) : null;
     const photo = place.cover && !broken;
-    const aspect = shape === "portrait" ? "aspect-[4/5]" : photo ? pick(PHOTO_SHAPES, place.slug) : pick(POSTER_SHAPES, place.slug);
+    const aspect =
+        shape === "wide" ? "aspect-[4/3] md:aspect-[8/5]" : shape === "portrait" ? "aspect-[4/5]" : photo ? pick(PHOTO_SHAPES, place.slug) : pick(POSTER_SHAPES, place.slug);
     // Under a photo: what it is, its mood, where. A poster already says the
     // kind and the area, so only the mood is added.
     const away = distance !== null && !photo ? formatDistance(distance, locale) : null;
@@ -64,7 +66,7 @@ export default function PinCard({
                             src={place.cover!}
                             alt={place.name}
                             fill
-                            sizes="(min-width: 1024px) 280px, (min-width: 768px) 30vw, 66vw"
+                            sizes={shape === "wide" ? "(min-width: 1024px) 580px, (min-width: 768px) 60vw, 100vw" : "(min-width: 1024px) 280px, (min-width: 768px) 30vw, 66vw"}
                             className="object-cover transition duration-700 ease-out group-hover:scale-[1.03]"
                             priority={priority}
                             onError={() => setBroken(true)}
