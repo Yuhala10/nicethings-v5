@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { selectAll } from "../admin-places";
+import { SITE_URL } from "../i18n/config";
 import { recheckOnMap } from "./osm";
 import { qualityChecks, type Found } from "./quality";
-import { loadPlaces, readSettings, writePlace, type AtlasAction, type AtlasIssue } from "./store";
+import { loadPlaces, readSettings, writePlace, type AtlasAction, type AtlasIssue, type AtlasPlace } from "./store";
 
 // One shift of Atlas: compare the catalogue with the live open map, fill
 // what the map can prove, propose what needs a person's eye, and go over
@@ -48,6 +49,13 @@ async function saveIssues(db: SupabaseClient, found: Found[]) {
     return { open: rows.filter((row) => row.status === "open").length, added: unique.filter((item) => !known.has(item.fingerprint)).length, fixed: fixed.length };
 }
 
+// How much a listing holds: of two listings for one place, the fuller one
+// stays.
+function weight(place: AtlasPlace) {
+    const facts = [place.phone, place.website, place.instagram, place.opening_time, place.minimum_price, place.cuisine, place.neighborhood].filter(Boolean).length;
+    return facts + (place.verified ? 6 : 0) + (place.source !== "osm" ? 3 : 0);
+}
+
 const FIELD_NAMES: Record<string, string> = { phone: "téléphone", whatsapp: "WhatsApp", website: "site web", instagram: "Instagram", cuisine: "cuisine", opening_time: "horaires" };
 
 export async function runAtlas(db: SupabaseClient, { kind, force = false }: { kind: "night" | "manual"; force?: boolean }): Promise<Shift> {
@@ -69,7 +77,7 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
         // ---- The open map ------------------------------------------------
         const map = await recheckOnMap(published);
         const past = await selectAll<Pick<AtlasAction, "spot_id" | "kind" | "status">>((from, to) =>
-            db.from("nt_atlas_actions").select("spot_id,kind,status").in("kind", ["place.fill", "place.hide"]).range(from, to)
+            db.from("nt_atlas_actions").select("spot_id,kind,status").in("kind", ["place.fill", "place.hide", "place.duplicate"]).range(from, to)
         );
         // What a person declined is never proposed again, what a person
         // undid is never redone, and a proposal still waiting is not repeated.
@@ -125,13 +133,41 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
                 });
             }
         }
+        // ---- The platform itself -----------------------------------------
+        const found = await qualityChecks(db, places, map.edited);
+        const issues = await saveIssues(db, found);
+
+        // Two listings for one place: propose taking the thinner one down.
+        const byId = new Map(places.map((place) => [place.id, place]));
+        const page = (place: AtlasPlace) => ({ url: `${SITE_URL}/fr/p/${place.slug}`, title: place.name });
+        const hidden = new Set<string>();
+        for (const item of found) {
+            if (item.evidence.code !== "duplicate") continue;
+            const a = byId.get((item.evidence.a as { id: string }).id);
+            const b = byId.get((item.evidence.b as { id: string }).id);
+            if (!a || !b) continue;
+            const [kept, thinner] = weight(a) >= weight(b) ? [a, b] : [b, a];
+            if (hidden.has(thinner.id) || hidden.has(kept.id) || settled.has(`place.duplicate:${thinner.id}`)) continue;
+            hidden.add(thinner.id);
+            actions.push({
+                run_id: runId,
+                desk: "inspector",
+                kind: "place.duplicate",
+                spot_id: thinner.id,
+                title: `« ${thinner.name} » fait doublon avec « ${kept.name} » (${thinner.city}) : retirer cette fiche ?`,
+                detail: `Même type de lieu, même nom, à ${item.evidence.meters} m l'un de l'autre. La fiche gardée est la plus complète.`,
+                evidence: [page(kept), page(thinner)],
+                before: { status: thinner.status },
+                after: { status: "REJECTED" },
+                confidence: 0.7,
+                status: "proposed",
+            });
+        }
+
         for (let from = 0; from < actions.length; from += 200) {
             const { error } = await db.from("nt_atlas_actions").insert(actions.slice(from, from + 200));
             if (error) throw error;
         }
-
-        // ---- The platform itself -----------------------------------------
-        const issues = await saveIssues(db, await qualityChecks(db, places, map.edited));
 
         const stats = {
             published: published.length,

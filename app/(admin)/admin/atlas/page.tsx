@@ -87,6 +87,12 @@ function actionText(action: Action, tr: Tr): { title: string; detail: string | n
             ),
         };
     }
+    if (action.kind === "place.duplicate") {
+        return {
+            title: tr(action.title, `“${name}” duplicates “${action.evidence[0]?.title ?? ""}”: take this listing off the site?`),
+            detail: tr(action.detail ?? "", "Same kind of place, same name, a few metres apart. The listing that stays is the fuller one."),
+        };
+    }
     if (action.kind === "place.fill") {
         const fields = Object.keys(action.after ?? {})
             .map((key) => FIELDS[key]?.[1])
@@ -103,6 +109,7 @@ function issueText(issue: Issue, tr: Tr): { title: string; detail: string | null
     const post = e.post?.title;
     const english: Record<string, () => [string, string | null]> = {
         duplicate: () => [`Likely duplicate: “${e.a?.name}” and “${e.b?.name}” (${e.city})`, `Same name, ${e.meters} m apart.`],
+        "generic-name": () => [`“${place}” (${e.city}) is not the name of a place`, "The open map gives a kind of place where the name should be. It needs the real name, or the listing should come down."],
         "outside-city": () => [`“${place}” is filed under ${e.city} but sits ${e.km} km from its centre`, e.actual ? `Its position is in ${e.actual}.` : "Its position is outside every covered city."],
         "verified-stale": () => [`“${place}” has the blue tick but has not been re-checked for ${e.days} days`, null],
         "price-odd": () => [`Prices to review for “${place}”: ${e.min ?? "?"} – ${e.max ?? "?"} FCFA`, null],
@@ -271,7 +278,7 @@ export default function AtlasPage() {
                                             <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
                                                 {action.evidence.map((source) => (
                                                     <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-brand-600">
-                                                        {tr("Voir la preuve", "See the proof")} · {source.title}
+                                                        {action.kind === "place.duplicate" ? tr("Comparer", "Compare") : tr("Voir la preuve", "See the proof")} · {source.title}
                                                         <ExternalLink size={12} />
                                                     </a>
                                                 ))}

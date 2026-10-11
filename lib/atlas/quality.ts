@@ -30,11 +30,39 @@ function byCity(places: AtlasPlace[]) {
 
 // ---- The catalogue ---------------------------------------------------------
 
+// Words that say what kind of place it is, not which one: two "Beignetariat"
+// a street apart are two stalls, and "Bâtiment" is not a name at all.
+const GENERIC = new Set([
+    "alimentation", "auberge", "bar", "batiment", "beignetariat", "boulangerie", "boutique", "buvette", "cabaret", "cafe", "cafeteria", "call box",
+    "chambres", "club", "coiffure", "fast food", "hotel", "kiosque", "lounge", "magasin", "maquis", "motel", "pharmacie", "quincaillerie",
+    "restaurant", "resto", "salon", "snack", "snack bar", "supermarche",
+]);
+
+function plain(name: string) {
+    return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function genericNames(published: AtlasPlace[]): Found[] {
+    return published
+        .filter((place) => GENERIC.has(plain(place.name)) || plain(place.name).replace(/[^a-z]/g, "").length < 3)
+        .map((place) => ({
+            fingerprint: `generic-name:${place.id}`,
+            area: "catalogue",
+            severity: "normal" as const,
+            title: `« ${place.name} » (${place.city}) n'est pas un nom de lieu`,
+            detail: "La carte ouverte donne un type de lieu à la place du nom. Il faut le vrai nom, ou retirer la fiche.",
+            evidence: { code: "generic-name", place: ref(place), city: place.city },
+        }))
+        .slice(0, MAX_EACH);
+}
+
 function duplicates(published: AtlasPlace[]): Found[] {
-    // Same name once filler words are gone, within 150 m of each other.
+    // The same kind of place, with the same name once filler words are
+    // gone, within 150 m of each other. A hotel and the restaurant inside
+    // it share a name and an address, and are two places.
     const CELL = 0.0015; // about 165 m
     const cells = new Map<string, AtlasPlace[]>();
-    const located = published.filter((place) => place.latitude !== null && place.longitude !== null && nameKey(place.name));
+    const located = published.filter((place) => place.latitude !== null && place.longitude !== null && nameKey(place.name) && !GENERIC.has(plain(place.name)));
     for (const place of located) {
         const key = `${Math.floor(place.latitude! / CELL)}:${Math.floor(place.longitude! / CELL)}`;
         cells.set(key, [...(cells.get(key) ?? []), place]);
@@ -47,7 +75,7 @@ function duplicates(published: AtlasPlace[]): Found[] {
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
                 for (const other of cells.get(`${x + dx}:${y + dy}`) ?? []) {
-                    if (other.id <= place.id || nameKey(other.name) !== nameKey(place.name)) continue;
+                    if (other.id <= place.id || other.category !== place.category || nameKey(other.name) !== nameKey(place.name)) continue;
                     const meters = Math.round(distanceMeters({ lat: place.latitude!, lng: place.longitude! }, { lat: other.latitude!, lng: other.longitude! }));
                     const pair = `${place.id}:${other.id}`;
                     if (meters > 150 || seen.has(pair)) continue;
@@ -313,6 +341,7 @@ export async function qualityChecks(db: SupabaseClient, places: AtlasPlace[], ed
     return [
         ...down,
         ...duplicates(published),
+        ...genericNames(published),
         ...outsideCity(published),
         ...staleChecks(published, now),
         ...oddPrices(published),
