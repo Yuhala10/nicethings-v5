@@ -10,6 +10,7 @@ import PostCard from "@/components/blog/PostCard";
 import PlaceActions from "@/components/place/PlaceActions";
 import PinCard from "@/components/place/PinCard";
 import PlaceMap from "@/components/place/PlaceMap";
+import PostWall from "@/components/place/PostWall";
 import ReportButton from "@/components/place/ReportButton";
 import { OpenBadge, PlaceThumb, PriceLabel, Rating } from "@/components/place/bits";
 import { StickyPlaceBar } from "@/components/place/PlaceHeroBits";
@@ -426,6 +427,13 @@ export default async function PlacePage({ params }: Props) {
                                 </div>
                             ))}
                         </dl>
+                    </Section>
+                )}
+
+                {/* The wall: photos and videos from people who were there. */}
+                {place.wall && (
+                    <Section title={t.wall.title}>
+                        <PostWall slug={place.slug} placeName={place.name} posts={place.wall} />
                     </Section>
                 )}
 

@@ -1,3 +1,5 @@
+import type { WallPost } from "../posts";
+
 // Public shapes of a place. `PlaceSummary` is what lists, map pins and
 // search work with (kept small because the whole catalogue ships to the
 // browser for instant filtering); `PlaceDetail` is the full place page.
@@ -92,6 +94,9 @@ export type PlaceDetail = PlaceSummary & {
     standing: 0 | 1 | 2;
     positionExact: boolean;
     guide: Record<"story" | "access" | "fees" | "company" | "bestTime" | "bring", { fr: string | null; en: string | null }>;
+    // Approved photos and videos from visitors, most liked first. `null`
+    // while the wall is not open (database script 005 not run).
+    wall: WallPost[] | null;
     // Visitors the guidance brought to the door and who confirmed the place
     // is there (app/api/arrivals): how many times, and the last time.
     arrivals: { count: number; last: string | null };

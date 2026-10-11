@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BadgeCheck, BarChart3, Camera, ExternalLink, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Menu, Newspaper, Search, Sparkles, X, type LucideIcon } from "lucide-react";
+import { BadgeCheck, BarChart3, Camera, ExternalLink, Film, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Menu, Newspaper, Search, Sparkles, X, type LucideIcon } from "lucide-react";
 import { adminGet, adminPost } from "@/lib/admin-client";
 import { TEAM_KEY, VISITOR_KEY } from "@/lib/analytics";
 import { AdminLangProvider, LangSwitch, useTr, type AdminLang } from "./i18n";
@@ -29,6 +29,7 @@ const GROUPS: { title: [string, string]; items: Item[] }[] = [
         items: [
             { href: "/admin/submissions", label: ["Propositions", "Suggestions"], short: ["Propos.", "Suggest."], icon: Inbox, badge: "submissions" },
             { href: "/admin/reports", label: ["Signalements", "Reports"], short: ["Signal.", "Reports"], icon: Flag, badge: "reports" },
+            { href: "/admin/publications", label: ["Photos et vidéos", "Photos & videos"], short: ["Médias", "Media"], icon: Film },
             { href: "/admin/revendications", label: ["Revendications", "Owner claims"], short: ["Proprios", "Owners"], icon: BadgeCheck, badge: "claims" },
         ],
     },

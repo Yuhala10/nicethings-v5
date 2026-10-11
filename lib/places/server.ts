@@ -1,3 +1,4 @@
+import { POST_COLUMNS, toWallPost } from "../posts";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { DEFAULT_CITY, cityByName } from "../cities";
@@ -173,7 +174,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     if (error) throw error;
     if (!row || row.latitude == null || row.longitude == null) return null;
 
-    const [photos, menu, reviews, arrivals] = await Promise.all([
+    const [photos, menu, reviews, arrivals, wall] = await Promise.all([
         db
             .from("nt_spot_photos")
             .select("image_url,alt_text")
@@ -193,6 +194,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
             .order("created_at", { ascending: false })
             .limit(30),
         db.from("nt_arrivals").select("created_at", { count: "exact" }).eq("spot_id", row.id).order("created_at", { ascending: false }).limit(1),
+        db.from("nt_spot_posts").select(POST_COLUMNS).eq("spot_id", row.id).eq("status", "APPROVED").order("likes", { ascending: false }).order("decided_at", { ascending: false }).limit(30),
     ]);
 
     for (const result of [photos, menu, reviews]) {
@@ -212,6 +214,8 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         ...toSummary(row as SpotRow, photoList[0]?.url ?? null),
         standing: row.standing === 1 || row.standing === 2 ? row.standing : 0,
         positionExact: row.position_exact !== false,
+        // An error here means the wall is not open yet: the page does without.
+        wall: wall.error ? null : (wall.data ?? []).map(toWallPost),
         guide: { story: words("story"), access: words("access"), fees: words("fees"), company: words("company"), bestTime: words("best_time"), bring: words("bring") },
         description: row.description ?? null,
         address: row.address ?? null,
@@ -243,7 +247,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v5"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v6"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
