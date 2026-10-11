@@ -169,6 +169,7 @@ function SiteFooter() {
         { href: paths.culture(locale), label: t.nav.culture },
         { href: paths.about(locale), label: t.about.nav },
         { href: paths.submit(locale), label: t.nav.suggest },
+        { href: paths.sitemapPage(locale), label: t.siteMap.title },
         { href: paths.privacy(locale), label: t.footer.privacy },
         { href: paths.terms(locale), label: t.footer.terms },
     ];

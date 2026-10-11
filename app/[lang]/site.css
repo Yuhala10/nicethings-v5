@@ -820,6 +820,37 @@
 
 /* Sections glide in as they enter the screen. Browsers without
    scroll-driven animations simply show them: content is never hidden. */
+/* Tiles that settle into place as they come on screen, each a touch after
+   its neighbour, so a grid assembles itself under the reader's eyes. */
+@keyframes nt-settle {
+    from {
+        opacity: 0.001;
+        transform: translateY(30px) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .nt-settle > * {
+            animation: nt-settle linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 55%;
+        }
+
+        .nt-settle > :nth-child(2n) {
+            animation-range: entry 8% entry 68%;
+        }
+
+        .nt-settle > :nth-child(3n) {
+            animation-range: entry 14% entry 78%;
+        }
+    }
+}
+
 @supports (animation-timeline: view()) {
     .nt-reveal {
         animation: nt-reveal linear both;

@@ -364,6 +364,13 @@ export const fr = {
         all: "Toutes les adresses",
         seeAll: "Tout voir",
     },
+    siteMap: {
+        title: "Plan du site",
+        lead: "Tout NiceThings sur une page, dans l'ordre : par où commencer, chaque ville et ce qu'elle contient, les lieux qui racontent, tous les articles.",
+        start: "Par où commencer",
+        cities: "Les villes et leurs sélections",
+        articles: "Tous les articles",
+    },
     culture: {
         eyebrow: "Zone culture",
         title: "Le Cameroun se raconte.",
@@ -519,6 +526,7 @@ export const fr = {
         atlasEyebrow: "L'atlas NiceThings",
         atlasTitle: "Chaque point est une adresse.",
         atlasBody: "{places} lieux répertoriés dans {cities} villes, de Kribi à Maroua. Et la carte continue de grandir.",
+        index: { label: "Dans cette page", now: "En ce moment", stories: "Lieux qui racontent", city: "À {city}", cities: "Les villes", journal: "Le journal", atlas: "La carte", how: "Comment ça marche", faq: "Questions" },
         journalTitle: "Le journal",
         journalLead: "Guides de quartier, adresses testées et idées de sorties, écrits sur le terrain.",
         addTitle: "Une adresse manque ?",

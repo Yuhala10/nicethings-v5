@@ -1,3 +1,4 @@
+import SectionIndex from "./SectionIndex";
 import type { StoryPlace } from "@/lib/places/server";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock3, Heart, Languages, MapPin, MessageCircle, Navigation, Plus, Search, Sparkles, Store, Volume2 } from "lucide-react";
@@ -144,19 +145,36 @@ export default function Landing({
                 </div>
             </section>
 
+            {/* The index of the page: it follows the reader and lights up the part being read. */}
+            <SectionIndex
+                label={t.landing.index.label}
+                items={[
+                    { id: "maintenant", label: t.landing.index.now },
+                    ...(stories.length > 0 ? [{ id: "lieux", label: t.landing.index.stories }] : []),
+                    ...(rails.length > 0 ? [{ id: "ville", label: fill(t.landing.index.city, { city: homeCity.name }) }] : []),
+                    { id: "villes", label: t.landing.index.cities },
+                    ...(posts.length > 0 ? [{ id: "journal", label: t.landing.index.journal }] : []),
+                    { id: "carte", label: t.landing.index.atlas },
+                    { id: "comment", label: t.landing.index.how },
+                    { id: "questions", label: t.landing.index.faq },
+                ]}
+            />
+
             {/* ---------------- Right now: what the app proposes ---------------- */}
-            <NowSection city={homeCity.slug} initial={nowPlaces} />
+            <div id="maintenant" className="scroll-mt-28">
+                <NowSection city={homeCity.slug} initial={nowPlaces} />
+            </div>
 
             {/* ---------------- Places with a story ---------------- */}
             {/* A mosaic: the first one leads at double width, then one in four. */}
             {stories.length > 0 && (
-                <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
+                <section id="lieux" className="scroll-mt-28 mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                     <div className="nt-reveal max-w-xl">
                         <p className="nt-eyebrow">{t.culture.eyebrow}</p>
                         <h2 className="nt-serif mt-2 text-[2.25rem] md:text-[3.5rem]">{t.culture.placesTitle}</h2>
                         <p className="mt-3 text-[1rem] text-muted">{t.culture.placesLead}</p>
                     </div>
-                    <ul className="mt-8 grid grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+                    <ul className="nt-settle mt-8 grid grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                         {stories.map((place, index) => (
                             <li key={place.id} className={index % 5 === 0 ? "col-span-2" : ""}>
                                 <PinCard place={place} shape="portrait" priority={index === 0} />
@@ -172,7 +190,7 @@ export default function Landing({
 
             {/* ---------------- The home city, by mood ---------------- */}
             {rails.length > 0 && (
-                <div className="pt-16 md:pt-28">
+                <div id="ville" className="scroll-mt-28 pt-16 md:pt-28">
                     <div className="mx-auto max-w-6xl px-4 md:px-6">
                         <div className="nt-reveal border-t border-line pt-8 md:pt-10">
                             <p className="nt-eyebrow">{t.city.collections}</p>
@@ -229,7 +247,7 @@ export default function Landing({
             )}
 
             {/* ---------------- Cities ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
+            <section id="villes" className="scroll-mt-28 mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal border-t border-line pt-8 md:pt-10">
                     <p className="nt-eyebrow">{t.landing.citiesEyebrow}</p>
                     <h2 className="nt-serif mt-2 text-[2.25rem] md:text-[3.5rem]">{t.landing.citiesTitle}</h2>
@@ -267,7 +285,7 @@ export default function Landing({
 
             {/* ---------------- Journal ---------------- */}
             {posts.length > 0 && (
-                <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
+                <section id="journal" className="scroll-mt-28 mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                     <div className="nt-reveal flex items-end justify-between gap-4 border-t border-line pt-8 md:pt-10">
                         <div className="max-w-xl">
                             <p className="nt-eyebrow">{t.blog.title}</p>
@@ -294,7 +312,7 @@ export default function Landing({
             )}
 
             {/* ---------------- Atlas: every place as a point of light ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
+            <section id="carte" className="scroll-mt-28 mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal relative isolate overflow-hidden rounded-[1.6rem] bg-[#15110e] text-white">
                     <Constellation
                         points={points}
@@ -324,7 +342,7 @@ export default function Landing({
             </section>
 
             {/* ---------------- Natural search + how it works ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
+            <section id="comment" className="scroll-mt-28 mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="grid gap-12 md:grid-cols-2 md:gap-16">
                     <div className="nt-reveal">
                         <p className="nt-eyebrow">{t.landing.conciergeEyebrow}</p>
@@ -422,7 +440,7 @@ export default function Landing({
             </section>
 
             {/* ---------------- FAQ ---------------- */}
-            <section className="mx-auto max-w-3xl px-4 pt-14 md:px-6 md:pt-28">
+            <section id="questions" className="scroll-mt-28 mx-auto max-w-3xl px-4 pt-14 md:px-6 md:pt-28">
                 <h2 className="nt-reveal nt-serif mb-6 text-[2.25rem] md:text-[2.75rem]">{t.landing.faqTitle}</h2>
                 <div className="divide-y divide-line border-y border-line">
                     {faq.map((item) => (

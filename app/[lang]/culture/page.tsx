@@ -80,7 +80,7 @@ export default async function CulturePage({ params }: Props) {
                     <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[3.5rem]">{t.culture.placesTitle}</h2>
                     <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-muted">{t.culture.placesLead}</p>
                     {/* The more a place matters, the bigger its tile. */}
-                    <ul className="mt-8 grid grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+                    <ul className="nt-settle mt-8 grid grid-flow-dense grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                         {places.map((place, index) => (
                             <li key={place.id} className={place.standing === 2 ? "col-span-2" : ""}>
                                 <PinCard place={place} shape="portrait" priority={index < 2} />

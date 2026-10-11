@@ -362,6 +362,13 @@ export const en: Dictionary = {
         all: "All places",
         seeAll: "See all",
     },
+    siteMap: {
+        title: "Site map",
+        lead: "All of NiceThings on one page, in order: where to start, every city and what it holds, the places with a story, every article.",
+        start: "Where to start",
+        cities: "The cities and their selections",
+        articles: "All the articles",
+    },
     culture: {
         eyebrow: "Culture zone",
         title: "Cameroon tells its story.",
@@ -517,6 +524,7 @@ export const en: Dictionary = {
         atlasEyebrow: "The NiceThings atlas",
         atlasTitle: "Every dot is a place.",
         atlasBody: "{places} places listed in {cities} cities, from Kribi to Maroua. And the map keeps growing.",
+        index: { label: "On this page", now: "Right now", stories: "Places with a story", city: "In {city}", cities: "The cities", journal: "The journal", atlas: "The map", how: "How it works", faq: "Questions" },
         journalTitle: "The journal",
         journalLead: "Neighbourhood guides, tried-and-tested places and ideas for going out, written on the ground.",
         addTitle: "A place missing?",

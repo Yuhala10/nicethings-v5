@@ -98,6 +98,7 @@ export const paths = {
     about: (locale: Locale) => `/${locale}/a-propos`,
     blog: (locale: Locale) => `/${locale}/blog`,
     culture: (locale: Locale) => `/${locale}/culture`,
+    sitemapPage: (locale: Locale) => `/${locale}/plan-du-site`,
     post: (locale: Locale, slug: string) => `/${locale}/blog/${slug}`,
     pro: (locale: Locale) => `/${locale}/pro`,
     claim: (locale: Locale, slug: string) => `/${locale}/pro/revendiquer/${slug}`,
