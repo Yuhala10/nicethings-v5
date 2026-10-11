@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -137,12 +137,48 @@ export default function SearchView({
 
     const pill = "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-[0.875rem] font-bold text-text transition active:scale-95";
 
+    // The invitation to share one's position. While browsing it sits after
+    // the first list, so that opening it never pushes down what the visitor
+    // is already looking at.
+    const primerCard = (
+                <AnimatePresence>
+                    {showPrimer && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden px-4">
+                            <div className="relative mt-5 overflow-hidden rounded-[1.25rem] border border-line bg-surface p-5">
+                                <div className="relative flex items-start gap-3.5">
+                                    <LocateFixed size={22} strokeWidth={1.8} className="mt-1 shrink-0 text-brand-600" />
+                                    <div>
+                                        <p className="nt-serif text-[1.5rem]">{t.explore.primerTitle}</p>
+                                        <p className="mt-1 text-sm text-muted">{t.explore.primerBody}</p>
+                                    </div>
+                                </div>
+                                <div className="relative mt-4 flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            locate();
+                                            closePrimer();
+                                        }}
+                                        className="nt-btn nt-btn-primary h-11 flex-1 text-sm"
+                                    >
+                                        {t.explore.primerCta}
+                                    </button>
+                                    <button type="button" onClick={closePrimer} className="nt-btn nt-btn-outline h-11 px-4 text-sm">
+                                        {t.explore.later}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+    );
+
     return (
         <div className="pb-32">
             {/* Title */}
             <div className="mx-auto max-w-5xl px-4 pt-[max(env(safe-area-inset-top),1.25rem)] md:px-6 md:pt-10">
                 <p className="nt-eyebrow min-h-[1.3em]">{greeting ? `${t.greeting[greeting.hello]} · ${city.name}` : city.name}</p>
-                <h1 className="nt-serif mt-2 text-[2.25rem] leading-[1.02] md:text-[3.5rem]">
+                <h1 className="nt-serif mt-2 min-h-[2.04em] text-[2.25rem] leading-[1.02] md:min-h-0 md:text-[3.5rem]">
                     {greeting ? t.greeting[greeting.question] : t.meta.tagline}
                 </h1>
                 <p className="mt-3 text-[1rem] text-muted">{fill(t.searchPage.subtitle, { count: places.length, city: city.name })}</p>
@@ -275,46 +311,21 @@ export default function SearchView({
                                         ))}
                                 </div>
 
-                <AnimatePresence>
-                    {showPrimer && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden px-4">
-                            <div className="relative mt-5 overflow-hidden rounded-[1.25rem] border border-line bg-surface p-5">
-                                <div className="relative flex items-start gap-3.5">
-                                    <LocateFixed size={22} strokeWidth={1.8} className="mt-1 shrink-0 text-brand-600" />
-                                    <div>
-                                        <p className="nt-serif text-[1.5rem]">{t.explore.primerTitle}</p>
-                                        <p className="mt-1 text-sm text-muted">{t.explore.primerBody}</p>
-                                    </div>
-                                </div>
-                                <div className="relative mt-4 flex gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            locate();
-                                            closePrimer();
-                                        }}
-                                        className="nt-btn nt-btn-primary h-11 flex-1 text-sm"
-                                    >
-                                        {t.explore.primerCta}
-                                    </button>
-                                    <button type="button" onClick={closePrimer} className="nt-btn nt-btn-outline h-11 px-4 text-sm">
-                                        {t.explore.later}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {!d.browsing && primerCard}
 
                 {d.browsing ? (
                     <>
+                        {d.rails?.length === 0 && primerCard}
                         {d.rails
                             ? d.rails.map((rail, index) => (
-                                  <Rail key={rail.key} title={railTitle(rail)} onSeeAll={() => openRail(rail)}>
-                                      {rail.items.map(({ place, distance }, position) => (
-                                          <PinCard key={place.id} place={place} distance={distance} shape="portrait" priority={index === 0 && position < 2} />
-                                      ))}
-                                  </Rail>
+                                  <Fragment key={rail.key}>
+                                      <Rail title={railTitle(rail)} onSeeAll={() => openRail(rail)}>
+                                          {rail.items.map(({ place, distance }, position) => (
+                                              <PinCard key={place.id} place={place} distance={distance} shape="portrait" priority={index === 0 && position < 2} />
+                                          ))}
+                                      </Rail>
+                                      {index === 0 && primerCard}
+                                  </Fragment>
                               ))
                             : [0, 1].map((index) => (
                                   <div key={index} className="pt-10" aria-hidden>
