@@ -32,7 +32,7 @@ export default function ArrivalCheck({ slug, position, labels }: { slug: string;
             <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                     type="button"
-                    className="nt-btn nt-btn-soft h-11 text-sm"
+                    className="nt-btn nt-btn-outline h-11 bg-bg px-2 text-sm"
                     onClick={() => {
                         setAnswer("yes");
                         send("/api/arrivals", { slug, v: visitorId(), lat: position.lat, lng: position.lng });
@@ -42,7 +42,7 @@ export default function ArrivalCheck({ slug, position, labels }: { slug: string;
                 </button>
                 <button
                     type="button"
-                    className="nt-btn nt-btn-soft h-11 text-sm"
+                    className="nt-btn nt-btn-outline h-11 bg-bg px-2 text-sm"
                     onClick={() => {
                         setAnswer("no");
                         send("/api/reports", { slug, reason: "location", details: labels.notFound });

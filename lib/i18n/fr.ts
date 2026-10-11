@@ -214,7 +214,7 @@ export const fr = {
         arrivedVoice: "Tu es arrivé à {name}. Profite bien !",
         confirmAsk: "Le lieu est bien là ?",
         confirmYes: "Oui, j'y suis",
-        confirmNo: "Non, introuvable",
+        confirmNo: "Introuvable",
         confirmThanks: "Merci ! Ta confirmation aide les prochains visiteurs.",
         confirmNoted: "Merci, l'équipe va vérifier ce lieu.",
         confirmNotFound: "Arrivé(e) avec le guidage : le lieu est introuvable à l'endroit indiqué.",

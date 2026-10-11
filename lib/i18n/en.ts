@@ -212,7 +212,7 @@ export const en: Dictionary = {
         arrivedVoice: "You have arrived at {name}. Enjoy!",
         confirmAsk: "Is the place really here?",
         confirmYes: "Yes, I'm here",
-        confirmNo: "No, can't find it",
+        confirmNo: "Can't find it",
         confirmThanks: "Thanks! Your confirmation helps the next visitors.",
         confirmNoted: "Thanks, the team will check this place.",
         confirmNotFound: "Arrived with the guidance: the place cannot be found where the map says.",
