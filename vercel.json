@@ -1,0 +1,3 @@
+{
+    "crons": [{ "path": "/api/atlas/night", "schedule": "0 2 * * *" }]
+}

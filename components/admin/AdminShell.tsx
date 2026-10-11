@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BadgeCheck, BarChart3, Camera, ExternalLink, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Menu, Newspaper, Search, X, type LucideIcon } from "lucide-react";
+import { BadgeCheck, BarChart3, Camera, ExternalLink, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Menu, Newspaper, Search, Sparkles, X, type LucideIcon } from "lucide-react";
 import { adminGet, adminPost } from "@/lib/admin-client";
 import { TEAM_KEY, VISITOR_KEY } from "@/lib/analytics";
 import { AdminLangProvider, LangSwitch, useTr, type AdminLang } from "./i18n";
@@ -21,6 +21,7 @@ const GROUPS: { title: [string, string]; items: Item[] }[] = [
             { href: "/admin", label: ["Tableau de bord", "Dashboard"], short: ["Accueil", "Home"], icon: LayoutDashboard, exact: true },
             { href: "/admin/spots", label: ["Lieux", "Places"], short: ["Lieux", "Places"], icon: MapPin },
             { href: "/admin/terrain", label: ["Terrain", "Field kit"], short: ["Terrain", "Field"], icon: Camera },
+            { href: "/admin/atlas", label: ["Atlas", "Atlas"], short: ["Atlas", "Atlas"], icon: Sparkles },
         ],
     },
     {
