@@ -229,10 +229,13 @@ export default function Film() {
     useEffect(() => {
         if (!running) return;
         let frame = 0;
-        clock.current.last = performance.now();
+        // Time is counted from the first frame drawn, and never backwards: a
+        // frame's own timestamp can be a hair earlier than the moment this
+        // started, and a clock below zero would stop the film on its poster.
+        clock.current.last = 0;
         const tick = (now: number) => {
             const time = clock.current;
-            time.elapsed += (now - time.last) / 1000;
+            if (time.last > 0) time.elapsed += Math.max(0, now - time.last) / 1000;
             time.last = now;
             const at = (time.elapsed % TOTAL) / BEAT;
             let scene = 0;
