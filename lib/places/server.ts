@@ -173,7 +173,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     if (error) throw error;
     if (!row || row.latitude == null || row.longitude == null) return null;
 
-    const [photos, menu, reviews] = await Promise.all([
+    const [photos, menu, reviews, arrivals] = await Promise.all([
         db
             .from("nt_spot_photos")
             .select("image_url,alt_text")
@@ -192,6 +192,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
             .eq("spot_id", row.id)
             .order("created_at", { ascending: false })
             .limit(30),
+        db.from("nt_arrivals").select("created_at", { count: "exact" }).eq("spot_id", row.id).order("created_at", { ascending: false }).limit(1),
     ]);
 
     for (const result of [photos, menu, reviews]) {
@@ -216,6 +217,8 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         updatedAt: row.updated_at,
         sourceRef: row.source_ref ?? null,
         claimed: Boolean(row.claimed),
+        // Never worth failing the page for.
+        arrivals: arrivals.error ? { count: 0, last: null } : { count: arrivals.count ?? 0, last: (arrivals.data?.[0]?.created_at as string | undefined) ?? null },
         photos: photoList,
         menu: (menu.data ?? []).map((item) => ({
             name: item.name,
@@ -233,7 +236,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v3"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v4"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });

@@ -37,7 +37,9 @@ function randomId() {
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-function visitorId() {
+// The random id this browser keeps (see the privacy page). Also signs an
+// on-the-spot confirmation (components/route/ArrivalCheck).
+export function visitorId() {
     try {
         const saved = localStorage.getItem(VISITOR_KEY);
         if (saved) return saved;

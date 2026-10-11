@@ -57,6 +57,7 @@ import { sharePlace } from "@/lib/share";
 import { distanceMeters } from "@/lib/places/geo";
 import { prefetchSpeech, primeVoices, speak, stopSpeaking } from "@/lib/voice";
 import { useLocale } from "../site/LocaleProvider";
+import ArrivalCheck from "./ArrivalCheck";
 import { useToast } from "../site/Toast";
 
 const MapView = dynamic(() => import("../map/MapView"), {
@@ -725,6 +726,21 @@ export default function Navigator({
                             </span>
                             <h2 className="text-2xl font-extrabold">{t.route.arrived}</h2>
                             <p className="mt-1 text-text-2">{fill(t.route.arrivedBody, { name: place.name })}</p>
+                            {/* Only when the phone really measured the arrival, not in the demonstration. */}
+                            {demoPosition === null && geo.position && (
+                                <ArrivalCheck
+                                    slug={place.slug}
+                                    position={geo.position}
+                                    labels={{
+                                        ask: t.route.confirmAsk,
+                                        yes: t.route.confirmYes,
+                                        no: t.route.confirmNo,
+                                        thanks: t.route.confirmThanks,
+                                        noted: t.route.confirmNoted,
+                                        notFound: t.route.confirmNotFound,
+                                    }}
+                                />
+                            )}
                             <div className="mt-6 grid gap-2">
                                 <Link href={paths.place(locale, place.slug)} className="nt-btn nt-btn-primary w-full">
                                     {t.route.seePlace}

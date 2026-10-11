@@ -550,6 +550,15 @@ export default async function PlacePage({ params }: Props) {
                                   ? fill(t.trust.openDataBody, { source: OPEN_DATA[place.source] })
                                   : t.trust.helpUs}
                     </p>
+                    {place.arrivals.count > 0 && place.arrivals.last && (
+                        <p className="mt-2.5 flex items-start gap-2 text-sm leading-relaxed font-semibold">
+                            <Users size={16} className="mt-0.5 shrink-0 text-open" />
+                            {fill(place.arrivals.count === 1 ? t.trust.onSiteOne : t.trust.onSiteMany, {
+                                count: place.arrivals.count,
+                                ago: formatRelativeDays(place.arrivals.last, lang),
+                            })}
+                        </p>
+                    )}
                     <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
                         <ReportButton
                             slug={place.slug}

@@ -41,6 +41,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 body: [
                     "Pour savoir combien de personnes utilisent NiceThings et lesquelles reviennent, on compte les pages vues : la page, la ville, la langue, le type d'appareil (téléphone ou ordinateur) et le site d'où tu arrives.",
                     "Ton navigateur garde un identifiant tiré au hasard, qui sert seulement à reconnaître un retour. Il ne contient ni ton nom, ni ton numéro, ni ta position, et ton adresse IP n'est pas enregistrée dans ces statistiques. Effacer les données du site le remet à zéro, et le réglage « Ne pas me pister » de ton navigateur arrête ce comptage.",
+                    "Quand le guidage t'amène devant un lieu et que tu confirmes qu'il est bien là, on enregistre seulement ce fait : le lieu, le moment et l'identifiant tiré au hasard de ton navigateur. Ta position sert à vérifier que tu es sur place, puis n'est pas gardée.",
                 ],
             },
             {
@@ -90,6 +91,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 body: [
                     "To know how many people use NiceThings and how many come back, we count page views: the page, the city, the language, the type of device (phone or computer) and the site you arrive from.",
                     "Your browser keeps a random identifier, used only to recognise a return visit. It holds no name, phone number or position, and your IP address is not stored in these statistics. Clearing the site's data resets it, and your browser's “Do Not Track” setting stops this counting.",
+                    "When the guidance brings you to a place and you confirm it is really there, we record only that fact: the place, the time and your browser's random identifier. Your position is used to check that you are on the spot, then it is not kept.",
                 ],
             },
             {
