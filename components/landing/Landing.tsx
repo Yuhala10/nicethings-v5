@@ -413,18 +413,12 @@ export default function Landing({
             </section>
 
             {/* ---------------- The founder ---------------- */}
-            {/* A line and a button: his portrait and story are on the About page. */}
-            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
-                <div className="nt-reveal flex flex-col gap-5 border-y border-line py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:py-10">
-                    <div>
-                        <p className="nt-eyebrow">{t.about.homeEyebrow}</p>
-                        <p className="nt-serif mt-2 text-[1.75rem] md:text-[2.25rem]">{fill(t.about.homeTitle, { name: FOUNDER.name })}</p>
-                    </div>
-                    <Link href={paths.about(locale)} className="nt-btn nt-btn-dark shrink-0 self-start md:self-auto">
-                        {t.about.founderButton}
-                        <ArrowRight size={17} />
-                    </Link>
-                </div>
+            {/* A button and nothing else: who he is, what he built and why are on his own page. */}
+            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-24">
+                <Link href={paths.about(locale)} className="nt-btn nt-btn-dark">
+                    {t.about.founderButton}
+                    <ArrowRight size={17} />
+                </Link>
             </section>
 
             {/* ---------------- FAQ ---------------- */}

@@ -168,6 +168,35 @@ export default async function AboutPage({ params }: Props) {
                 </aside>
             </section>
 
+            {/* ---------------- What he has built ---------------- */}
+            <section id="construit" className="mt-16 scroll-mt-24 md:mt-28">
+                <p className="nt-eyebrow">{t.about.builtEyebrow}</p>
+                <h2 className="nt-serif mt-2 max-w-2xl text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{t.about.builtTitle}</h2>
+                <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{t.about.builtLead}</p>
+                <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {t.about.built.map((item) => (
+                        <li key={item.title} className="rounded-[1.25rem] border border-line bg-surface p-5">
+                            <p className="text-[1.125rem] font-semibold">{item.title}</p>
+                            <p className="mt-1.5 text-[0.875rem] leading-relaxed text-text-2">{item.body}</p>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+
+            {/* ---------------- How he works ---------------- */}
+            <section className="mt-14 md:mt-20">
+                <h2 className="nt-serif max-w-2xl text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{t.about.principlesTitle}</h2>
+                <ol className="mt-6 divide-y divide-line border-y border-line">
+                    {t.about.principles.map((item, index) => (
+                        <li key={item.title} className="grid gap-1 py-5 md:grid-cols-[4rem_16rem_minmax(0,1fr)] md:items-baseline md:gap-6">
+                            <span className="nt-serif text-[1.75rem] leading-none text-brand-600">{String(index + 1).padStart(2, "0")}</span>
+                            <span className="text-[1.125rem] font-semibold">{item.title}</span>
+                            <span className="text-[1rem] leading-relaxed text-text-2">{item.body}</span>
+                        </li>
+                    ))}
+                </ol>
+            </section>
+
             {/* ---------------- Where the guide stands ---------------- */}
             {figures.length > 0 && (
                 <section className="mt-16 md:mt-28">

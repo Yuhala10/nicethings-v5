@@ -5,8 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart, Home, Lock, Map as MapIcon, Plus, Search } from "lucide-react";
 import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
-import { FOUNDER } from "@/lib/founder";
-import { fill } from "@/lib/i18n";
 import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
 import Analytics from "./Analytics";
@@ -213,9 +211,6 @@ function SiteFooter() {
                 <div className="flex flex-col gap-1 border-t border-white/10 pt-6 text-xs text-white/45 md:col-span-3 md:flex-row md:justify-between">
                     <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
                         {t.footer.madeIn}
-                        <Link href={paths.about(locale)} className="text-white/60 hover:text-white">
-                            {fill(t.footer.builtBy, { name: FOUNDER.name })}
-                        </Link>
                         {/* Discreet way in for the NiceThings team (PIN-protected). */}
                         <Link href="/admin-login" prefetch={false} className="inline-flex items-center gap-1 text-white/45 hover:text-white" rel="nofollow">
                             <Lock size={12} />

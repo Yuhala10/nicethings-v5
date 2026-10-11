@@ -638,6 +638,24 @@ export const fr = {
         places: "lieux répertoriés",
         cities: "villes du Cameroun",
         areas: "quartiers couverts",
+        builtEyebrow: "Ce qu'il a construit",
+        builtTitle: "Une plateforme entière, pensée et codée par une seule personne.",
+        builtLead: "NiceThings n'est pas une page : c'est un ensemble d'outils qui travaillent ensemble, y compris la nuit.",
+        built: [
+            { title: "Un guide de vingt villes", body: "Plus de trois mille lieux, par ville, par quartier et par envie, en français et en anglais." },
+            { title: "Un itinéraire guidé", body: "De la porte de chez toi à celle du lieu, avec la voix, sans quitter le site." },
+            { title: "Atlas, le veilleur de nuit", body: "Chaque nuit, un programme recoupe le catalogue avec la carte ouverte, corrige ce qui est manifestement faux et note ce qui doit être revu." },
+            { title: "Des lieux qui racontent", body: "Les grands sites ont leur histoire, la façon d'y aller et ce qu'il faut savoir avant de partir." },
+            { title: "Les murs des lieux", body: "Photos et vidéos des visiteurs, publiées seulement après vérification, avec leurs cœurs." },
+            { title: "Une zone culture et un blog", body: "L'origine des plats, l'histoire des peuples et des lieux, et la parole donnée aux lecteurs." },
+        ],
+        principlesTitle: "Sa façon de travailler",
+        principles: [
+            { title: "Le Cameroun d'abord", body: "Le guide est organisé comme on vit ici : par quartier, par plat, par moment de la journée." },
+            { title: "Ne rien inventer", body: "Chaque fiche dit d'où viennent ses informations : une visite de l'équipe, une source publique ou la carte ouverte." },
+            { title: "Respecter les auteurs", body: "Aucune photo n'est copiée : chacune vient de l'équipe, d'un visiteur, ou d'un auteur qui autorise la réutilisation et qui est cité." },
+            { title: "Vérifier avant de publier", body: "Ce que les visiteurs envoient attend d'être lu avant d'apparaître." },
+        ],
         howTitle: "Comment on travaille",
         how: [
             {
