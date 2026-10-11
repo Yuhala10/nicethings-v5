@@ -210,11 +210,14 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
                         <motion.div
                             key={current.id}
                             layoutId={`post-${current.id}`}
-                            drag="y"
-                            dragConstraints={{ top: 0, bottom: 0 }}
+                            drag
+                            dragDirectionLock
+                            dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
                             dragElastic={0.7}
                             onDragEnd={(_, info) => {
+                                // Down (or up) closes; sideways turns the page.
                                 if (Math.abs(info.offset.y) > 110 || Math.abs(info.velocity.y) > 700) close();
+                                else if (posts.length > 1 && (Math.abs(info.offset.x) > 80 || Math.abs(info.velocity.x) > 600)) step(info.offset.x < 0 ? 1 : -1);
                             }}
                             transition={{ type: "spring", stiffness: 320, damping: 32 }}
                             className="relative mx-auto flex min-h-0 w-full max-w-3xl flex-1 items-center justify-center overflow-hidden"

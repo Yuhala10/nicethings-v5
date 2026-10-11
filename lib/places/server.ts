@@ -1,4 +1,4 @@
-import { POST_COLUMNS, toWallPost } from "../posts";
+import { POST_COLUMNS, postUrl, toWallPost } from "../posts";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { DEFAULT_CITY, cityByName } from "../cities";
@@ -124,8 +124,16 @@ async function fetchCovers() {
         for (const photo of data ?? []) {
             if (!covers.has(photo.spot_id)) covers.set(photo.spot_id, photo.image_url);
         }
-        if (!data || data.length < PAGE_SIZE) return covers;
+        if (!data || data.length < PAGE_SIZE) break;
     }
+    // A place with no photo of its own shows the best-liked photo of its
+    // wall (visitors' photos approved by the team). No wall yet, or the
+    // table not created: nothing changes.
+    const wall = await db.from("nt_spot_posts").select("spot_id,media_path").eq("status", "APPROVED").eq("kind", "photo").order("likes", { ascending: false }).order("decided_at", { ascending: true }).limit(2000);
+    for (const post of wall.data ?? []) {
+        if (!covers.has(post.spot_id)) covers.set(post.spot_id, postUrl(post.media_path));
+    }
+    return covers;
 }
 
 function spotsPage(from: number, count: boolean) {
@@ -157,7 +165,7 @@ export async function loadAllPlaces(): Promise<PlaceSummary[]> {
     return rows.map((row) => toSummary(row, covers.get(row.id) ?? null));
 }
 
-export const getAllPlaces = unstable_cache(loadAllPlaces, ["places:all:v3"], {
+export const getAllPlaces = unstable_cache(loadAllPlaces, ["places:all:v4"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
@@ -182,10 +190,22 @@ async function loadStoryPlaces(): Promise<StoryPlace[]> {
         .order("sort_order", { ascending: true });
     const covers = new Map<string, string>();
     for (const photo of photos.data ?? []) if (!covers.has(photo.spot_id)) covers.set(photo.spot_id, photo.image_url);
+    const wall = await db
+        .from("nt_spot_posts")
+        .select("spot_id,media_path")
+        .eq("status", "APPROVED")
+        .eq("kind", "photo")
+        .in(
+            "spot_id",
+            rows.map((row) => row.id)
+        )
+        .order("likes", { ascending: false })
+        .order("decided_at", { ascending: true });
+    for (const post of wall.data ?? []) if (!covers.has(post.spot_id)) covers.set(post.spot_id, postUrl(post.media_path));
     return rows.map((row) => ({ ...toSummary(row, covers.get(row.id) ?? null), standing: row.standing === 2 ? 2 : 1 }));
 }
 
-export const getStoryPlaces = unstable_cache(loadStoryPlaces, ["places:stories:v1"], {
+export const getStoryPlaces = unstable_cache(loadStoryPlaces, ["places:stories:v2"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
@@ -229,10 +249,14 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         if (result.error) throw result.error;
     }
 
-    const photoList = (photos.data ?? []).map((photo) => ({
+    const ownPhotos = (photos.data ?? []).map((photo) => ({
         url: photo.image_url as string,
         alt: (photo.alt_text as string | null) ?? null,
     }));
+    // No photo of its own: the best-liked photo of its wall opens the page
+    // (its credit, when it has one, is in its caption on the wall below).
+    const wallPhoto = wall.error ? undefined : (wall.data ?? []).find((post) => post.kind === "photo");
+    const photoList = ownPhotos.length || !wallPhoto ? ownPhotos : [{ url: postUrl(wallPhoto.media_path as string), alt: (wallPhoto.caption as string | null) ?? null }];
 
     // Written by the team for places that tell a story; absent (so empty)
     // until database script 005 has been run.
@@ -275,7 +299,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v6"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v7"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });
