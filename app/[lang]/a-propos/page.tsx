@@ -168,6 +168,38 @@ export default async function AboutPage({ params }: Props) {
                 </aside>
             </section>
 
+            {/* ---------------- What he believes about his country ---------------- */}
+            <section id="pays" className="mt-16 scroll-mt-24 overflow-hidden rounded-[1.6rem] bg-[#15110e] text-white md:mt-28">
+                <div className="grid md:grid-cols-[0.8fr_1.2fr]">
+                    <div className="relative aspect-[4/5] md:aspect-auto md:min-h-full">
+                        <Image src={FOUNDER.thirdPhoto} alt={FOUNDER.name} fill sizes="(min-width: 768px) 440px, 100vw" className="object-cover object-[50%_22%]" />
+                    </div>
+                    <div className="p-6 md:p-12">
+                        <p className="text-[0.75rem] font-semibold tracking-[0.16em] text-white/55 uppercase">{FOUNDER.country.eyebrow[lang]}</p>
+                        <h2 className="nt-serif mt-3 text-[2.25rem] leading-[1.02] md:text-[3.5rem]">
+                            {FOUNDER.country.title[lang][0]} <em className="block text-brand-400">{FOUNDER.country.title[lang][1]}</em>
+                        </h2>
+                        <div className="mt-6 space-y-4 text-[1rem] leading-relaxed text-white/80 md:text-[1.125rem]">
+                            {FOUNDER.country.message[lang].map((paragraph) => (
+                                <p key={paragraph}>{paragraph}</p>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <ul className="nt-settle grid gap-px border-t border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+                    {FOUNDER.country.giants.map((giant) => (
+                        <li key={giant.name} className="bg-[#15110e] p-5 md:p-6">
+                            <p className="nt-serif text-[1.5rem] leading-tight">{giant.name}</p>
+                            <p className="mt-2 text-[0.875rem] leading-relaxed text-white/65">{giant.did[lang]}</p>
+                        </li>
+                    ))}
+                </ul>
+                <div className="border-t border-white/10 p-6 md:p-12">
+                    <p className="nt-serif max-w-3xl text-[1.5rem] leading-snug md:text-[1.75rem]">{FOUNDER.country.close[lang]}</p>
+                    <p className="mt-5 text-[0.75rem] text-white/45">{FOUNDER.country.source[lang]}</p>
+                </div>
+            </section>
+
             {/* ---------------- What he has built ---------------- */}
             <section id="construit" className="mt-16 scroll-mt-24 md:mt-28">
                 <p className="nt-eyebrow">{t.about.builtEyebrow}</p>
