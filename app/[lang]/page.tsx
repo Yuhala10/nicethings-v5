@@ -103,7 +103,7 @@ export default async function HomePage({ params }: Props) {
     // The editorial sections, from the biggest city's real data.
     const home = DEFAULT_CITY;
     const homePlaces = places.filter((place) => place.city === home.slug);
-    const rails = editorialRails(homePlaces, home, lang, { limit: 5 });
+    const rails = editorialRails(homePlaces, home, lang, { limit: 3 });
 
     // The coast: beaches, hotels and tables in Kribi, Limbé and around.
     const coastCities = new Set(["kribi", "limbe", "tiko"]);

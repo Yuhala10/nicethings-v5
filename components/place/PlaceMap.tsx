@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 import type { MapPin } from "../map/MapView";
 
 const MapView = dynamic(() => import("../map/MapView"), {
@@ -8,8 +9,9 @@ const MapView = dynamic(() => import("../map/MapView"), {
     loading: () => <div className="nt-skeleton absolute inset-0" aria-hidden />,
 });
 
-// A still map centred on one place, with its category pin. Loaded after
-// the page, so the text never waits for map tiles.
+// A still map centred on one place, with its category pin. The map (its
+// code and its tiles) is only fetched when the visitor scrolls near it:
+// until then a modest phone has nothing to do but show the page.
 export default function PlaceMap({
     id,
     lat,
@@ -23,6 +25,27 @@ export default function PlaceMap({
     category: string;
     className?: string;
 }) {
+    const holder = useRef<HTMLDivElement>(null);
+    const [near, setNear] = useState(false);
+
+    useEffect(() => {
+        const node = holder.current;
+        if (!node || typeof IntersectionObserver === "undefined") return;
+        const watcher = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    setNear(true);
+                    watcher.disconnect();
+                }
+            },
+            { rootMargin: "500px 0px" }
+        );
+        watcher.observe(node);
+        return () => watcher.disconnect();
+    }, []);
+
+    if (!near) return <div ref={holder} className={`nt-skeleton ${className}`} aria-hidden />;
+
     const pins: MapPin[] = [{ id, lat, lng, category, open: null }];
     return (
         <MapView

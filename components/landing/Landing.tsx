@@ -203,7 +203,7 @@ export default function Landing({
             )}
 
             {/* ---------------- Cities ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal border-t border-line pt-8 md:pt-10">
                     <p className="nt-eyebrow">{t.landing.citiesEyebrow}</p>
                     <h2 className="nt-serif mt-2 text-[2.25rem] md:text-[3.5rem]">{t.landing.citiesTitle}</h2>
@@ -241,7 +241,7 @@ export default function Landing({
 
             {/* ---------------- Journal ---------------- */}
             {posts.length > 0 && (
-                <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+                <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                     <div className="nt-reveal flex items-end justify-between gap-4 border-t border-line pt-8 md:pt-10">
                         <div className="max-w-xl">
                             <p className="nt-eyebrow">{t.blog.title}</p>
@@ -268,7 +268,7 @@ export default function Landing({
             )}
 
             {/* ---------------- Atlas: every place as a point of light ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal relative isolate overflow-hidden rounded-[1.6rem] bg-[#15110e] text-white">
                     <Constellation
                         points={points}
@@ -298,7 +298,7 @@ export default function Landing({
             </section>
 
             {/* ---------------- Natural search + how it works ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="grid gap-12 md:grid-cols-2 md:gap-16">
                     <div className="nt-reveal">
                         <p className="nt-eyebrow">{t.landing.conciergeEyebrow}</p>
@@ -342,7 +342,7 @@ export default function Landing({
             </section>
 
             {/* ---------------- Made for Cameroon ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal border-t border-line pt-8 md:pt-10">
                     <p className="nt-eyebrow">{t.landing.featuresEyebrow}</p>
                     <h2 className="nt-serif mt-2 max-w-2xl text-[2.25rem] md:text-[2.75rem]">{t.landing.featuresTitle}</h2>
@@ -361,7 +361,7 @@ export default function Landing({
             </section>
 
             {/* ---------------- Trust ---------------- */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal grid gap-8 rounded-[1.6rem] bg-surface-2 p-6 md:grid-cols-[1fr_1.1fr] md:gap-12 md:p-12">
                     <div>
                         <p className="nt-eyebrow">{t.landing.trustEyebrow}</p>
@@ -388,7 +388,7 @@ export default function Landing({
 
             {/* ---------------- The founder ---------------- */}
             {/* A line and a button: his portrait and story are on the About page. */}
-            <section className="mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+            <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal flex flex-col gap-5 border-y border-line py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:py-10">
                     <div>
                         <p className="nt-eyebrow">{t.about.homeEyebrow}</p>
@@ -402,7 +402,7 @@ export default function Landing({
             </section>
 
             {/* ---------------- FAQ ---------------- */}
-            <section className="mx-auto max-w-3xl px-4 pt-20 md:px-6 md:pt-28">
+            <section className="mx-auto max-w-3xl px-4 pt-14 md:px-6 md:pt-28">
                 <h2 className="nt-reveal nt-serif mb-6 text-[2.25rem] md:text-[2.75rem]">{t.landing.faqTitle}</h2>
                 <div className="divide-y divide-line border-y border-line">
                     {faq.map((item) => (
