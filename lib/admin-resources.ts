@@ -52,6 +52,10 @@ export const SPOT_EDITABLE_FIELDS = [
     "verified",
     "featured",
     "last_verified_at",
+    // How a tick was earned when nobody went there: "confirmed_online" means
+    // from public sources (the place page then says so).
+    "online_status",
+    "online_checked_at",
 ] as const;
 
 export const ADMIN_RESOURCES = {

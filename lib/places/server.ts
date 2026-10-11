@@ -266,6 +266,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
 
     return {
         ...toSummary(row as SpotRow, photoList[0]?.url ?? null),
+        verifiedFrom: row.online_status === "confirmed_online" ? "sources" : "site",
         standing: row.standing === 1 || row.standing === 2 ? row.standing : 0,
         positionExact: row.position_exact !== false,
         // An error here means the wall is not open yet: the page does without.
@@ -301,7 +302,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v8"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v9"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });

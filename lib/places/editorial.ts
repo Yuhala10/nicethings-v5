@@ -43,10 +43,10 @@ const CATEGORY_RAILS: Record<string, { name: Text; blurb: Text }> = {
 };
 
 const VERIFIED: { name: Text; blurb: Text } = {
-    name: { fr: "Vérifié par l'équipe", en: "Checked by our team" },
+    name: { fr: "Lieux vérifiés", en: "Checked places" },
     blurb: {
-        fr: "Nous sommes passés sur place : les infos de ces fiches ont été confirmées.",
-        en: "We have been there: the details on these listings were confirmed.",
+        fr: "Des lieux confirmés : sur place par l'équipe, ou par des sources publiques pour les grands sites.",
+        en: "Confirmed places: on the spot by the team, or from public sources for the major sites.",
     },
 };
 

@@ -586,7 +586,7 @@ export default async function PlacePage({ params }: Props) {
                     </div>
                     <p className="text-sm leading-relaxed text-text-2">
                         {place.verified
-                            ? fill(t.trust.verifiedBody, {
+                            ? fill(place.verifiedFrom === "sources" ? t.trust.verifiedSourcesBody : t.trust.verifiedBody, {
                                   ago: formatRelativeDays(place.lastVerifiedAt ?? place.updatedAt, lang),
                               })
                             : place.source === "osm"

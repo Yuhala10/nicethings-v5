@@ -87,6 +87,10 @@ export type PlaceDetail = PlaceSummary & {
     updatedAt: string;
     sourceRef: string | null; // e.g. "node/123" for OpenStreetMap
     claimed: boolean; // managed by the business itself (approved claim)
+    // What the tick rests on: a visit by the team ("site"), or public
+    // sources for well-known sites nobody on the team has been to yet
+    // ("sources"). The page says which.
+    verifiedFrom: "site" | "sources";
     // For places that deserve more than an address (database script 005).
     // `standing`: 0 an address, 1 a place worth the trip, 2 a place with a
     // story. `positionExact` is false when the pin is only approximate: the
