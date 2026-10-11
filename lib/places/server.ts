@@ -204,8 +204,15 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         alt: (photo.alt_text as string | null) ?? null,
     }));
 
+    // Written by the team for places that tell a story; absent (so empty)
+    // until database script 005 has been run.
+    const words = (key: string) => ({ fr: ((row[`${key}_fr`] as string | null | undefined) ?? "").trim() || null, en: ((row[`${key}_en`] as string | null | undefined) ?? "").trim() || null });
+
     return {
         ...toSummary(row as SpotRow, photoList[0]?.url ?? null),
+        standing: row.standing === 1 || row.standing === 2 ? row.standing : 0,
+        positionExact: row.position_exact !== false,
+        guide: { story: words("story"), access: words("access"), fees: words("fees"), company: words("company"), bestTime: words("best_time"), bring: words("bring") },
         description: row.description ?? null,
         address: row.address ?? null,
         landmark: row.landmark ?? null,
@@ -236,7 +243,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     };
 }
 
-export const getPlace = unstable_cache(loadPlace, ["places:detail:v4"], {
+export const getPlace = unstable_cache(loadPlace, ["places:detail:v5"], {
     revalidate: REVALIDATE_SECONDS,
     tags: [PLACES_TAG],
 });

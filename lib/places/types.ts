@@ -85,6 +85,13 @@ export type PlaceDetail = PlaceSummary & {
     updatedAt: string;
     sourceRef: string | null; // e.g. "node/123" for OpenStreetMap
     claimed: boolean; // managed by the business itself (approved claim)
+    // For places that deserve more than an address (database script 005).
+    // `standing`: 0 an address, 1 a place worth the trip, 2 a place with a
+    // story. `positionExact` is false when the pin is only approximate: the
+    // page then leads with the directions in words.
+    standing: 0 | 1 | 2;
+    positionExact: boolean;
+    guide: Record<"story" | "access" | "fees" | "company" | "bestTime" | "bring", { fr: string | null; en: string | null }>;
     // Visitors the guidance brought to the door and who confirmed the place
     // is there (app/api/arrivals): how many times, and the last time.
     arrivals: { count: number; last: string | null };

@@ -28,6 +28,16 @@ const DAYS = [
 
 const TEXT = ["name", "city", "neighborhood", "address", "landmark", "cuisine", "description", "phone", "whatsapp", "website", "instagram"] as const;
 const NUMBERS = ["minimum_price", "maximum_price", "latitude", "longitude"] as const;
+// For places that tell a story (database script 005): each is written in
+// French and in English. [field, label fr, label en, hint fr, hint en]
+const STORY = [
+    ["story", "L'histoire du lieu", "The story of the place", "Ce que ce lieu représente, ce qu'on y voit, pourquoi il compte.", "What this place means, what you see there, why it matters."],
+    ["access", "Comment y aller, en mots", "How to get there, in words", "Où descendre du taxi, le repère à chercher, les derniers mètres.", "Where to get out of the taxi, the landmark to look for, the last metres."],
+    ["fees", "Entrée et frais", "Entry and fees", "Gratuit, ou le prix de l'entrée.", "Free, or the entry price."],
+    ["company", "Avec qui y aller", "Who to go with", "Seul, entre amis, en famille.", "Alone, with friends, with family."],
+    ["best_time", "Le bon moment", "The best time", "Le matin, en fin de journée, en saison sèche.", "Morning, late afternoon, dry season."],
+    ["bring", "À prévoir", "What to bring", "De la monnaie, de bonnes chaussures, de l'eau.", "Change, good shoes, water."],
+] as const;
 const TIMES = ["opening_time", "closing_time"] as const;
 const LISTS = { vibes: VIBES, good_for: GOOD_FOR, amenities: AMENITIES } as const;
 const LIST_LABELS: Record<keyof typeof LISTS, [string, string]> = { vibes: ["Ambiance", "Vibe"], good_for: ["Idéal pour", "Good for"], amenities: ["Sur place", "On site"] };
@@ -115,6 +125,16 @@ export default function PlaceEditor({ id, backHref = "/admin/spots" }: { id: str
             if (JSON.stringify(form[key] ?? []) !== JSON.stringify(spot[key] ?? [])) diff[key] = form[key] ?? [];
         }
         for (const key of ["category", "status", "verified", "featured"]) if (form[key] !== spot[key]) diff[key] = form[key];
+        // Only once the database knows these fields (script 005).
+        if ("story_fr" in spot) {
+            for (const [field] of STORY) {
+                for (const key of [`${field}_fr`, `${field}_en`]) {
+                    const value = text(form[key]).trim() || null;
+                    if (value !== (spot[key] ?? null)) diff[key] = value;
+                }
+            }
+            for (const key of ["standing", "position_exact"]) if (form[key] !== spot[key]) diff[key] = form[key];
+        }
         if (verifiedToday) {
             diff.verified = true;
             diff.last_verified_at = new Date().toISOString();
@@ -338,6 +358,47 @@ export default function PlaceEditor({ id, backHref = "/admin/spots" }: { id: str
                                 />
                             </Field>
                         </div>
+                    </Section>
+
+                    <Section
+                        title={tr("Un lieu qui raconte", "A place with a story")}
+                        hint={tr("Pour un lieu qui mérite plus qu'une adresse : un marché, un lac, un site culturel.", "For a place that deserves more than an address: a market, a lake, a cultural site.")}
+                    >
+                        {"story_fr" in spot ? (
+                            <div className="space-y-4">
+                                <Field label={tr("Importance du lieu", "How much the place matters")} htmlFor="f-standing">
+                                    <select id="f-standing" className="a-input" value={String(form.standing ?? 0)} onChange={(e) => set("standing", Number(e.target.value))}>
+                                        <option value="0">{tr("Une adresse", "An address")}</option>
+                                        <option value="1">{tr("Grand lieu : on se déplace pour lui", "Worth the trip")}</option>
+                                        <option value="2">{tr("Lieu qui raconte : culturel ou très important", "A place with a story: cultural or very important")}</option>
+                                    </select>
+                                </Field>
+                                <label className="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" checked={form.position_exact !== false} onChange={(e) => set("position_exact", e.target.checked)} />
+                                    {tr("Le point sur la carte est exact", "The pin on the map is exact")}
+                                </label>
+                                {STORY.map(([field, fr, en, hintFr, hintEn]) => (
+                                    <div key={field} className="grid gap-3 md:grid-cols-2">
+                                        {(["fr", "en"] as const).map((language) => (
+                                            <Field key={language} label={`${tr(fr, en)} · ${language.toUpperCase()}`} htmlFor={`f-${field}-${language}`}>
+                                                <textarea
+                                                    id={`f-${field}-${language}`}
+                                                    className="a-input"
+                                                    rows={field === "story" ? 7 : 2}
+                                                    value={text(form[`${field}_${language}`])}
+                                                    onChange={(e) => set(`${field}_${language}`, e.target.value)}
+                                                    placeholder={language === "fr" ? hintFr : hintEn}
+                                                />
+                                            </Field>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm opacity-70">
+                                {tr("Cette partie s'ouvre une fois le script 005_stories.sql lancé dans Supabase.", "This part opens once the script 005_stories.sql has been run in Supabase.")}
+                            </p>
+                        )}
                     </Section>
 
                     <Section title={tr("Horaires", "Opening hours")}>

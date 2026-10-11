@@ -279,6 +279,18 @@ export default async function PlacePage({ params }: Props) {
         .filter((collection) => collection.test(place));
 
     const about = splitDescription(place.description).rest;
+    // In the visitor's language, or the other one when only that was written.
+    const said = (words: { fr: string | null; en: string | null }) => words[lang] ?? words.fr ?? words.en;
+    const story = said(place.guide.story);
+    const access = said(place.guide.access);
+    const goodToKnow = (
+        [
+            [t.spot.fees, said(place.guide.fees)],
+            [t.spot.company, said(place.guide.company)],
+            [t.spot.bestTime, said(place.guide.bestTime)],
+            [t.spot.bring, said(place.guide.bring)],
+        ] as [string, string | null][]
+    ).filter((row): row is [string, string] => Boolean(row[1]));
     const articles = await getPostsForPlace(place.slug);
     const hasHours = Boolean(place.hours.opens && place.hours.closes);
     const hasPrice = Boolean(place.priceMin || place.priceMax);
@@ -318,6 +330,7 @@ export default async function PlacePage({ params }: Props) {
                         </>
                     )}
                 </nav>
+                {place.standing > 0 && <p className="nt-eyebrow mb-2 !text-brand-600">{place.standing === 2 ? t.spot.standingStory : t.spot.standingTrip}</p>}
                 {/* One line: a long name ends with "…", the tick always stays beside it. */}
                 <h1 title={place.name} className={`nt-serif flex min-w-0 items-center gap-2.5 leading-[1.05] md:gap-3 ${nameSize}`}>
                     <span className="min-w-0 truncate pb-[0.08em]">{place.name}</span>
@@ -386,6 +399,33 @@ export default async function PlacePage({ params }: Props) {
                 {about && (
                     <Section title={t.spot.about}>
                         <p className="text-[1rem] leading-[1.75] whitespace-pre-line text-text-2">{about}</p>
+                    </Section>
+                )}
+
+                {/* What the team wrote for a place that deserves more than an
+                    address: its story, the way there in words, what to know
+                    before going. Each part shows only when it was written. */}
+                {story && (
+                    <Section title={t.spot.storyTitle}>
+                        <p className="max-w-2xl text-[1.125rem] leading-[1.75] whitespace-pre-line text-text-2">{story}</p>
+                    </Section>
+                )}
+                {(access || !place.positionExact) && (
+                    <Section title={t.spot.accessTitle}>
+                        {!place.positionExact && <p className="mb-3 rounded-[1rem] bg-surface-2 px-4 py-3 text-[0.875rem] font-semibold">{t.spot.accessApprox}</p>}
+                        {access && <p className="max-w-2xl text-[1rem] leading-[1.75] whitespace-pre-line text-text-2">{access}</p>}
+                    </Section>
+                )}
+                {goodToKnow.length > 0 && (
+                    <Section title={t.spot.goodToKnow}>
+                        <dl className="grid gap-3 sm:grid-cols-2">
+                            {goodToKnow.map(([label, value]) => (
+                                <div key={label} className="rounded-[1rem] bg-surface-2 p-4">
+                                    <dt className="text-[0.75rem] font-semibold tracking-[0.1em] text-muted uppercase">{label}</dt>
+                                    <dd className="mt-1.5 text-[1rem] leading-relaxed whitespace-pre-line text-text">{value}</dd>
+                                </div>
+                            ))}
+                        </dl>
                     </Section>
                 )}
 
