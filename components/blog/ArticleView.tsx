@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Languages } from "lucide-react";
 import { expandBlocks, outline, placesIn, plainText } from "@/lib/blog/blocks";
 import { getComments } from "@/lib/blog/comments";
+import { isGuest } from "@/lib/blog/guest";
 import { getPosts, localised, type Post } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
 import { cityBySlug } from "@/lib/cities";
@@ -39,6 +40,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
     const city = cityBySlug(post.city);
     const shareImage = postShareImage(post, lang).url;
     const byFounder = isFounder(post.author);
+    const byGuest = !byFounder && isGuest(post);
 
     const all = await getPosts().catch(() => []);
     // Not on the preview of a draft: nobody can comment on what is not out.
@@ -67,7 +69,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
             inLanguage: translated && lang === "en" ? "en" : "fr",
             // A person when the founder signed it: search engines then credit
             // the article to them, not to an anonymous team.
-            author: byFounder ? founderJsonLd(`${SITE_URL}${paths.about(lang)}`, lang) : { "@type": "Organization", name: post.author },
+            author: byFounder ? founderJsonLd(`${SITE_URL}${paths.about(lang)}`, lang) : { "@type": byGuest ? "Person" : "Organization", name: post.author },
             publisher: { "@type": "Organization", "@id": ORGANIZATION_ID, name: "NiceThings", logo: { "@type": "ImageObject", url: `${SITE_URL}/icons/icon-512.png` } },
             mainEntityOfPage: url,
             wordCount: blocks.map((block) => ("text" in block ? plainText(block.text) : "")).join(" ").split(/\s+/).filter(Boolean).length,
@@ -129,6 +131,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                                     {topicLabel(post.topic, lang)}
                                 </span>
                                 {city && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur-md">{city.name}</span>}
+                                {byGuest && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur-md">{t.guest.eyebrow}</span>}
                             </div>
                             <h1 className="nt-serif mt-4 text-[2.75rem] leading-[1.02] md:text-[4.5rem]">{title}</h1>
                             {excerpt && <p className="mt-4 text-lg leading-relaxed text-white/80 md:text-[1.125rem]">{excerpt}</p>}
@@ -187,6 +190,15 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                         <p className="nt-serif text-[1.5rem]">{t.blog.share}</p>
                         <ShareBar title={title} path={paths.post(lang, slug)} preview={shareImage} />
                     </div>
+
+                    {/* A guest's notebook says whose it is, and on what terms it is here. */}
+                    {byGuest && (
+                        <div className="mt-8 rounded-[1.25rem] bg-surface-2 p-4 md:p-5">
+                            <p className="nt-eyebrow">{t.guest.eyebrow}</p>
+                            <p className="nt-serif mt-1 text-[1.5rem]">{post.author}</p>
+                            <p className="mt-1 text-[0.875rem] leading-relaxed text-muted">{t.guest.cardBody}</p>
+                        </div>
+                    )}
 
                     {/* Who wrote it, with the way to their page. */}
                     {byFounder && (

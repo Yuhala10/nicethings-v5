@@ -11,6 +11,7 @@ import {
     ArrowUpLeft,
     ArrowUpRight,
     Car,
+    Check,
     ChevronDown,
     ChevronUp,
     CornerUpLeft,
@@ -21,6 +22,7 @@ import {
     MapPin,
     MessageCircle,
     Navigation,
+    SearchX,
     RotateCcw,
     RotateCw,
     Share2,
@@ -47,6 +49,8 @@ import {
     pointAlong,
     snapToRoute,
     spoken,
+    spokenClips,
+    stepClip,
     type Profile,
     type Route,
     type Step,
@@ -57,7 +61,8 @@ import { sharePlace } from "@/lib/share";
 import { distanceMeters } from "@/lib/places/geo";
 import { prefetchSpeech, primeVoices, speak, stopSpeaking } from "@/lib/voice";
 import { useLocale } from "../site/LocaleProvider";
-import ArrivalCheck from "./ArrivalCheck";
+import { visitorId } from "../site/Analytics";
+import NearSheet, { type NearAnswer } from "./NearSheet";
 import { useToast } from "../site/Toast";
 
 const MapView = dynamic(() => import("../map/MapView"), {
@@ -74,13 +79,21 @@ export type Destination = {
     lng: number;
     neighborhood: string | null;
     landmark: string | null;
+    positionExact: boolean; // false when the pin is only roughly placed
+    access: string | null; // the place's own "how to get there" note, in the reader's language
 };
 
-type Phase = "preview" | "navigating" | "arrived";
-// "Arrived" only right beside the place itself (not where the road ends),
-// with a precise GPS reading.
+// "near": the phone says the visitor is beside the place, and asks them
+// whether they see it before anything says "arrived" (NearSheet.tsx).
+type Phase = "preview" | "navigating" | "near" | "arrived";
+// Beside the place itself (not where the road ends), with a precise GPS
+// reading.
 const ARRIVAL_METERS = 15;
 const ARRIVAL_ACCURACY = 30;
+// A pin that is only roughly placed, or a wide site (a lake, a park, a
+// hill), cannot be walked up to within a few steps: being there starts
+// further out.
+const reach = (place: Destination) => (!place.positionExact ? 60 : place.category === "Nature" ? 80 : ARRIVAL_METERS);
 const OFF_ROUTE_METERS = 55;
 
 const MANEUVER_ICONS: Record<string, LucideIcon> = {
@@ -150,6 +163,8 @@ export default function Navigator({
     const [pickerOpen, setPickerOpen] = useState(false);
     const [attempt, setAttempt] = useState(0);
     const [demoPosition, setDemoPosition] = useState<LatLng | null>(null);
+    // The visitor looked and said the place is not there: the trip ends without a celebration.
+    const [missing, setMissing] = useState(false);
 
     // Where we are: live GPS anywhere, else the chosen neighbourhood.
     const live = demoPosition ?? (geo.position ? { lat: geo.position.lat, lng: geo.position.lng } : null);
@@ -194,9 +209,10 @@ export default function Navigator({
         camera: null,
     });
 
+    // `clips` names the same sentence in the recorded voice (lib/voice.ts).
     const say = useCallback(
-        (text: string) => {
-            if (!muted) speak(text, locale);
+        (text: string, clips?: readonly string[]) => {
+            if (!muted) speak(text, locale, clips);
         },
         [muted, locale]
     );
@@ -216,33 +232,34 @@ export default function Navigator({
         // New step: get the next sentences ready so they play instantly.
         if (index !== progressRef.current.step && next) {
             progressRef.current.step = index;
-            for (const distance of [400, 150, 30]) prefetchSpeech(spoken(next, distance, locale), locale);
+            for (const distance of [400, 150, 30]) prefetchSpeech(spoken(next, distance, locale), locale, spokenClips(next, distance));
         }
 
         const state = progressRef.current;
         const remaining = route.distance - along;
         const direct = distanceMeters(live, destination);
-        const precise = demoPosition !== null || (geo.position?.accuracy ?? 999) <= ARRIVAL_ACCURACY;
+        const radius = reach(place);
+        const precise = demoPosition !== null || (geo.position?.accuracy ?? 999) <= Math.max(ARRIVAL_ACCURACY, radius / 2);
         const reachedEnd = demoPosition !== null && remaining < ARRIVAL_METERS;
-        if (reachedEnd || (direct <= ARRIVAL_METERS && precise) || direct <= 6) {
-            setPhase("arrived");
-            say(fill(t.route.arrivedVoice, { name: place.name }));
-            if (navigator.vibrate) navigator.vibrate([30, 60, 30, 60, 60]);
+        if (reachedEnd || (direct <= radius && precise) || direct <= 6) {
+            // Not "arrived" yet: the visitor is asked whether they see the place.
+            setPhase("near");
+            say(fill(t.route.nearVoice, { name: place.name }), ["near"]);
+            if (navigator.vibrate) navigator.vibrate([30, 60, 30]);
             return;
         }
-        // The road ends but the door is a little further: say how far, once.
-        if (remaining < 25 && direct > ARRIVAL_METERS && !state.announced.has("last")) {
+        // The road ends but the door is a little further: say so, once.
+        if (remaining < 25 && direct > radius && !state.announced.has("last")) {
             state.announced.add("last");
-            say(fill(t.route.lastMeters, { m: Math.max(10, Math.round(direct / 5) * 5), name: place.name }));
+            say(fill(t.route.lastMeters, { m: Math.max(10, Math.round(direct / 5) * 5), name: place.name }), ["last-steps"]);
         }
         if (next) {
-            for (const threshold of [400, 150, 35]) {
-                const key = `${index + 1}:${threshold}`;
-                if (toManeuver <= threshold && !state.announced.has(key)) {
-                    state.announced.add(key);
-                    say(spoken(next, toManeuver, locale));
-                    break;
-                }
+            // One sentence per stretch of the approach. A turn that comes up
+            // close is announced once, not once for every distance passed.
+            const due = [400, 150, 35].filter((threshold) => toManeuver <= threshold && !state.announced.has(`${index + 1}:${threshold}`));
+            if (due.length > 0) {
+                for (const threshold of due) state.announced.add(`${index + 1}:${threshold}`);
+                say(spoken(next, toManeuver, locale), spokenClips(next, toManeuver));
             }
         }
 
@@ -252,7 +269,7 @@ export default function Navigator({
             if (state.offRoute >= 3 && !state.rerouting) {
                 state.rerouting = true;
                 toast(t.route.rerouting);
-                say(t.route.rerouting);
+                say(t.route.rerouting, ["rerouting"]);
                 fetchRoute(live, destination, profile)
                     .then((fresh) => {
                         setRoutes((current) => ({ ...current, [profile]: fresh }));
@@ -269,16 +286,23 @@ export default function Navigator({
         }
     }, [live?.lat, live?.lng, phase, route]);
 
-    // Keep the screen on while guiding.
+    // Beside the place, while the visitor looks for it: the map keeps
+    // following them, turned the way it was.
     useEffect(() => {
-        if (phase !== "navigating") return;
+        if (phase !== "near" || !live) return;
+        setNav((current) => ({ ...current, camera: { lat: live.lat, lng: live.lng, bearing: null } }));
+    }, [live?.lat, live?.lng, phase]);
+
+    // Keep the screen on while guiding, and while the visitor looks for the place.
+    const guiding = phase === "navigating" || phase === "near";
+    useEffect(() => {
+        if (!guiding) return;
         let lock: WakeLockSentinel | null = null;
         navigator.wakeLock?.request("screen").then((sentinel) => (lock = sentinel)).catch(() => {});
         return () => {
             lock?.release().catch(() => {});
-            stopSpeaking();
         };
-    }, [phase]);
+    }, [guiding]);
 
     // Demo mode (?demo=1): drive along the route to show how guidance feels.
     useEffect(() => {
@@ -301,19 +325,42 @@ export default function Navigator({
         }
         progressRef.current = { step: -1, announced: new Set(), offRoute: 0, rerouting: false };
         primeVoices();
+        setMissing(false);
         setPhase("navigating");
-        say(instruction(route.steps[0], locale));
+        say(instruction(route.steps[0], locale), stepClip(route.steps[0]));
     };
 
     const stop = () => {
         setPhase("preview");
         setDemoPosition(null);
+        setMissing(false);
         stopSpeaking();
+    };
+
+    // The visitor's own answer ends the trip. "seen": they saw the place at
+    // once. "found": they had to look for it, so where they stand now is
+    // worth keeping to correct the map. "missing": it is not there.
+    const answer = (kind: NearAnswer) => {
+        // Nothing is sent from the demonstration: nobody is really there.
+        const here = demoPosition === null ? geo.position : null;
+        const send = (url: string, body: Record<string, unknown>) => {
+            fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: true }).catch(() => {});
+        };
+        if (kind === "missing") {
+            if (here) send("/api/reports", { slug: place.slug, reason: "location", details: t.route.confirmNotFound });
+            setMissing(true);
+            stopSpeaking();
+        } else {
+            if (here) send("/api/arrivals", { slug: place.slug, v: visitorId(), lat: here.lat, lng: here.lng, acc: Math.round(here.accuracy), found: kind === "found" });
+            say(fill(t.route.arrivedVoice, { name: place.name }), ["arrived"]);
+            if (navigator.vibrate) navigator.vibrate([30, 60, 30, 60, 60]);
+        }
+        setPhase("arrived");
     };
 
     // ---- Derived view values --------------------------------------------
     const now = new Date();
-    const remainingMeters = route ? Math.max(0, route.distance - (phase === "navigating" ? nav.along : 0)) : 0;
+    const remainingMeters = route ? Math.max(0, route.distance - (guiding ? nav.along : 0)) : 0;
     const remainingSeconds = route ? route.duration * (remainingMeters / Math.max(route.distance, 1)) : 0;
     const arrival = formatClock(new Date(now.getTime() + remainingSeconds * 1000), locale);
     const next = route?.steps[Math.min(nav.step + 1, route.steps.length - 1)];
@@ -322,8 +369,8 @@ export default function Navigator({
     const ArtIcon = art.icon;
 
     const mapRoute = useMemo<MapRoute | null>(
-        () => (route ? { coordinates: route.coordinates, progress: phase === "navigating" ? nav.along / route.distance : 0 } : null),
-        [route, phase, nav.along]
+        () => (route ? { coordinates: route.coordinates, progress: guiding ? nav.along / route.distance : 0 } : null),
+        [route, guiding, nav.along]
     );
 
     const driverMessage = fill(t.route.driverText, {
@@ -343,14 +390,16 @@ export default function Navigator({
                 start={!live && origin?.kind === "area" ? origin.position : null}
                 destination={destination}
                 route={mapRoute}
-                follow={phase === "navigating" ? nav.camera : null}
+                follow={guiding ? nav.camera : null}
                 center={destination}
                 zoom={15}
                 bounds={cityBounds(city)}
                 padding={
                     phase === "navigating"
                         ? { top: 200, bottom: 160, left: 40, right: 40 }
-                        : {
+                        : phase === "near"
+                          ? { top: 80, bottom: 340, left: 40, right: 40 }
+                          : {
                               top: 90,
                               bottom: typeof window !== "undefined" && window.innerWidth >= 768 ? 90 : collapsed ? 200 : 420,
                               left: 50,
@@ -691,6 +740,21 @@ export default function Navigator({
                 )}
             </AnimatePresence>
 
+            {/* ---------------- Beside the place: do you see it? ---------------- */}
+            <AnimatePresence>
+                {phase === "near" && (
+                    <NearSheet
+                        name={place.name}
+                        approximate={!place.positionExact}
+                        outdoors={place.category === "Nature"}
+                        access={place.access}
+                        distance={live ? distanceMeters(live, destination) : null}
+                        onLooking={() => say(t.route.lookingVoice, ["looking"])}
+                        onAnswer={answer}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* ---------------- Arrived ---------------- */}
             <AnimatePresence>
                 {phase === "arrived" && (
@@ -700,7 +764,8 @@ export default function Navigator({
                         exit={{ opacity: 0 }}
                         className="absolute inset-0 z-40 grid place-items-center bg-black/55 p-5 backdrop-blur-sm"
                     >
-                        {Array.from({ length: 26 }, (_, index) => (
+                        {!missing &&
+                            Array.from({ length: 26 }, (_, index) => (
                             <motion.span
                                 key={index}
                                 className="absolute top-1/2 left-1/2 h-2.5 w-2.5 rounded-sm"
@@ -714,32 +779,30 @@ export default function Navigator({
                                 }}
                                 transition={{ duration: 1.6, ease: "easeOut" }}
                             />
-                        ))}
+                            ))}
                         <motion.div
                             initial={{ scale: 0.85, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             transition={{ type: "spring", stiffness: 300, damping: 22 }}
                             className="relative w-full max-w-sm rounded-[2rem] bg-bg p-7 text-center shadow-float"
                         >
-                            <span className="nt-sunset mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full text-white shadow-[var(--nt-glow)]">
-                                <Flag size={30} />
-                            </span>
-                            <h2 className="text-2xl font-extrabold">{t.route.arrived}</h2>
-                            <p className="mt-1 text-text-2">{fill(t.route.arrivedBody, { name: place.name })}</p>
+                            {missing ? (
+                                <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-surface-2 text-text-2">
+                                    <SearchX size={28} />
+                                </span>
+                            ) : (
+                                <span className="nt-sunset mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full text-white shadow-[var(--nt-glow)]">
+                                    <Flag size={30} />
+                                </span>
+                            )}
+                            <h2 className="text-2xl font-extrabold">{missing ? t.route.missingTitle : t.route.arrived}</h2>
+                            <p className="mt-1 text-text-2">{fill(missing ? t.route.missingBody : t.route.arrivedBody, { name: place.name })}</p>
                             {/* Only when the phone really measured the arrival, not in the demonstration. */}
-                            {demoPosition === null && geo.position && (
-                                <ArrivalCheck
-                                    slug={place.slug}
-                                    position={geo.position}
-                                    labels={{
-                                        ask: t.route.confirmAsk,
-                                        yes: t.route.confirmYes,
-                                        no: t.route.confirmNo,
-                                        thanks: t.route.confirmThanks,
-                                        noted: t.route.confirmNoted,
-                                        notFound: t.route.confirmNotFound,
-                                    }}
-                                />
+                            {!missing && demoPosition === null && geo.position && (
+                                <p className="mt-5 flex items-center justify-center gap-2 rounded-2xl bg-surface-2 px-4 py-3 text-sm font-semibold">
+                                    <Check size={16} className="shrink-0 text-open" />
+                                    {t.route.confirmThanks}
+                                </p>
                             )}
                             <div className="mt-6 grid gap-2">
                                 <Link href={paths.place(locale, place.slug)} className="nt-btn nt-btn-primary w-full">

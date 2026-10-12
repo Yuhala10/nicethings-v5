@@ -13,8 +13,8 @@ import { useToast } from "../site/Toast";
 
 // Share and save, at the top of the place page (glass over a photo, plain
 // on paper).
-export function HeroActions({ slug, name, preview, tone = "plain" }: { slug: string; name: string; preview: string; tone?: "plain" | "glass" }) {
-    const { locale, t } = useLocale();
+export function HeroActions({ slug, name, preview, link, tone = "plain" }: { slug: string; name: string; preview: string; link: string; tone?: "plain" | "glass" }) {
+    const { t } = useLocale();
     const toast = useToast();
     const { isSaved, toggle } = useSaved();
     const saved = isSaved(slug);
@@ -30,8 +30,7 @@ export function HeroActions({ slug, name, preview, tone = "plain" }: { slug: str
                 className={glass}
                 aria-label={t.spot.share}
                 onClick={async () => {
-                    const url = `${window.location.origin}${paths.place(locale, slug)}`;
-                    const result = await sharePlace(name, url, fill(t.spot.shareText, { name }), preview);
+                    const result = await sharePlace(name, `${window.location.origin}${link}`, "", preview);
                     if (result === "copied") toast(t.common.copied);
                 }}
             >

@@ -167,6 +167,8 @@ function SiteFooter() {
         { href: paths.map(locale), label: t.nav.map },
         { href: paths.blog(locale), label: t.nav.blog },
         { href: paths.culture(locale), label: t.nav.culture },
+        { href: paths.streetFood(locale), label: t.street.nav },
+        { href: paths.homecoming(locale), label: t.homecoming.eyebrow },
         { href: paths.about(locale), label: t.about.nav },
         { href: paths.submit(locale), label: t.nav.suggest },
         { href: paths.sitemapPage(locale), label: t.siteMap.title },

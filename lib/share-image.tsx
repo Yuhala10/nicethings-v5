@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import sharp from "sharp";
 import { DEFAULT_CITY, cityBySlug } from "./cities";
@@ -7,7 +9,7 @@ import { localised, type PostSummary } from "./blog/server";
 import { TOPICS, isTopic, topicLabel } from "./blog/topics";
 import { FOUNDER } from "./founder";
 import { Brand, OG_SIZE, TEXT_FONT, TITLE_FONT, ogCard, ogFonts } from "./og";
-import { categoryStyle } from "./places/display";
+import { categoryStyle, cuisineLabel } from "./places/display";
 import type { PlaceDetail } from "./places/types";
 import { CATEGORIES, tagLabel } from "./tags";
 
@@ -17,7 +19,7 @@ import { CATEGORIES, tagLabel } from "./tags";
 // then served from Vercel's cache for a year. Their URL carries a version
 // built from everything drawn on them, so an edit gives a fresh image.
 
-const DESIGN = "4"; // bump when the drawings below change
+const DESIGN = "5"; // bump when the drawings below change
 const QUALITY = 80;
 
 export const SHARE_CACHE = "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800";
@@ -27,7 +29,7 @@ function version(parts: unknown[]) {
 }
 
 export function placeShareImage(place: PlaceDetail, lang: Locale) {
-    const v = version([lang, place.name, place.category, place.neighborhood, place.city, place.verified, place.photos[0]?.url ?? null]);
+    const v = version([lang, place.name, place.category, place.cuisine, place.neighborhood, place.city, place.verified, place.photos[0]?.url ?? null]);
     return {
         url: `/api/share/place/${place.slug}?l=${lang}&v=${v}`,
         width: OG_SIZE.width,
@@ -160,21 +162,126 @@ async function photoJpeg(url: string, card: PhotoCard) {
     }
 }
 
-// The place's first photo under its name. Places without a photo keep the
-// branded colour card.
+// ---- The card of a place ---------------------------------------------------
+// What a shared place looks like in a conversation, drawn like the cards of
+// the site: the photo on one side and, on paper beside it, the kind of
+// place, its name in the serif, the tick, where it is, and a button that
+// says the card can be tapped. Few things, drawn large: a messaging app
+// shows this picture a few centimetres wide. Prices and hours are left to
+// the words the app prints under it (the page's own title and description).
+
+const PAPER = "#faf7f2";
+const INK = "#15110e";
+const SOFT = "#6f665d";
+const BRAND = "#c0471b";
+const SERIF_FONT = "Instrument Serif";
+const PHOTO_WIDTH = 640; // of the card's 1200
+
+let serif: Promise<Buffer> | undefined;
+async function cardFonts() {
+    serif ??= readFile(join(process.cwd(), "assets/fonts", "InstrumentSerif-Regular.ttf"));
+    return [...(await ogFonts()), { name: SERIF_FONT, data: await serif, weight: 400 as const, style: "normal" as const }];
+}
+
+type PlaceCard = { kicker: string; title: string; area: string; badge?: string; cta: string; tone: string };
+
+// The kind of place as the site's cards say it: what a restaurant serves, else the category.
+export function placeKicker(place: PlaceDetail, lang: Locale) {
+    return (place.category === "Restaurant" && cuisineLabel(place.cuisine, lang, 2)) || tagLabel(CATEGORIES, place.category, lang);
+}
+
+// Everything but the photo: clear where the photo shows, paper under the words.
+async function placeCardOverlay({ kicker, title, area, badge, cta, tone }: PlaceCard, plain: boolean) {
+    const size = title.length > 44 ? 50 : title.length > 30 ? 58 : title.length > 20 ? 68 : title.length > 12 ? 80 : 96;
+
+    return new ImageResponse(
+        (
+            <div style={{ width: "100%", height: "100%", display: "flex", fontFamily: TEXT_FONT, fontWeight: 500 }}>
+                <div
+                    style={{
+                        width: PHOTO_WIDTH,
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        // A place without a photo: its category's colour and its initial.
+                        background: plain ? `linear-gradient(135deg, ${tone}, ${tone}cc 55%, #1a0a05 140%)` : "transparent",
+                    }}
+                >
+                    {plain && <div style={{ display: "flex", fontFamily: SERIF_FONT, fontWeight: 400, fontSize: 360, lineHeight: 1, color: "rgba(255,255,255,0.92)" }}>{title.trim().charAt(0).toLocaleUpperCase()}</div>}
+                </div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", background: PAPER, color: INK, padding: "42px 46px 44px" }}>
+                    <div style={{ display: "flex", fontFamily: TITLE_FONT, fontSize: 34, fontWeight: 800, letterSpacing: "-0.03em" }}>
+                        Nice<span style={{ color: BRAND }}>Things</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: "0.09em", color: BRAND }}>{kicker}</div>
+                        <div style={{ display: "flex", marginTop: 10, fontFamily: SERIF_FONT, fontWeight: 400, fontSize: size, lineHeight: 1.02, letterSpacing: "-0.01em" }}>{title}</div>
+                        {badge && (
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 18, fontSize: 28, fontWeight: 700 }}>
+                                <svg width="32" height="32" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="12" fill="#1d9bf0" />
+                                    <path d="M7 12.4l3.2 3.2L17.2 8.6" stroke="white" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                {badge}
+                            </div>
+                        )}
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, fontSize: 30, color: SOFT }}>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={SOFT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            {area}
+                        </div>
+                    </div>
+                    <div style={{ display: "flex" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 30px", borderRadius: 999, background: BRAND, color: "white", fontSize: 30, fontWeight: 700 }}>
+                            {cta}
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14" />
+                                <path d="m12 5 7 7-7 7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ),
+        { ...OG_SIZE, fonts: await cardFonts() }
+    );
+}
+
 export async function placeShareJpeg(place: PlaceDetail, lang: Locale) {
     const t = getDictionary(lang);
     const city = (cityBySlug(place.city) ?? DEFAULT_CITY).name;
-    const card = {
-        chip: tagLabel(CATEGORIES, place.category, lang),
-        tone: categoryStyle(place.category).tone,
+    const card: PlaceCard = {
+        kicker: placeKicker(place, lang).toLocaleUpperCase(lang),
         title: place.name,
-        subline: [place.neighborhood, city].filter(Boolean).join(" · "),
+        area: [place.neighborhood, city].filter(Boolean).join(", "),
         badge: place.verified ? t.trust.verifiedTitle : undefined,
+        cta: t.poll.seePlace,
+        tone: categoryStyle(place.category).tone,
     };
+
+    let photo: Buffer | null = null;
     const cover = place.photos[0]?.url;
-    const photo = cover ? await photoJpeg(cover, card) : null;
-    return photo ?? toJpeg(ogCard({ eyebrow: card.chip, tag: card.badge, title: card.title, footer: card.subline, tone: card.tone }));
+    if (cover) {
+        try {
+            const fetched = await fetch(cover, { signal: AbortSignal.timeout(8000) });
+            if (!fetched.ok) throw new Error(`Photo ${fetched.status}`);
+            // Cropped on its most interesting part.
+            photo = await sharp(Buffer.from(await fetched.arrayBuffer()))
+                .rotate()
+                .resize(PHOTO_WIDTH, OG_SIZE.height, { fit: "cover", position: sharp.strategy.attention })
+                .toBuffer();
+        } catch (error) {
+            console.error("Share photo failed, using the colour:", error);
+        }
+    }
+    const overlay = Buffer.from(await (await placeCardOverlay(card, !photo)).arrayBuffer());
+    return sharp({ create: { ...OG_SIZE, channels: 3, background: PAPER } })
+        .composite([...(photo ? [{ input: photo, top: 0, left: 0 }] : []), { input: overlay, top: 0, left: 0 }])
+        .jpeg({ quality: QUALITY, mozjpeg: true })
+        .toBuffer();
 }
 
 export function postShareImage(post: PostSummary, lang: Locale) {

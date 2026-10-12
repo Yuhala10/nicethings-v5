@@ -986,10 +986,6 @@
     animation: nt-film-bar linear both;
 }
 
-.nt-film-hint {
-    animation: nt-film-hint 1.8s ease-in-out infinite;
-}
-
 @keyframes nt-film-drift {
     from {
         transform: scale(1.06);
@@ -1110,12 +1106,6 @@
     }
     to {
         width: 100%;
-    }
-}
-
-@keyframes nt-film-hint {
-    50% {
-        opacity: 0.55;
     }
 }
 

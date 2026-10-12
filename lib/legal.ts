@@ -41,7 +41,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 body: [
                     "Pour savoir combien de personnes utilisent NiceThings et lesquelles reviennent, on compte les pages vues : la page, la ville, la langue, le type d'appareil (téléphone ou ordinateur) et le site d'où tu arrives.",
                     "Ton navigateur garde un identifiant tiré au hasard, qui sert seulement à reconnaître un retour. Il ne contient ni ton nom, ni ton numéro, ni ta position, et ton adresse IP n'est pas enregistrée dans ces statistiques. Effacer les données du site le remet à zéro, et le réglage « Ne pas me pister » de ton navigateur arrête ce comptage.",
-                    "Quand le guidage t'amène devant un lieu et que tu confirmes qu'il est bien là, on enregistre seulement ce fait : le lieu, le moment et l'identifiant tiré au hasard de ton navigateur. Ta position sert à vérifier que tu es sur place, puis n'est pas gardée.",
+                    "Quand le guidage t'amène devant un lieu et que tu confirmes qu'il est bien là, on enregistre seulement ce fait : le lieu, le moment et l'identifiant tiré au hasard de ton navigateur. Ta position sert à vérifier que tu es sur place, puis n'est pas gardée. Une seule exception : si tu as dû chercher le lieu, ou si son point sur la carte n'était qu'approximatif, on garde l'endroit où tu l'as trouvé, pour corriger la carte. Cet endroit est noté pour le lieu, sans ton identifiant.",
                     "Quand tu ajoutes une photo ou une vidéo à un lieu, on garde le fichier, le mot que tu y joins et l'identifiant tiré au hasard de ton navigateur. Elle n'est publiée qu'après vérification par l'équipe, et tu peux nous demander de la retirer. Un cœur sur une publication est enregistré avec ce même identifiant, rien d'autre.",
                     "Quand tu commentes un article, on garde ton texte, le prénom si tu en donnes un, et ce même identifiant. Le commentaire n'est publié qu'après lecture par l'équipe, et tu peux nous demander de le retirer.",
                     "Quand tu crées ou ouvres un vote « On se voit où ? », on garde les lieux proposés, le choix de chacun, le prénom si tu en donnes un, et ce même identifiant. Ceux qui ont le lien du vote voient les choix et les prénoms.",
@@ -94,7 +94,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                 body: [
                     "To know how many people use NiceThings and how many come back, we count page views: the page, the city, the language, the type of device (phone or computer) and the site you arrive from.",
                     "Your browser keeps a random identifier, used only to recognise a return visit. It holds no name, phone number or position, and your IP address is not stored in these statistics. Clearing the site's data resets it, and your browser's “Do Not Track” setting stops this counting.",
-                    "When the guidance brings you to a place and you confirm it is really there, we record only that fact: the place, the time and your browser's random identifier. Your position is used to check that you are on the spot, then it is not kept.",
+                    "When the guidance brings you to a place and you confirm it is really there, we record only that fact: the place, the time and your browser's random identifier. Your position is used to check that you are on the spot, then it is not kept. One exception: if you had to look for the place, or if its point on the map was only approximate, we keep the spot where you found it, to correct the map. That spot is noted for the place, without your identifier.",
                     "When you add a photo or a video to a place, we keep the file, the words you add and your browser's random identifier. It is published only after the team has checked it, and you can ask us to take it down. A heart on a post is recorded with that same identifier, nothing else.",
                     "When you comment on an article, we keep your text, the first name if you give one, and that same identifier. The comment is published only after the team has read it, and you can ask us to take it down.",
                     "When you create or open a “Where shall we meet?” vote, we keep the places proposed, each person’s choice, the first name if you give one, and that same identifier. Those who have the link to the vote see the choices and the first names.",
@@ -142,7 +142,10 @@ export const TERMS: Record<Locale, Doc> = {
             },
             {
                 heading: "Données cartographiques",
-                body: ["Données © contributeurs OpenStreetMap (licence ODbL), Overture Maps Foundation (licence CDLA Permissive 2.0) et Foursquare Open Source Places (licence Apache 2.0)."],
+                body: [
+                    "Données © contributeurs OpenStreetMap (licence ODbL), Overture Maps Foundation (licence CDLA Permissive 2.0) et Foursquare Open Source Places (licence Apache 2.0).",
+                    "Voix du guidage : enregistrée avec Piper. Voix française « siwis » (jeu de données SIWIS, université d'Édimbourg, licence CC BY 4.0) ; voix anglaise « cori » (enregistrements LibriVox, domaine public).",
+                ],
             },
         ],
     },
@@ -171,7 +174,10 @@ export const TERMS: Record<Locale, Doc> = {
             },
             {
                 heading: "Map data",
-                body: ["Data © OpenStreetMap contributors (ODbL licence), Overture Maps Foundation (CDLA Permissive 2.0) and Foursquare Open Source Places (Apache 2.0)."],
+                body: [
+                    "Data © OpenStreetMap contributors (ODbL licence), Overture Maps Foundation (CDLA Permissive 2.0) and Foursquare Open Source Places (Apache 2.0).",
+                    "Guidance voice: recorded with Piper. French voice “siwis” (SIWIS dataset, University of Edinburgh, CC BY 4.0 licence); English voice “cori” (LibriVox recordings, public domain).",
+                ],
             },
         ],
     },

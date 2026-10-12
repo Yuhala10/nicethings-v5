@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Clock3, Newspaper } from "lucide-react";
+import { isGuest } from "@/lib/blog/guest";
 import { localised, type PostSummary } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
 import { cityBySlug } from "@/lib/cities";
@@ -55,6 +56,7 @@ export default function PostCard({ post, locale, priority = false }: { post: Pos
                     <Clock3 size={13} />
                     {fill(t.blog.readTime, { n: post.readingMinutes })}
                     {city && <span>· {city}</span>}
+                    {isGuest(post) && <span>· {t.guest.label}</span>}
                 </p>
             </div>
         </Link>

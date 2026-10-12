@@ -1,4 +1,5 @@
 import Film from "./Film";
+import FromAfar from "./FromAfar";
 import SectionIndex from "./SectionIndex";
 import type { StoryPlace } from "@/lib/places/server";
 import { isWide } from "@/lib/places/stories";
@@ -165,6 +166,8 @@ export default function Landing({
                 ]}
             />
 
+            <FromAfar />
+
             {/* ---------------- Right now: what the app proposes ---------------- */}
             <div id="maintenant" className="scroll-mt-28">
                 <NowSection city={homeCity.slug} initial={nowPlaces} />
@@ -250,6 +253,32 @@ export default function Landing({
                     <EditorialSection rail={coastRail} locale={locale} />
                 </div>
             )}
+
+            {/* ---------------- Two doors: the street, and coming home ---------------- */}
+            <section className="mx-auto grid max-w-6xl gap-3 px-4 pt-14 md:grid-cols-2 md:gap-4 md:px-6 md:pt-24">
+                <Link href={paths.streetFood(locale)} className="nt-reveal nt-pressable group flex flex-col justify-between gap-10 rounded-[1.6rem] border border-line bg-surface p-6 md:p-8">
+                    <span className="nt-eyebrow">{t.street.eyebrow}</span>
+                    <span>
+                        <span className="nt-serif block text-[2.25rem] leading-[1.05]">{t.street.title}</span>
+                        <span className="mt-2 block text-[1rem] text-muted">{t.street.door}</span>
+                        <span className="mt-5 inline-flex items-center gap-1.5 font-semibold">
+                            {t.street.doorCta}
+                            <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                        </span>
+                    </span>
+                </Link>
+                <Link href={paths.homecoming(locale)} className="nt-reveal nt-pressable group flex flex-col justify-between gap-10 rounded-[1.6rem] bg-[#15110e] p-6 text-white md:p-8">
+                    <span className="text-[0.75rem] font-semibold tracking-[0.16em] text-white/60 uppercase">{t.homecoming.eyebrow}</span>
+                    <span>
+                        <span className="nt-serif block text-[2.25rem] leading-[1.05]">{t.homecoming.title}</span>
+                        <span className="mt-2 block text-[1rem] text-white/65">{t.homecoming.door}</span>
+                        <span className="mt-5 inline-flex items-center gap-1.5 font-semibold">
+                            {t.homecoming.doorCta}
+                            <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                        </span>
+                    </span>
+                </Link>
+            </section>
 
             {/* ---------------- Cities ---------------- */}
             <section id="villes" className="scroll-mt-28 mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">

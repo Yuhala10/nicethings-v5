@@ -81,6 +81,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Who is behind NiceThings.
     entries.push(...entry(paths.about, 0.5));
     entries.push(...entry(paths.culture, 0.7));
+    entries.push(...entry(paths.streetFood, 0.6));
+    entries.push(...entry(paths.homecoming, 0.6));
     entries.push(...entry(paths.sitemapPage, 0.3));
 
     // The blog, and each article (English only when it is translated).

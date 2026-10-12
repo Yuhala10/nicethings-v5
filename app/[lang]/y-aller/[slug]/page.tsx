@@ -47,6 +47,8 @@ export default async function DirectionsPage({ params }: Props) {
                     lng: place.lng,
                     neighborhood: place.neighborhood,
                     landmark: place.landmark,
+                    positionExact: place.positionExact,
+                    access: place.guide.access[lang] ?? place.guide.access.fr,
                 }}
                 city={city}
                 areas={areas}

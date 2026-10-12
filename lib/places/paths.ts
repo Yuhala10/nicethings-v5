@@ -16,6 +16,9 @@ import type { Locale } from "../i18n/config";
 //   /fr/douala/akwa/bars         neighbourhood × category
 //   /fr/douala/selection/ouvert-tard   editorial collection (lib/places/collections)
 //   /fr/blog, /fr/blog/<slug>    articles
+//   /fr/cuisine-de-rue           the street-food chronicles
+//   /fr/retour-au-pays           for people coming home (and its poster, /affiche)
+//   /l/chepele-3fa85f            a place's short address, for sharing (lib/places/short.ts)
 //   /fr/pro                      business space (claim and manage a listing)
 //   /fr/a-propos                 who is behind NiceThings
 
@@ -100,6 +103,9 @@ export const paths = {
     about: (locale: Locale) => `/${locale}/a-propos`,
     blog: (locale: Locale) => `/${locale}/blog`,
     culture: (locale: Locale) => `/${locale}/culture`,
+    streetFood: (locale: Locale) => `/${locale}/cuisine-de-rue`,
+    homecoming: (locale: Locale) => `/${locale}/retour-au-pays`,
+    homecomingPoster: (locale: Locale) => `/${locale}/retour-au-pays/affiche`,
     sitemapPage: (locale: Locale) => `/${locale}/plan-du-site`,
     post: (locale: Locale, slug: string) => `/${locale}/blog/${slug}`,
     pro: (locale: Locale) => `/${locale}/pro`,

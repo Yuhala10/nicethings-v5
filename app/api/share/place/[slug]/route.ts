@@ -2,8 +2,9 @@ import { isLocale } from "@/lib/i18n";
 import { getPlace } from "@/lib/places/server";
 import { SHARE_CACHE, placeShareJpeg, siteShareJpeg } from "@/lib/share-image";
 
-// Link preview of a place: its photo with the name, or the branded card.
-// Made once per version (?v=…), then served from the CDN.
+// The card of a place, as conversations show it under a shared link: its
+// photo beside its name (lib/share-image.tsx). Made once per version
+// (?v=…), then served from the CDN.
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const raw = new URL(request.url).searchParams.get("l");

@@ -4,15 +4,26 @@ import { cleanPosition, cleanText, publicWriteClient } from "@/lib/feedback";
 import { distanceMeters } from "@/lib/places/geo";
 import { getPlace } from "@/lib/places/server";
 
-// "Yes, I'm here": sent from the arrival screen of the guidance, when the
-// phone itself measured that the visitor reached the door and they confirm
-// the place is really there. It is what lets a place page say "confirmed on
-// the spot by visitors". Only the fact is kept (which place, when, and the
-// random id the browser already uses for audience counting): the position
-// is used for the check below and never stored.
+// "Yes, I see it": sent at the end of the guidance, when the phone itself
+// measured that the visitor is beside the place and they say they see it
+// (components/route/NearSheet.tsx). It is what lets a place page say
+// "confirmed on the spot by visitors". Only the fact is kept (which place,
+// when, and the random id the browser already uses for audience counting):
+// the position is used for the check below and not stored with it.
+//
+// One exception, to correct the map. When the visitor had to look for the
+// place (`found`), or when its pin is only roughly placed, the spot where
+// they found it is passed to the team as a note on the place, without the
+// visitor's id. A person moves the pin, never this route.
 
-// The visitor must be this close to the place, in metres.
+// The visitor must be this close to the place, in metres. A pin that is only
+// roughly placed is given more room: finding the real spot is the point.
 const NEAR = 150;
+const NEAR_ROUGH = 400;
+// A found spot is worth a note when it is this far from the pin, and the
+// phone knew where it was this well, both in metres.
+const WORTH_NOTING = 30;
+const SURE = 40;
 // One confirmation per visitor and place in this time, in hours.
 const ONCE_EVERY = 20;
 
@@ -36,7 +47,10 @@ export async function POST(request: Request) {
 
     const place = await getPlace(slug).catch(() => null);
     if (!place) return NextResponse.json({ ok: false }, { status: 404 });
-    if (distanceMeters(position, place) > NEAR) return NextResponse.json({ ok: false, far: true }, { status: 422 });
+    const away = distanceMeters(position, place);
+    if (away > (place.positionExact ? NEAR : NEAR_ROUGH)) return NextResponse.json({ ok: false, far: true }, { status: 422 });
+    const accuracy = Number(body.acc);
+    const noteSpot = (body.found === true || !place.positionExact) && away > WORTH_NOTING && Number.isFinite(accuracy) && accuracy > 0 && accuracy <= SURE;
 
     const db = publicWriteClient();
     try {
@@ -48,6 +62,16 @@ export async function POST(request: Request) {
         if (!already.data?.length) {
             const saved = await db.from("nt_arrivals").insert({ visitor_id: visitor, spot_id: place.id });
             if (saved.error) throw saved.error;
+            if (noteSpot) {
+                const noted = await db.from("nt_reports").insert({
+                    spot_id: place.id,
+                    reason: "location",
+                    description: `Trouvé sur place par un visiteur du guidage : ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)} (précision ${Math.round(accuracy)} m), à ${Math.round(away)} m du point de la carte.`,
+                    status: "PENDING",
+                });
+                // The confirmation itself is saved: a note that did not go through is not worth failing for.
+                if (noted.error) console.error("Found spot not noted:", noted.error);
+            }
         }
     } catch (error) {
         console.error("Arrival not saved:", error);

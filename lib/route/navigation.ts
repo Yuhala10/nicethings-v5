@@ -218,3 +218,62 @@ export function spoken(step: Step, meters: number, locale: Locale) {
     const rounded = meters >= 1000 ? `${(meters / 1000).toFixed(1).replace(".", locale === "fr" ? "," : ".")} ${locale === "fr" ? "kilomètre" : "kilometres"}` : `${near} mètres`;
     return locale === "fr" ? `Dans ${rounded}, ${text.charAt(0).toLowerCase()}${text.slice(1)}` : `In ${rounded.replace("mètres", "metres")}, ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }
+
+// ---- The recorded voice ----------------------------------------------------
+// The same sentences as short recorded clips (lib/route/voice-lines.json,
+// played by lib/voice.ts): a distance, then a manoeuvre, said by one clear
+// voice on every phone. The street name stays on the screen: a recording
+// cannot say every street of the country.
+
+const SIDE: Record<string, string> = {
+    left: "left",
+    right: "right",
+    "slight left": "slight-left",
+    "slight right": "slight-right",
+    "sharp left": "sharp-left",
+    "sharp right": "sharp-right",
+};
+const sideOf = (modifier: string | null) => (modifier ? SIDE[modifier] : undefined);
+// Left or right, whatever the angle.
+const handOf = (modifier: string | null) => sideOf(modifier)?.replace(/^(slight|sharp)-/, "");
+
+// The clip that says a step; undefined when no recording fits, and the
+// phone's own voice reads the sentence instead.
+export function stepClip(step: Step): string[] | undefined {
+    const { type, modifier, exit } = step.maneuver;
+    const side = sideOf(modifier);
+    const hand = handOf(modifier);
+    switch (type) {
+        case "depart":
+            return ["depart"];
+        case "arrive":
+            return ["arrive"];
+        case "roundabout":
+        case "rotary":
+            return [exit && exit <= 6 ? `roundabout-${exit}` : "roundabout"];
+        case "continue":
+        case "new name":
+            return [side ? `continue-${side}` : modifier === "uturn" ? "uturn" : "straight"];
+        case "merge":
+            return ["merge"];
+        case "fork":
+            return [hand ? `fork-${hand}` : "straight"];
+        case "end of road":
+            return hand ? [`end-${hand}`] : undefined;
+        default:
+            if (modifier === "uturn") return ["uturn"];
+            if (modifier === "straight") return ["straight"];
+            return side ? [`turn-${side}`] : undefined;
+    }
+}
+
+const SPOKEN_DISTANCES = [400, 300, 200, 150, 100, 50];
+
+// "Dans 150 mètres." then "Tourne à droite.": the distance is the nearest
+// one that was recorded.
+export function spokenClips(step: Step, meters: number): string[] | undefined {
+    const clips = stepClip(step);
+    if (!clips || meters < 40 || step.maneuver.type === "arrive") return clips;
+    const near = SPOKEN_DISTANCES.reduce((best, value) => (Math.abs(value - meters) < Math.abs(best - meters) ? value : best));
+    return [`in-${near}`, ...clips];
+}

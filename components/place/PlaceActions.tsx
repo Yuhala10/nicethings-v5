@@ -34,12 +34,14 @@ export default function PlaceActions({
     phone,
     whatsapp,
     preview,
+    link,
 }: {
     slug: string;
     name: string;
     phone: string | null; // dialable, e.g. +237679823692
     whatsapp: string | null;
-    preview: string; // link-preview image, warmed up when sharing
+    preview: string; // the card's picture, warmed up when sharing
+    link: string; // the place's short address: what "Share" sends
 }) {
     const { locale, t } = useLocale();
     const toast = useToast();
@@ -71,8 +73,8 @@ export default function PlaceActions({
                 type="button"
                 className={item}
                 onClick={async () => {
-                    const url = `${window.location.origin}${paths.place(locale, slug)}`;
-                    const result = await sharePlace(name, url, fill(t.spot.shareText, { name }), preview);
+                    // The short address alone: the conversation shows the card, and one tidy line under it.
+                    const result = await sharePlace(name, `${window.location.origin}${link}`, "", preview);
                     if (result === "copied") toast(t.common.copied);
                 }}
             >

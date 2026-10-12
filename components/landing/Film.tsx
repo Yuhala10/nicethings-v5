@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, Pause, Play } from "lucide-react";
 import { useLocale } from "@/components/site/LocaleProvider";
 import { BEAT, FILM, FILM_BEATS, FILM_CHAPTERS, FILM_STARTS, type FilmScene } from "@/lib/film";
 import type { FilmPhoto } from "@/lib/film-photos";
@@ -17,8 +17,8 @@ import { createFilmSound, type FilmSound } from "./film-sound";
 
 const TOTAL = FILM_BEATS * BEAT;
 const LABELS = {
-    fr: { film: "Le Cameroun en une minute", sound: "Activer le son", mute: "Couper le son", play: "Lire le film", pause: "Mettre en pause", tap: "Touche pour le son", photo: "Photo", summary: "Un film d’une minute sur le Cameroun : ses montagnes, ses chutes et ses lacs, ses royaumes, sa cuisine, ses nuits, et ceux qui l’ont rendu grand." },
-    en: { film: "Cameroon in one minute", sound: "Turn the sound on", mute: "Turn the sound off", play: "Play the film", pause: "Pause", tap: "Tap for sound", photo: "Photo", summary: "A one-minute film about Cameroon: its mountains, waterfalls and lakes, its kingdoms, its food, its nights, and the people who made it great." },
+    fr: { film: "Le Cameroun en une minute", play: "Lire le film", pause: "Mettre en pause", photo: "Photo", summary: "Un film d’une minute sur le Cameroun : ses montagnes, ses chutes et ses lacs, ses royaumes, sa cuisine, ses nuits, et ceux qui l’ont rendu grand." },
+    en: { film: "Cameroon in one minute", play: "Play the film", pause: "Pause", photo: "Photo", summary: "A one-minute film about Cameroon: its mountains, waterfalls and lakes, its kingdoms, its food, its nights, and the people who made it great." },
 };
 
 // The photo at the size the screen needs, through the site's own image service.
@@ -268,18 +268,31 @@ export default function Film() {
         setWanted(true);
         setStep((current) => (current < 0 ? 0 : current));
     }, []);
-    // Sound can only be switched on from a tap: this is that tap.
-    const speak = useCallback(() => {
-        sound.current ??= createFilmSound();
-        if (sound.current) setLoud(true);
-        begin();
-    }, [begin]);
-    // A tap on the picture: first it gives the sound, after that it pauses and resumes.
-    const tap = () => {
-        if (step < 0 || !wanted) return speak();
-        if (!loud) return speak();
-        setWanted(false);
-    };
+    // The film is heard without anything to press. A browser lets a page make
+    // sound only once the visitor has touched it: so the sound is asked for
+    // straight away when that has already happened, and otherwise it comes
+    // with their first touch anywhere on the page.
+    useEffect(() => {
+        const touched = () => (navigator as Navigator & { userActivation?: { isActive: boolean; hasBeenActive: boolean } }).userActivation;
+        const give = () => {
+            sound.current ??= createFilmSound();
+            if (sound.current) setLoud(true);
+        };
+        if (touched()?.hasBeenActive) return give();
+        const events = ["click", "keydown", "touchend"] as const;
+        const first = () => {
+            // The end of a scroll is not a touch the browser accepts: wait for a real one.
+            if (touched()?.isActive === false) return;
+            for (const event of events) document.removeEventListener(event, first);
+            give();
+        };
+        for (const event of events) document.addEventListener(event, first, { passive: true });
+        return () => {
+            for (const event of events) document.removeEventListener(event, first);
+        };
+    }, []);
+    // A tap on the picture pauses the film, and its sound with it; another resumes.
+    const tap = () => (wanted && step >= 0 ? setWanted(false) : begin());
 
     const scene = step >= 0 ? FILM[step % FILM.length] : null;
     const before = step > 0 ? FILM[(step - 1) % FILM.length] : null;
@@ -320,20 +333,6 @@ export default function Film() {
                 )}
 
                 <div className="absolute top-6 right-3 z-20 flex items-center gap-2">
-                    {scene && !loud && wanted && <span className="nt-film-hint rounded-full bg-black/55 px-3 py-1.5 text-[0.75rem] font-semibold backdrop-blur">{label.tap}</span>}
-                    <button
-                        type="button"
-                        aria-label={loud ? label.mute : label.sound}
-                        aria-pressed={loud}
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            if (loud) setLoud(false);
-                            else speak();
-                        }}
-                        className="grid h-11 w-11 place-items-center rounded-full bg-black/55 backdrop-blur transition active:scale-95"
-                    >
-                        {loud ? <Volume2 size={19} /> : <VolumeX size={19} />}
-                    </button>
                     <button
                         type="button"
                         aria-label={wanted && scene ? label.pause : label.play}

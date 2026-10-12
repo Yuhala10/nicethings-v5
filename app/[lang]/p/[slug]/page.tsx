@@ -23,6 +23,7 @@ import { SCHEMA_TYPES, categoryStyle, cuisineLabel, firstPhone, formatPhone, isI
 import { availableCollections } from "@/lib/places/collections";
 import { distanceMeters } from "@/lib/places/geo";
 import { CATEGORY_PLURALS, paths } from "@/lib/places/paths";
+import { shortPath } from "@/lib/places/short";
 import { getAllPlaces, getPlace } from "@/lib/places/server";
 import { placeShareImage } from "@/lib/share-image";
 import type { PlaceDetail } from "@/lib/places/types";
@@ -387,7 +388,7 @@ export default async function PlacePage({ params }: Props) {
             </div>
 
             <div className="mx-auto max-w-3xl px-4 pt-6 md:px-6">
-                <PlaceActions slug={place.slug} name={place.name} phone={phone} whatsapp={whatsapp} preview={preview} />
+                <PlaceActions slug={place.slug} name={place.name} phone={phone} whatsapp={whatsapp} preview={preview} link={shortPath(place, lang)} />
 
                 {place.vibes.length > 0 && (
                     <Section title={t.spot.vibes}>
