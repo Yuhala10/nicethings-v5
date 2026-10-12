@@ -93,6 +93,7 @@ export const paths = {
     collection: (locale: Locale, city: string, collection: { slug: Record<Locale, string> }) =>
         `/${locale}/${city}/selection/${collection.slug[locale]}`,
     saved: (locale: Locale) => `/${locale}/favoris`,
+    poll: (locale: Locale, code: string) => `/${locale}/vote/${code}`,
     submit: (locale: Locale) => `/${locale}/ajouter`,
     privacy: (locale: Locale) => `/${locale}/confidentialite`,
     terms: (locale: Locale) => `/${locale}/conditions`,

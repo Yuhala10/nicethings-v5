@@ -44,6 +44,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "Quand le guidage t'amène devant un lieu et que tu confirmes qu'il est bien là, on enregistre seulement ce fait : le lieu, le moment et l'identifiant tiré au hasard de ton navigateur. Ta position sert à vérifier que tu es sur place, puis n'est pas gardée.",
                     "Quand tu ajoutes une photo ou une vidéo à un lieu, on garde le fichier, le mot que tu y joins et l'identifiant tiré au hasard de ton navigateur. Elle n'est publiée qu'après vérification par l'équipe, et tu peux nous demander de la retirer. Un cœur sur une publication est enregistré avec ce même identifiant, rien d'autre.",
                     "Quand tu commentes un article, on garde ton texte, le prénom si tu en donnes un, et ce même identifiant. Le commentaire n'est publié qu'après lecture par l'équipe, et tu peux nous demander de le retirer.",
+                    "Quand tu crées ou ouvres un vote « On se voit où ? », on garde les lieux proposés, le choix de chacun, le prénom si tu en donnes un, et ce même identifiant. Ceux qui ont le lien du vote voient les choix et les prénoms.",
                 ],
             },
             {
@@ -96,6 +97,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "When the guidance brings you to a place and you confirm it is really there, we record only that fact: the place, the time and your browser's random identifier. Your position is used to check that you are on the spot, then it is not kept.",
                     "When you add a photo or a video to a place, we keep the file, the words you add and your browser's random identifier. It is published only after the team has checked it, and you can ask us to take it down. A heart on a post is recorded with that same identifier, nothing else.",
                     "When you comment on an article, we keep your text, the first name if you give one, and that same identifier. The comment is published only after the team has read it, and you can ask us to take it down.",
+                    "When you create or open a “Where shall we meet?” vote, we keep the places proposed, each person’s choice, the first name if you give one, and that same identifier. Those who have the link to the vote see the choices and the first names.",
                 ],
             },
             {
