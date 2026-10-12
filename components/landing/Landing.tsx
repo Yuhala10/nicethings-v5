@@ -1,5 +1,5 @@
 import Film from "./Film";
-import FromAfar from "./FromAfar";
+import ReturnMode from "./ReturnMode";
 import SectionIndex from "./SectionIndex";
 import type { StoryPlace } from "@/lib/places/server";
 import { isWide } from "@/lib/places/stories";
@@ -166,7 +166,7 @@ export default function Landing({
                 ]}
             />
 
-            <FromAfar />
+            <ReturnMode />
 
             {/* ---------------- Right now: what the app proposes ---------------- */}
             <div id="maintenant" className="scroll-mt-28">

@@ -51,6 +51,10 @@ const words = (place: PlaceSummary) => plain(place.name).split(/[^a-z0-9]+/);
 const named = (place: PlaceSummary, ...starts: string[]) => words(place).some((word) => starts.some((start) => word.startsWith(start)));
 const called = (place: PlaceSummary, ...exact: string[]) => words(place).some((word) => exact.includes(word));
 const atTable = (place: PlaceSummary) => ["Restaurant", "Bar", "Cafe", "Bakery", "Club"].includes(place.category);
+// Fish, meat or skewers over the fire.
+const grills = (place: PlaceSummary) =>
+    atTable(place) &&
+    (serves(place, "fish", "seafood", "barbecue", "grill", "bbq") || named(place, "brais", "grill") || called(place, "poisson", "poissons", "soya", "barbecue", "bbq", "porc"));
 
 export const COLLECTIONS: Collection[] = [
     {
@@ -221,9 +225,39 @@ export const COLLECTIONS: Collection[] = [
             fr: "{count} adresses de {city} où l'on vient pour la braise : poisson, viande ou brochettes, d'après leur nom ou ce que la carte en dit. Un appel avant de se déplacer reste le plus sûr.",
             en: "{count} places in {city} people go to for the grill: fish, meat or skewers, going by their name or what the map says. A call before you go is still the safest.",
         },
-        test: (place) =>
-            atTable(place) &&
-            (serves(place, "fish", "seafood", "barbecue", "grill", "bbq") || named(place, "brais", "grill") || called(place, "poisson", "poissons", "soya", "barbecue", "bbq", "porc")),
+        test: grills,
+    },
+    {
+        key: "late-grill",
+        slug: { fr: "braise-apres-minuit", en: "grill-after-midnight" },
+        name: { fr: "La braise après minuit", en: "The grill after midnight" },
+        title: { fr: "Braise et grillades après minuit à {city}", en: "Grilled fish and barbecue after midnight in {city}" },
+        blurb: { fr: "Quand la faim arrive tard : ces braises tiennent après minuit.", en: "For late hunger: these grills keep going after midnight." },
+        intro: {
+            fr: "{count} adresses de {city} où l'on vient pour la braise et qui ferment après minuit, d'après leurs horaires. La nuit, un appel avant de se déplacer reste le plus sûr.",
+            en: "{count} places in {city} people go to for the grill and that close after midnight, according to their hours. At night, a call before you go is still the safest.",
+        },
+        test: (place) => {
+            const hours = hoursOf(place);
+            return grills(place) && Boolean(hours && (hours.allDay || hours.close > 24 * 60));
+        },
+        order: (a, b) => (hoursOf(b)?.close ?? 0) - (hoursOf(a)?.close ?? 0),
+    },
+    {
+        key: "breakfast",
+        slug: { fr: "petit-matin", en: "early-breakfast" },
+        name: { fr: "Le petit matin", en: "Early breakfast" },
+        title: { fr: "Où manger tôt le matin à {city}", en: "Where to eat early in the morning in {city}" },
+        blurb: { fr: "Du pain chaud, un café, de quoi tenir jusqu'à midi : ouvert dès 7 h 30.", en: "Warm bread, a coffee, enough to last until noon: open by 7:30 am." },
+        intro: {
+            fr: "{count} boulangeries, cafés et tables de {city} ouverts dès 7 h 30 ou avant, d'après leurs horaires.",
+            en: "{count} bakeries, cafés and tables in {city} open by 7:30 am, according to their hours.",
+        },
+        test: (place) => {
+            const hours = hoursOf(place);
+            return ["Bakery", "Cafe", "Restaurant"].includes(place.category) && Boolean(hours && !hours.allDay && hours.open <= 7 * 60 + 30);
+        },
+        order: (a, b) => (hoursOf(a)?.open ?? 0) - (hoursOf(b)?.open ?? 0),
     },
     {
         key: "local",

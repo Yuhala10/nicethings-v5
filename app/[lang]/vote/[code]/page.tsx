@@ -4,6 +4,7 @@ import PollBoard from "@/components/poll/PollBoard";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
 import { POLL_CODE } from "@/lib/polls";
 import { readPoll } from "@/lib/polls-server";
+import { pollShareImage } from "@/lib/share-image";
 
 // "On se voit où ?": the page a group of friends opens from their chat to
 // vote on where to go. Always read fresh; never offered to search engines.
@@ -20,7 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!poll) return { title: t.poll.title, robots: { index: false, follow: false } };
     const title = poll.title ? `${poll.title} · ${t.poll.eyebrow}` : t.poll.eyebrow;
     const description = fill(t.poll.metaDescription, { places: poll.options.map((option) => option.place.name).join(", ") });
-    return { title, description, robots: { index: false, follow: false }, openGraph: { title, description } };
+    // Its own card, for the group chat it is dropped in.
+    const card = pollShareImage(poll, lang);
+    return { title, description, robots: { index: false, follow: false }, openGraph: { title, description, images: [card] }, twitter: { card: "summary_large_image", images: [card.url] } };
 }
 
 export default async function PollPage({ params }: Props) {

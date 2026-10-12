@@ -197,6 +197,10 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                             <p className="nt-eyebrow">{t.guest.eyebrow}</p>
                             <p className="nt-serif mt-1 text-[1.5rem]">{post.author}</p>
                             <p className="mt-1 text-[0.875rem] leading-relaxed text-muted">{t.guest.cardBody}</p>
+                            <Link href={paths.guests(lang)} className="nt-tap mt-3 inline-flex min-h-11 items-center gap-1.5 text-[0.875rem] font-semibold">
+                                {t.guest.all}
+                                <ArrowRight size={15} />
+                            </Link>
                         </div>
                     )}
 

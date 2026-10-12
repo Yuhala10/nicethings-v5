@@ -11,6 +11,7 @@ import { FOUNDER } from "./founder";
 import { Brand, OG_SIZE, TEXT_FONT, TITLE_FONT, ogCard, ogFonts } from "./og";
 import { categoryStyle, cuisineLabel } from "./places/display";
 import type { PlaceDetail } from "./places/types";
+import type { PollState } from "./polls";
 import { CATEGORIES, tagLabel } from "./tags";
 
 // Link previews (WhatsApp, Facebook, X). WhatsApp builds the preview on the
@@ -280,6 +281,125 @@ export async function placeShareJpeg(place: PlaceDetail, lang: Locale) {
     const overlay = Buffer.from(await (await placeCardOverlay(card, !photo)).arrayBuffer());
     return sharp({ create: { ...OG_SIZE, channels: 3, background: PAPER } })
         .composite([...(photo ? [{ input: photo, top: 0, left: 0 }] : []), { input: overlay, top: 0, left: 0 }])
+        .jpeg({ quality: QUALITY, mozjpeg: true })
+        .toBuffer();
+}
+
+// ---- The card of a vote ----------------------------------------------------
+// "On se voit où ?" dropped in a group chat: the places proposed side by
+// side, each with its number, and on paper beside them the question, their
+// names and a button to vote. The votes themselves are not drawn: the card
+// is made once and must stay true.
+
+export function pollShareImage(poll: PollState, lang: Locale) {
+    const v = version(["poll", lang, poll.code, poll.title, poll.options.map((option) => [option.place.name, option.place.cover])]);
+    return {
+        url: `/api/share/poll/${poll.code}?l=${lang}&v=${v}`,
+        width: OG_SIZE.width,
+        height: OG_SIZE.height,
+        alt: poll.title ?? getDictionary(lang).poll.eyebrow,
+        type: "image/jpeg",
+    };
+}
+
+type Tile = { left: number; top: number; width: number; height: number };
+
+// Where each place's picture goes in the photo side of the card, for one to four places.
+function pollTiles(count: number): Tile[] {
+    const gap = 4;
+    const half = (PHOTO_WIDTH - gap) / 2;
+    const tall = OG_SIZE.height;
+    const short = (OG_SIZE.height - gap) / 2;
+    if (count <= 1) return [{ left: 0, top: 0, width: PHOTO_WIDTH, height: tall }];
+    if (count === 2) return [0, 1].map((column) => ({ left: column * (half + gap), top: 0, width: half, height: tall }));
+    if (count === 3) return [{ left: 0, top: 0, width: half, height: tall }, ...[0, 1].map((row) => ({ left: half + gap, top: row * (short + gap), width: half, height: short }))];
+    return [0, 1, 2, 3].map((index) => ({ left: (index % 2) * (half + gap), top: Math.floor(index / 2) * (short + gap), width: half, height: short }));
+}
+
+async function pollOverlay(poll: PollState, tiles: Tile[], plain: boolean[], lang: Locale) {
+    const t = getDictionary(lang);
+    const title = poll.title ?? t.poll.title;
+    const size = title.length > 34 ? 52 : title.length > 22 ? 62 : title.length > 12 ? 74 : 88;
+    const short = (name: string) => (name.length > 26 ? `${name.slice(0, 25).trimEnd()}…` : name);
+    const options = poll.options.slice(0, tiles.length);
+
+    return new ImageResponse(
+        (
+            <div style={{ width: "100%", height: "100%", display: "flex", fontFamily: TEXT_FONT, fontWeight: 500 }}>
+                <div style={{ width: PHOTO_WIDTH, height: "100%", display: "flex", position: "relative" }}>
+                    {tiles.map((tile, index) => (
+                        <div
+                            key={index}
+                            style={{
+                                position: "absolute",
+                                left: tile.left,
+                                top: tile.top,
+                                width: tile.width,
+                                height: tile.height,
+                                display: "flex",
+                                padding: 18,
+                                // A place without a photo keeps its category's colour.
+                                background: plain[index] ? `linear-gradient(135deg, ${categoryStyle(options[index].place.category).tone}, #1a0a05 150%)` : "transparent",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 54, height: 54, borderRadius: 999, background: "rgba(255,255,255,0.95)", color: INK, fontSize: 30, fontWeight: 700 }}>{index + 1}</div>
+                        </div>
+                    ))}
+                </div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", background: PAPER, color: INK, padding: "42px 46px 44px" }}>
+                    <div style={{ display: "flex", fontFamily: TITLE_FONT, fontSize: 34, fontWeight: 800, letterSpacing: "-0.03em" }}>
+                        Nice<span style={{ color: BRAND }}>Things</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: "0.09em", color: BRAND }}>{t.poll.eyebrow.toLocaleUpperCase(lang)}</div>
+                        <div style={{ display: "flex", marginTop: 10, fontFamily: SERIF_FONT, fontWeight: 400, fontSize: size, lineHeight: 1.02, letterSpacing: "-0.01em" }}>{title}</div>
+                        <div style={{ display: "flex", flexDirection: "column", marginTop: 20, gap: 8 }}>
+                            {options.map((option, index) => (
+                                <div key={option.place.slug} style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 28 }}>
+                                    <div style={{ display: "flex", width: 26, fontWeight: 700, color: BRAND }}>{index + 1}</div>
+                                    <div style={{ display: "flex", fontWeight: 700 }}>{short(option.place.name)}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{ display: "flex" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 30px", borderRadius: 999, background: BRAND, color: "white", fontSize: 30, fontWeight: 700 }}>
+                            {t.poll.cardCta}
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14" />
+                                <path d="m12 5 7 7-7 7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ),
+        { ...OG_SIZE, fonts: await cardFonts() }
+    );
+}
+
+export async function pollShareJpeg(poll: PollState, lang: Locale) {
+    const tiles = pollTiles(Math.min(poll.options.length, 4));
+    const photos = await Promise.all(
+        tiles.map(async (tile, index) => {
+            const cover = poll.options[index].place.cover;
+            if (!cover) return null;
+            try {
+                const fetched = await fetch(cover, { signal: AbortSignal.timeout(8000) });
+                if (!fetched.ok) throw new Error(`Photo ${fetched.status}`);
+                return await sharp(Buffer.from(await fetched.arrayBuffer()))
+                    .rotate()
+                    .resize(Math.round(tile.width), Math.round(tile.height), { fit: "cover", position: sharp.strategy.attention })
+                    .toBuffer();
+            } catch (error) {
+                console.error("Vote photo failed, using the colour:", error);
+                return null;
+            }
+        })
+    );
+    const overlay = Buffer.from(await (await pollOverlay(poll, tiles, photos.map((photo) => photo === null), lang)).arrayBuffer());
+    return sharp({ create: { ...OG_SIZE, channels: 3, background: PAPER } })
+        .composite([...photos.flatMap((photo, index) => (photo ? [{ input: photo, top: Math.round(tiles[index].top), left: Math.round(tiles[index].left) }] : [])), { input: overlay, top: 0, left: 0 }])
         .jpeg({ quality: QUALITY, mozjpeg: true })
         .toBuffer();
 }

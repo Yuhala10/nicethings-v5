@@ -4,12 +4,13 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Compass, MapPin, Navigation, Printer, Send, Users, Wallet } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
 import EditorialSection from "@/components/editorial/EditorialSection";
+import ReturnSwitch from "@/components/homecoming/ReturnSwitch";
 import PinCard from "@/components/place/PinCard";
 import { getPosts } from "@/lib/blog/server";
 import { CITIES, cityBySlug, type City } from "@/lib/cities";
 import { fill, getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
-import { MIN_COLLECTION, collectionByKey, placesIn } from "@/lib/places/collections";
+import { MIN_COLLECTION, collectionByKey, placesIn, rankForEditorial } from "@/lib/places/collections";
 import type { EditorialRail } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
 import { getAllPlaces, getStoryPlaces } from "@/lib/places/server";
@@ -82,6 +83,12 @@ export default async function HomecomingPage({ params }: Props) {
     const together = railsOf(TOGETHER);
     const stories = todaysStories(storyPlaces, 6);
 
+    // A weekend on the coast: Kribi's beaches, hotels and tables.
+    const kribi = cityBySlug("kribi");
+    const coast = rankForEditorial(places.filter((place) => place.city === "kribi" && ["Nature", "Hotel", "Restaurant", "Culture"].includes(place.category)));
+    const coastRail: EditorialRail | null =
+        kribi && coast.length >= MIN_COLLECTION ? { key: "kribi", title: t.homecoming.coastTitle, blurb: t.homecoming.coastLead, href: paths.city(lang, kribi.slug), count: counts.get(kribi.slug) ?? coast.length, items: coast.slice(0, 8) } : null;
+
     const how = [Wallet, Navigation, Send];
 
     return (
@@ -91,10 +98,13 @@ export default async function HomecomingPage({ params }: Props) {
                     <p className="text-[0.75rem] font-semibold tracking-[0.16em] uppercase opacity-60">{t.homecoming.eyebrow}</p>
                     <h1 className="nt-serif mt-3 max-w-[11ch] text-[2.75rem] leading-[0.98] md:text-[4.5rem]">{t.homecoming.title}</h1>
                     <p className="mt-5 max-w-xl text-[1.125rem] leading-relaxed opacity-80">{t.homecoming.lead}</p>
-                    <Link href={paths.map(lang)} className="nt-btn nt-btn-primary mt-8">
-                        <Compass size={18} />
-                        {t.homecoming.openMap}
-                    </Link>
+                    <div className="mt-8 flex flex-col gap-2.5 sm:flex-row sm:items-stretch">
+                        <Link href={paths.map(lang)} className="nt-btn nt-btn-primary">
+                            <Compass size={18} />
+                            {t.homecoming.openMap}
+                        </Link>
+                        <ReturnSwitch />
+                    </div>
                 </div>
             </header>
 
@@ -143,7 +153,7 @@ export default async function HomecomingPage({ params }: Props) {
 
             {/* ---------------- The first evening ---------------- */}
             {firstNight.length > 0 && (
-                <div className="pt-16 md:pt-28">
+                <div id="premier-soir" className="scroll-mt-20 pt-16 md:pt-28">
                     <div className="nt-reveal mx-auto max-w-6xl px-4 md:px-6">
                         <div className="max-w-2xl border-t border-line pt-8 md:pt-10">
                             <p className="nt-eyebrow">{t.homecoming.firstEyebrow}</p>
@@ -165,7 +175,7 @@ export default async function HomecomingPage({ params }: Props) {
 
             {/* ---------------- Seeing everyone again ---------------- */}
             {(canVote || together.length > 0) && (
-                <div className="pt-16 md:pt-28">
+                <div id="ensemble" className="scroll-mt-20 pt-16 md:pt-28">
                     <div className="nt-reveal mx-auto max-w-6xl px-4 md:px-6">
                         <div className="max-w-2xl border-t border-line pt-8 md:pt-10">
                             <p className="nt-eyebrow">{t.homecoming.togetherEyebrow}</p>
@@ -191,9 +201,16 @@ export default async function HomecomingPage({ params }: Props) {
                 </div>
             )}
 
+            {/* ---------------- A weekend on the coast ---------------- */}
+            {coastRail && (
+                <div id="kribi" className="scroll-mt-20 pt-4 md:pt-12">
+                    <EditorialSection rail={coastRail} locale={lang} />
+                </div>
+            )}
+
             {/* ---------------- The country, while you are here ---------------- */}
             {stories.length > 0 && (
-                <section className="mx-auto max-w-6xl px-4 pt-16 md:px-6 md:pt-28">
+                <section id="pays" className="scroll-mt-20 mx-auto max-w-6xl px-4 pt-16 md:px-6 md:pt-28">
                     <div className="nt-reveal max-w-2xl border-t border-line pt-8 md:pt-10">
                         <p className="nt-eyebrow">{t.homecoming.countryEyebrow}</p>
                         <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[3.5rem]">{t.homecoming.countryTitle}</h2>

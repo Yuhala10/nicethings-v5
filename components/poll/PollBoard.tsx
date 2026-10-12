@@ -72,7 +72,8 @@ export default function PollBoard({ initial }: { initial: PollState }) {
 
     const share = async () => {
         const url = `${window.location.origin}${paths.poll(locale, code)}?ref=vote`;
-        const result = await sharePlace(poll.title ?? t.poll.eyebrow, url, t.poll.shareText);
+        // The address alone: the chat shows the vote's card, and one short line under it.
+        const result = await sharePlace(poll.title ?? t.poll.eyebrow, url, "");
         if (result === "copied") toast(t.common.copied);
     };
 

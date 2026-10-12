@@ -46,6 +46,7 @@ export default async function SiteMapPage({ params }: Props) {
         { href: paths.culture(lang), label: t.nav.culture },
         { href: paths.streetFood(lang), label: t.street.nav },
         { href: paths.homecoming(lang), label: t.homecoming.eyebrow },
+        { href: paths.guests(lang), label: t.guest.pageEyebrow },
         { href: paths.blog(lang), label: t.nav.blog },
         { href: paths.saved(lang), label: t.nav.saved },
         { href: paths.submit(lang), label: t.nav.suggest },

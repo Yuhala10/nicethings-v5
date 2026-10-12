@@ -17,7 +17,8 @@ import { STREET_CHAPTERS } from "@/lib/street-food";
 // (lib/street-food.ts). Under each chapter, the cities where the catalogue
 // holds enough such places to make a selection, and a few of them across the
 // country. Then the food articles of the journal. A chapter without places
-// keeps its words and simply shows none.
+// keeps its words and simply shows none, unless its words are about the
+// places themselves (their hours): that one waits for the catalogue.
 
 export const revalidate = 300;
 
@@ -55,6 +56,7 @@ export default async function StreetFoodPage({ params }: Props) {
         const collection = collectionByKey(chapter.collection);
         if (!collection) continue;
         const found = placesIn(collection, places);
+        if (chapter.needsPlaces && found.length === 0) continue;
         // The cities with enough of these places to have their own selection page.
         const cities = CITIES.map((city) => ({ city, count: found.filter((place) => place.city === city.slug).length }))
             .filter(({ count }) => count >= MIN_COLLECTION)

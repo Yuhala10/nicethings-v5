@@ -217,7 +217,7 @@ export default async function AboutPage({ params }: Props) {
             )}
 
             {/* ---------------- Get in touch ---------------- */}
-            <section className="mt-16 rounded-[1.6rem] bg-[#15110e] p-6 text-white md:mt-24 md:p-12">
+            <section id="contact" className="mt-16 scroll-mt-24 rounded-[1.6rem] bg-[#15110e] p-6 text-white md:mt-24 md:p-12">
                 <h2 className="nt-serif max-w-xl text-[2.25rem] md:text-[2.75rem]">{t.about.contactTitle}</h2>
                 <p className="mt-3 text-[1rem] text-white/65">{t.about.contactBody}</p>
                 <div className="mt-6 flex flex-wrap gap-2.5">
