@@ -93,15 +93,6 @@ export const FOUNDER = {
         source: { fr: "Les faits cités viennent des articles Wikipédia consacrés à chacun.", en: "The facts quoted come from each person's Wikipedia article." } as Text,
     },
 
-    // What he has built. A link only when the app is online.
-    works: [
-        { name: "NiceThings", note: { fr: "Le guide du Cameroun", en: "The guide to Cameroon" }, url: null },
-        { name: "VariantFlow", note: { fr: "Variantes et SKU pour Shopify", en: "Variants and SKUs for Shopify" }, url: "https://variantflow-omega.vercel.app" },
-        { name: "Tayeb", note: { fr: "Plateforme logistique", en: "Logistics platform" }, url: null },
-        { name: "Surety", note: { fr: "Paiements sous séquestre", en: "Escrow payments" }, url: "https://surety-omega.vercel.app" },
-        { name: "Trust", note: { fr: "Dossier de crédit des commerçants", en: "Credit records for market traders" }, url: null },
-    ] as { name: string; note: Text; url: string | null }[],
-
     // Public profiles (LinkedIn, Instagram…): shown on the About page and
     // given to search engines as the same person.
     links: [

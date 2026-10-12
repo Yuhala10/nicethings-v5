@@ -122,43 +122,13 @@ export default async function AboutPage({ params }: Props) {
             </p>
 
             {/* ---------------- The story ---------------- */}
-            <section id="histoire" className="mt-14 grid scroll-mt-24 gap-12 md:mt-24 md:grid-cols-[17rem_minmax(0,1fr)] md:gap-16">
-                <div className="mx-auto w-full max-w-2xl md:order-2 md:mx-0">
-                    <p className="nt-eyebrow">{t.about.storyEyebrow}</p>
-                    <div className="nt-article mt-3">
-                        {FOUNDER.story[lang].map((paragraph) => (
-                            <p key={paragraph}>{paragraph}</p>
-                        ))}
-                    </div>
+            <section id="histoire" className="mx-auto mt-14 max-w-2xl scroll-mt-24 md:mt-24">
+                <p className="nt-eyebrow">{t.about.storyEyebrow}</p>
+                <div className="nt-article mt-3">
+                    {FOUNDER.story[lang].map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                    ))}
                 </div>
-
-                <aside className="md:order-1">
-                    <div className="md:sticky md:top-24">
-                        <dl className="divide-y divide-line border-y border-line text-[0.875rem]">
-                            <div className="flex items-baseline justify-between gap-4 py-3">
-                                <dt className="text-muted">{t.about.studies}</dt>
-                                <dd className="text-right font-semibold">
-                                    {FOUNDER.school.short} · {FOUNDER.school.year[lang]}
-                                </dd>
-                            </div>
-                            {FOUNDER.works.map((work) => (
-                                <div key={work.name} className="py-3">
-                                    <dt className="nt-serif text-[1.125rem]">
-                                        {work.url ? (
-                                            <a href={work.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-brand-600">
-                                                {work.name}
-                                                <ArrowUpRight size={15} className="text-muted" />
-                                            </a>
-                                        ) : (
-                                            work.name
-                                        )}
-                                    </dt>
-                                    <dd className="mt-0.5 text-muted">{work.note[lang]}</dd>
-                                </div>
-                            ))}
-                        </dl>
-                    </div>
-                </aside>
             </section>
 
             {/* ---------------- What he believes about his country ---------------- */}
@@ -188,21 +158,6 @@ export default async function AboutPage({ params }: Props) {
                     <p className="nt-serif max-w-3xl text-[1.5rem] leading-snug md:text-[1.75rem]">{FOUNDER.country.close[lang]}</p>
                     <p className="mt-5 text-[0.75rem] text-white/45">{FOUNDER.country.source[lang]}</p>
                 </div>
-            </section>
-
-            {/* ---------------- What he has built ---------------- */}
-            <section id="construit" className="mt-16 scroll-mt-24 md:mt-28">
-                <p className="nt-eyebrow">{t.about.builtEyebrow}</p>
-                <h2 className="nt-serif mt-2 max-w-2xl text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{t.about.builtTitle}</h2>
-                <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{t.about.builtLead}</p>
-                <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {t.about.built.map((item) => (
-                        <li key={item.title} className="rounded-[1.25rem] border border-line bg-surface p-5">
-                            <p className="text-[1.125rem] font-semibold">{item.title}</p>
-                            <p className="mt-1.5 text-[0.875rem] leading-relaxed text-text-2">{item.body}</p>
-                        </li>
-                    ))}
-                </ul>
             </section>
 
             {/* ---------------- How he works ---------------- */}
