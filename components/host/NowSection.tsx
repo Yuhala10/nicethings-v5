@@ -18,6 +18,7 @@ import { sharePlace } from "@/lib/share";
 import PinCard, { placeKind } from "../place/PinCard";
 import { OpenBadge, PlaceThumb, PriceLabel, VerifiedMark } from "../place/bits";
 import { useLocale } from "../site/LocaleProvider";
+import WeatherNotice from "./WeatherNotice";
 import { useCurrentCity } from "../site/SiteChrome";
 import { useToast } from "../site/Toast";
 
@@ -161,6 +162,9 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
                                     {t.host.weatherBy}
                                 </a>
                             )}
+                            <div>
+                                <WeatherNotice city={slug} cityName={cityName} />
+                            </div>
                         </div>
                     ) : (
                         <div aria-hidden>
