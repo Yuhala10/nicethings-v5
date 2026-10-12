@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ArrowUpRight, BadgeCheck, Mail, Plus, Store, Wallet } from "lucide-react";
@@ -93,9 +92,9 @@ export default async function AboutPage({ params }: Props) {
                 <LanguageSwitch />
             </div>
 
-            {/* ---------------- The portrait and the name ---------------- */}
-            <header className="grid gap-7 md:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] md:items-center md:gap-16">
-                <div className="nt-rise order-2 md:order-1">
+            {/* ---------------- The name ---------------- */}
+            <header className="max-w-3xl md:pt-6">
+                <div className="nt-rise">
                     <p className="nt-eyebrow">{FOUNDER.role[lang]}</p>
                     <h1 className="nt-serif mt-3 text-[3.5rem] leading-[0.98] md:text-[4.5rem]">{FOUNDER.name}</h1>
                     <p className="mt-5 max-w-lg text-[1rem] leading-relaxed text-text-2 md:mt-7 md:text-[1.125rem]">{FOUNDER.lead[lang]}</p>
@@ -114,9 +113,6 @@ export default async function AboutPage({ params }: Props) {
                             {t.about.readStory}
                         </a>
                     </div>
-                </div>
-                <div className="relative order-1 aspect-[3/4] overflow-hidden rounded-[1.4rem] bg-surface-3 shadow-card md:order-2">
-                    <Image src={FOUNDER.photo} alt={`${FOUNDER.name}, ${FOUNDER.role[lang]}`} fill priority sizes="(min-width: 768px) 432px, 100vw" className="object-cover" />
                 </div>
             </header>
 
@@ -138,10 +134,7 @@ export default async function AboutPage({ params }: Props) {
 
                 <aside className="md:order-1">
                     <div className="md:sticky md:top-24">
-                        <div className="relative aspect-[4/5] overflow-hidden rounded-[1.1rem] bg-surface-3">
-                            <Image src={FOUNDER.secondPhoto} alt={FOUNDER.name} fill sizes="(min-width: 768px) 272px, 100vw" className="object-cover object-top grayscale" />
-                        </div>
-                        <dl className="mt-6 divide-y divide-line border-y border-line text-[0.875rem]">
+                        <dl className="divide-y divide-line border-y border-line text-[0.875rem]">
                             <div className="flex items-baseline justify-between gap-4 py-3">
                                 <dt className="text-muted">{t.about.studies}</dt>
                                 <dd className="text-right font-semibold">
@@ -170,11 +163,8 @@ export default async function AboutPage({ params }: Props) {
 
             {/* ---------------- What he believes about his country ---------------- */}
             <section id="pays" className="mt-16 scroll-mt-24 overflow-hidden rounded-[1.6rem] bg-[#15110e] text-white md:mt-28">
-                <div className="grid md:grid-cols-[0.8fr_1.2fr]">
-                    <div className="relative aspect-[4/5] md:aspect-auto md:min-h-full">
-                        <Image src={FOUNDER.thirdPhoto} alt={FOUNDER.name} fill sizes="(min-width: 768px) 440px, 100vw" className="object-cover object-[50%_22%] grayscale" />
-                    </div>
-                    <div className="p-6 md:p-12">
+                <div>
+                    <div className="max-w-3xl p-6 md:p-12">
                         <p className="text-[0.75rem] font-semibold tracking-[0.16em] text-white/55 uppercase">{FOUNDER.country.eyebrow[lang]}</p>
                         <h2 className="nt-serif mt-3 text-[2.25rem] leading-[1.02] md:text-[3.5rem]">
                             {FOUNDER.country.title[lang][0]} <em className="block text-brand-400">{FOUNDER.country.title[lang][1]}</em>

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Languages } from "lucide-react";
-import FounderPortrait from "@/components/site/FounderPortrait";
 import { expandBlocks, outline, placesIn, plainText } from "@/lib/blog/blocks";
 import { getComments } from "@/lib/blog/comments";
 import { getPosts, localised, type Post } from "@/lib/blog/server";
@@ -192,7 +191,6 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                     {/* Who wrote it, with the way to their page. */}
                     {byFounder && (
                         <Link href={paths.about(lang)} rel="author" className="nt-pressable group mt-8 flex items-center gap-4 rounded-[1.25rem] bg-surface-2 p-4 md:p-5">
-                            <FounderPortrait size={64} className="h-16 w-16" />
                             <span className="min-w-0 flex-1">
                                 <span className="nt-eyebrow block">{t.blog.writtenBy}</span>
                                 <span className="nt-serif mt-1 block text-[1.5rem]">{FOUNDER.name}</span>

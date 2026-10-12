@@ -3,6 +3,8 @@ import { SITE_URL, type Locale } from "./i18n/config";
 // The person behind NiceThings, in one place: the About page, the home page,
 // the footer, article bylines and the structured data all read from here.
 // Only what the founder gave us to publish goes in: nothing is made up.
+// No picture of him is shown anywhere on the site (his choice): his name
+// and his story are what stays.
 
 type Text = Record<Locale, string>;
 
@@ -10,12 +12,6 @@ export const FOUNDER = {
     name: "Yuhala Darren Tuma",
     role: { fr: "Fondateur de NiceThings", en: "Founder of NiceThings" } as Text,
     email: "yuhala24@gmail.com",
-
-    // Files under /public/founder. The studio portrait is 3:4; the face crop
-    // serves the small round pictures; the second one sits beside the story.
-    photo: "/founder/yuhala-darren-tuma.jpg",
-    avatar: "/founder/yuhala-darren-tuma-avatar.jpg",
-    secondPhoto: "/founder/yuhala-darren-tuma-2.jpg",
 
     school: {
         name: "École Nationale Supérieure Polytechnique de Yaoundé",
@@ -62,7 +58,6 @@ export const FOUNDER = {
     // nothing, walking through the hurdles does. The people named did what
     // is said of them (their Wikipedia articles are the source): no words
     // are put in anyone's mouth.
-    thirdPhoto: "/founder/yuhala-darren-tuma-3.jpg",
     country: {
         eyebrow: { fr: "Ce qu'il croit", en: "What he believes" } as Text,
         title: {
@@ -139,7 +134,6 @@ export function founderJsonLd(aboutUrl: string, lang: Locale) {
         jobTitle: FOUNDER.role[lang],
         description: FOUNDER.lead[lang],
         url: aboutUrl,
-        image: `${SITE_URL}${FOUNDER.photo}`,
         sameAs: FOUNDER.links.map((link) => link.url),
         affiliation: { "@type": "CollegeOrUniversity", name: FOUNDER.school.name, alternateName: FOUNDER.school.short },
         worksFor: { "@type": "Organization", "@id": ORGANIZATION_ID, name: "NiceThings", url: SITE_URL },
