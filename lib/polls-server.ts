@@ -8,7 +8,8 @@ import { getSupabaseAdminClient } from "./supabase/admin";
 
 // Whether database script 007 has been run: the feature shows only then.
 export async function pollsReady() {
-    const { error } = await getSupabaseAdminClient().from("nt_polls").select("id", { head: true, count: "exact" }).limit(1);
+    // A plain read: a "head" request has no body, so a missing table would not say so.
+    const { error } = await getSupabaseAdminClient().from("nt_polls").select("id").limit(1);
     if (error && !notInstalled(error)) throw error;
     return !error;
 }
