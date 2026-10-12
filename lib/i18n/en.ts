@@ -468,7 +468,7 @@ export const en: Dictionary = {
         unverified: "Not yet verified",
         verifiedTitle: "Checked by NiceThings",
         verifiedBody: "Our team confirmed this information {ago}.",
-        verifiedSourcesBody: "Confirmed {ago} from public sources (Wikipedia, Wikimedia Commons). The team has not been there yet: tell us if something has changed.",
+        verifiedSourcesBody: "Confirmed {ago} from public sources (press, encyclopedias, the place's official pages). The team has not been there yet: tell us if something has changed.",
         onSiteOne: "Confirmed on the spot by a visitor NiceThings guided here, {ago}.",
         onSiteMany: "Confirmed on the spot {count} times by visitors NiceThings guided here. Last time {ago}.",
         submissionTitle: "Suggested by the community",

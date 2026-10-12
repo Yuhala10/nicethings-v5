@@ -470,7 +470,7 @@ export const fr = {
         unverified: "Pas encore vérifié",
         verifiedTitle: "Vérifié par NiceThings",
         verifiedBody: "Notre équipe a confirmé ces informations {ago}.",
-        verifiedSourcesBody: "Lieu confirmé {ago} à partir de sources publiques (Wikipédia, Wikimedia Commons). L'équipe n'y est pas encore passée : dis-nous si quelque chose a changé.",
+        verifiedSourcesBody: "Lieu confirmé {ago} à partir de sources publiques (presse, encyclopédies, pages officielles du lieu). L'équipe n'y est pas encore passée : dis-nous si quelque chose a changé.",
         onSiteOne: "Confirmé sur place par un visiteur que NiceThings a guidé jusqu'ici, {ago}.",
         onSiteMany: "Confirmé sur place {count} fois par des visiteurs que NiceThings a guidés jusqu'ici. Dernière fois {ago}.",
         submissionTitle: "Proposé par la communauté",
