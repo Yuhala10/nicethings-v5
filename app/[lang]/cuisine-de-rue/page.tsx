@@ -10,6 +10,7 @@ import { fill, getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { MIN_COLLECTION, collectionByKey, placesIn } from "@/lib/places/collections";
 import { paths } from "@/lib/places/paths";
 import { getAllPlaces } from "@/lib/places/server";
+import type { PlaceSummary } from "@/lib/places/types";
 import { STREET_CHAPTERS } from "@/lib/street-food";
 
 // "Chroniques de la rue": what the country eats outside, chapter by chapter
@@ -44,22 +45,29 @@ export default async function StreetFoodPage({ params }: Props) {
     const t = getDictionary(lang);
     const [places, posts] = await Promise.all([getAllPlaces().catch(() => []), getPosts().catch(() => [])]);
 
-    const chapters = STREET_CHAPTERS.flatMap((chapter) => {
+    // A place shown under one chapter goes to the back of the next ones, so
+    // each chapter brings new faces; and a place with a picture comes first.
+    const shownBefore = new Set<string>();
+    const facesFirst = (list: PlaceSummary[]) =>
+        [...list].sort((a, b) => Number(shownBefore.has(a.id)) - Number(shownBefore.has(b.id)) || Number(Boolean(b.cover)) - Number(Boolean(a.cover)));
+    const chapters = [];
+    for (const chapter of STREET_CHAPTERS) {
         const collection = collectionByKey(chapter.collection);
-        if (!collection) return [];
+        if (!collection) continue;
         const found = placesIn(collection, places);
         // The cities with enough of these places to have their own selection page.
         const cities = CITIES.map((city) => ({ city, count: found.filter((place) => place.city === city.slug).length }))
             .filter(({ count }) => count >= MIN_COLLECTION)
             .sort((a, b) => b.count - a.count);
         // A few places, never two from the same city in a row when another city has some.
-        const queues = cities.length > 0 ? cities.map(({ city }) => found.filter((place) => place.city === city.slug)) : [found];
-        const mixed: typeof found = [];
-        for (let round = 0; mixed.length < PER_CHAPTER && queues.some((queue) => queue[round]); round++) {
-            for (const queue of queues) if (queue[round] && mixed.length < PER_CHAPTER) mixed.push(queue[round]);
+        const queues = (cities.length > 0 ? cities.map(({ city }) => found.filter((place) => place.city === city.slug)) : [found]).map(facesFirst);
+        const shown: PlaceSummary[] = [];
+        for (let round = 0; shown.length < PER_CHAPTER && queues.some((queue) => queue[round]); round++) {
+            for (const queue of queues) if (queue[round] && shown.length < PER_CHAPTER) shown.push(queue[round]);
         }
-        return [{ ...chapter, collection, total: found.length, cities, shown: mixed }];
-    });
+        for (const place of shown) shownBefore.add(place.id);
+        chapters.push({ ...chapter, collection, cities, shown });
+    }
     const stories = posts.filter((post) => post.topic === "food").slice(0, 6);
 
     return (

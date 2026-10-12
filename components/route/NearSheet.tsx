@@ -24,6 +24,9 @@ type Props = {
     onAnswer: (answer: NearAnswer) => void;
 };
 
+// French punctuation never starts a line.
+const tidy = (text: string) => text.replace(/ ([:;?!»])/g, " $1").replace(/« /g, "« ");
+
 export default function NearSheet({ name, approximate, outdoors, access, distance, onLooking, onAnswer }: Props) {
     const { locale, t } = useLocale();
     const [looking, setLooking] = useState(false);
@@ -36,60 +39,68 @@ export default function NearSheet({ name, approximate, outdoors, access, distanc
             transition={{ type: "spring", stiffness: 340, damping: 34 }}
             className="absolute inset-x-3 bottom-[max(env(safe-area-inset-bottom),0.75rem)] z-30 mx-auto max-w-lg"
         >
-            <div className="max-h-[72dvh] overflow-y-auto rounded-[1.75rem] bg-bg p-5 shadow-float" role="dialog" aria-live="polite" aria-label={t.route.nearAsk}>
-                <p className="nt-eyebrow flex items-center gap-2">
-                    <span className="nt-open-dot" aria-hidden />
-                    {looking && distance !== null ? fill(t.route.fromPoint, { distance: formatDistance(distance, locale) }) : fill(t.route.nearEyebrow, { name })}
-                </p>
+            {/* The words scroll if they must; the answers stay in reach, and the map keeps its share of the screen. */}
+            <div className="flex max-h-[62dvh] flex-col overflow-hidden rounded-[1.75rem] bg-bg shadow-float" role="dialog" aria-live="polite" aria-label={t.route.nearAsk}>
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-5">
+                    <p className="nt-eyebrow flex items-center gap-2">
+                        <span className="nt-open-dot shrink-0" aria-hidden />
+                        {looking && distance !== null ? fill(t.route.fromPoint, { distance: formatDistance(distance, locale) }) : fill(t.route.nearEyebrow, { name })}
+                    </p>
+                    {looking ? (
+                        <>
+                            <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.02]">{t.route.lookingTitle}</h2>
+                            <p className="mt-2.5 flex gap-2.5 text-[1rem] leading-relaxed text-text-2">
+                                <Users size={19} className="mt-[0.2rem] shrink-0 text-brand-600" />
+                                {t.route.lookingBody}
+                            </p>
+                            {access && (
+                                <div className="mt-4 rounded-[1.1rem] bg-surface-2 p-4">
+                                    <p className="text-[0.75rem] font-semibold tracking-[0.12em] text-muted uppercase">{t.route.lastSteps}</p>
+                                    <p className="mt-1.5 text-[0.875rem] leading-relaxed">{tidy(access)}</p>
+                                </div>
+                            )}
+                            {outdoors && (
+                                <p className="mt-3 flex gap-2.5 text-[0.875rem] leading-relaxed text-text-2">
+                                    <TriangleAlert size={17} className="mt-[0.15rem] shrink-0 text-brand-600" />
+                                    {t.route.natureCare}
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.02]">{tidy(t.route.nearAsk)}</h2>
+                            <p className="mt-2.5 text-[1rem] leading-relaxed text-text-2">{tidy(approximate ? t.route.nearHintApprox : t.route.nearHint)}</p>
+                        </>
+                    )}
+                </div>
 
                 {looking ? (
-                    <>
-                        <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.02]">{t.route.lookingTitle}</h2>
-                        <p className="mt-2.5 flex gap-2.5 text-[1rem] leading-relaxed text-text-2">
-                            <Users size={19} className="mt-[0.2rem] shrink-0 text-brand-600" />
-                            {t.route.lookingBody}
-                        </p>
-                        {access && (
-                            <div className="mt-4 rounded-[1.1rem] bg-surface-2 p-4">
-                                <p className="text-[0.75rem] font-semibold tracking-[0.12em] text-muted uppercase">{t.route.lastSteps}</p>
-                                <p className="mt-1.5 text-[0.875rem] leading-relaxed">{access}</p>
-                            </div>
-                        )}
-                        {outdoors && (
-                            <p className="mt-3 flex gap-2.5 text-[0.875rem] leading-relaxed text-text-2">
-                                <TriangleAlert size={17} className="mt-[0.15rem] shrink-0 text-brand-600" />
-                                {t.route.natureCare}
-                            </p>
-                        )}
-                        <button type="button" onClick={() => onAnswer("found")} className="nt-btn nt-btn-primary mt-5 h-12 w-full">
+                    <div className="shrink-0 px-5 pt-4 pb-2">
+                        <button type="button" onClick={() => onAnswer("found")} className="nt-btn nt-btn-primary h-12 w-full">
                             <Check size={18} strokeWidth={2.6} />
                             {t.route.found}
                         </button>
-                        <button type="button" onClick={() => onAnswer("missing")} className="nt-tap mt-1 h-11 w-full text-[0.875rem] font-semibold text-muted">
+                        <button type="button" onClick={() => onAnswer("missing")} className="nt-tap h-11 w-full text-[0.875rem] font-semibold text-muted">
                             {t.route.confirmNo}
                         </button>
-                    </>
+                    </div>
                 ) : (
-                    <>
-                        <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.02]">{t.route.nearAsk}</h2>
-                        <p className="mt-2.5 text-[1rem] leading-relaxed text-text-2">{approximate ? t.route.nearHintApprox : t.route.nearHint}</p>
-                        <div className="mt-5 grid grid-cols-2 gap-2">
-                            <button type="button" onClick={() => onAnswer("seen")} className="nt-btn nt-btn-primary h-12 px-3">
-                                <Eye size={18} />
-                                {t.route.nearYes}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setLooking(true);
-                                    onLooking();
-                                }}
-                                className="nt-btn nt-btn-outline h-12 px-3"
-                            >
-                                {t.route.nearNo}
-                            </button>
-                        </div>
-                    </>
+                    <div className="grid shrink-0 grid-cols-2 gap-2 p-5">
+                        <button type="button" onClick={() => onAnswer("seen")} className="nt-btn nt-btn-primary h-12 px-3">
+                            <Eye size={18} />
+                            {t.route.nearYes}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setLooking(true);
+                                onLooking();
+                            }}
+                            className="nt-btn nt-btn-outline h-12 px-3"
+                        >
+                            {t.route.nearNo}
+                        </button>
+                    </div>
                 )}
             </div>
         </motion.div>
