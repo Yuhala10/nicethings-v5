@@ -82,6 +82,7 @@ export const paths = {
     explore: (locale: Locale, city: string, query?: string) =>
         `/${locale}/${city}/carte${query ? `?q=${encodeURIComponent(query)}` : ""}`,
     place: (locale: Locale, slug: string) => `/${locale}/p/${slug}`,
+    poster: (locale: Locale, slug?: string) => (slug ? `/${locale}/p/${slug}/affiche` : `/${locale}/affiche`),
     directions: (locale: Locale, slug: string) => `/${locale}/y-aller/${slug}`,
     city: (locale: Locale, city: string) => `/${locale}/${city}`,
     neighborhood: (locale: Locale, city: string, name: string) => `/${locale}/${city}/${slugify(name)}`,

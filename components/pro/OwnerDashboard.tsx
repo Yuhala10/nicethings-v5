@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, Eye, ImagePlus, LocateFixed, Navigation, Plus, Star, Trash2, Users } from "lucide-react";
+import { BadgeCheck, Eye, ImagePlus, LocateFixed, Navigation, Plus, QrCode, Star, Trash2, Users } from "lucide-react";
 import { compressImage } from "@/lib/compress-image";
 import { formatRelativeDays } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
@@ -122,10 +122,16 @@ export default function OwnerDashboard({ slug }: { slug: string }) {
                         <BadgeCheck size={24} className="shrink-0 text-open" />
                     </h1>
                 </div>
-                <Link href={paths.place(locale, slug)} className="nt-btn nt-btn-soft h-11 px-4 text-sm">
-                    <Eye size={16} />
-                    {t.owner.viewPage}
-                </Link>
+                <div className="flex flex-wrap gap-2">
+                    <Link href={paths.poster(locale, slug)} className="nt-btn nt-btn-soft h-11 px-4 text-sm">
+                        <QrCode size={16} />
+                        {t.poster.print}
+                    </Link>
+                    <Link href={paths.place(locale, slug)} className="nt-btn nt-btn-soft h-11 px-4 text-sm">
+                        <Eye size={16} />
+                        {t.owner.viewPage}
+                    </Link>
+                </div>
             </header>
 
             <section className="mt-6 rounded-[1.8rem] bg-ink p-5 text-white">

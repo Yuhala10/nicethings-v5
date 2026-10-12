@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, Camera, ExternalLink, ImagePlus, LocateFixed, MapPin, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Camera, ExternalLink, ImagePlus, LocateFixed, MapPin, QrCode, Star, Trash2 } from "lucide-react";
 import { adminGet, adminPatch } from "@/lib/admin-client";
 import { SOURCE_LABELS } from "@/lib/admin-labels";
 import VerifiedTick from "../place/VerifiedTick";
@@ -273,10 +273,16 @@ export default function PlaceEditor({ id, backHref = "/admin/spots" }: { id: str
                     </div>
                 </div>
                 {spot.status === "APPROVED" && (
-                    <a href={`/fr/p/${spot.slug}`} target="_blank" rel="noreferrer" className="a-btn a-btn-soft shrink-0">
-                        <ExternalLink size={16} />
-                        <span className="hidden sm:inline">{tr("Voir sur le site", "View on the site")}</span>
-                    </a>
+                    <div className="flex shrink-0 gap-2">
+                        <a href={`/fr/p/${spot.slug}/affiche`} target="_blank" rel="noreferrer" className="a-btn a-btn-soft">
+                            <QrCode size={16} />
+                            <span className="hidden sm:inline">{tr("Affiche", "Poster")}</span>
+                        </a>
+                        <a href={`/fr/p/${spot.slug}`} target="_blank" rel="noreferrer" className="a-btn a-btn-soft">
+                            <ExternalLink size={16} />
+                            <span className="hidden sm:inline">{tr("Voir sur le site", "View on the site")}</span>
+                        </a>
+                    </div>
                 )}
             </div>
 

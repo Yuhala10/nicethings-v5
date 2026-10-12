@@ -892,6 +892,36 @@
     }
 }
 
+/* ---- Posters (components/poster) ------------------------------------------
+   On paper there is the poster and nothing else: no menu, no footer, no
+   margins. A5 and A4 share their proportions, so one sheet serves both. */
+@media print {
+    @page {
+        size: A5 portrait;
+        margin: 0;
+    }
+
+    header,
+    footer,
+    nav,
+    .nt-tabbar {
+        display: none !important;
+    }
+
+    main {
+        min-height: 0 !important;
+    }
+
+    .nt-print {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
 /* ---- The opening film (components/landing/Film.tsx) ----------------------
    Scenes are stacked; each new one comes in over the last with its own
    entrance, its photo drifts slowly, its words rise. Everything here stops
