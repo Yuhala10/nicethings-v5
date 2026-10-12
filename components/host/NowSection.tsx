@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, LocateFixed, MapPin, Navigation, Send, Shuffle, Sparkles } from "lucide-react";
+import { ArrowRight, CloudRain, LocateFixed, MapPin, Navigation, Send, Shuffle, Sparkles, Sun } from "lucide-react";
 import { cityAt, cityBySlug } from "@/lib/cities";
 import { momentCopy, momentIntent, momentOf } from "@/lib/host/moment";
 import { afterStops, proposeNow, surpriseFrom, type Proposal } from "@/lib/host/propose";
+import type { Weather } from "@/lib/host/weather";
 import { useGeo } from "@/lib/hooks/useGeo";
 import { useNow } from "@/lib/hooks/useNow";
 import { fill } from "@/lib/i18n";
@@ -81,7 +82,24 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
     }, [slug, wanted]);
 
     const step = now ? Math.floor(now.getTime() / STEP_MS) : null;
-    const moment = useMemo(() => (step === null ? null : momentOf(new Date(step * STEP_MS))), [step]);
+
+    // The sky over the city, asked again with each step of the clock. Until
+    // it answers (or if it never does) the section simply follows the hour.
+    const [sky, setSky] = useState<{ city: string; weather: Weather } | null>(null);
+    useEffect(() => {
+        if (step === null) return;
+        let cancelled = false;
+        fetch(`/api/weather?city=${slug}`)
+            .then((response) => (response.ok ? response.json() : null))
+            .then((weather: Weather | null) => !cancelled && weather && setSky({ city: slug, weather }))
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, [slug, step]);
+    const weather = sky?.city === slug ? sky.weather : null;
+
+    const moment = useMemo(() => (step === null ? null : { ...momentOf(new Date(step * STEP_MS)), weather }), [step, weather]);
 
     // Nothing is ranked before the clock is known: the space is held instead.
     const places = useMemo(() => (pool && pools.get(slug) === pool ? pool : slug === city ? first : null), [pool, slug, city, first]);
@@ -111,7 +129,7 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
         if (result === "copied") toast(t.common.copied);
     };
 
-    const copy = moment ? momentCopy(moment, locale, t) : null;
+    const copy = moment ? momentCopy(moment, locale, t, cityName) : null;
     const shown = ranked.slice(0, SHOWN);
     // A town with too little to propose from: say nothing rather than little.
     if (!waiting && shown.length < 3) return null;
@@ -124,6 +142,12 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
                         <span className="nt-open-dot" aria-hidden />
                         {t.host.live} · {cityName}
                         {now && <span className="tabular-nums"> · {formatClock(now, locale)}</span>}
+                        {weather && weather.temperature !== null && (
+                            <span className="inline-flex items-center gap-1 tabular-nums">
+                                · {weather.sky === "rain" ? <CloudRain size={13} aria-hidden /> : weather.sky === "heat" ? <Sun size={13} aria-hidden /> : null}
+                                {Math.round(weather.temperature)} °C
+                            </span>
+                        )}
                     </p>
                     {copy ? (
                         <div className="nt-rise">
@@ -132,6 +156,11 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
                             </h2>
                             <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{copy.lead}</p>
                             {copy.note && <p className="mt-2 max-w-2xl text-[0.875rem] leading-relaxed text-muted">{copy.note}</p>}
+                            {weather && weather.temperature !== null && (
+                                <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[0.75rem] text-muted underline-offset-2 hover:underline">
+                                    {t.host.weatherBy}
+                                </a>
+                            )}
                         </div>
                     ) : (
                         <div aria-hidden>

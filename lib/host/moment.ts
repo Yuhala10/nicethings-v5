@@ -4,6 +4,7 @@ import { CITY_TIME_ZONE, type Locale } from "../i18n/config";
 import { cityNow } from "../places/hours";
 import type { DayKey } from "../places/types";
 import { specialDayOn, upcomingDay, type CalendarDate, type SpecialDay } from "./calendar";
+import type { Weather } from "./weather";
 
 // What moment it is in Cameroon: the part of the day, the day of the week,
 // and what the calendar says. Everything the app proposes starts from here.
@@ -17,6 +18,8 @@ export type Moment = {
     upcoming: { day: SpecialDay; inDays: number } | null;
     // The last days of the month, when salaries have just landed.
     payday: boolean;
+    // The sky over the city, when the phone has had time to ask (lib/host/weather).
+    weather?: Weather | null;
 };
 
 function calendarDate(date: Date): CalendarDate {
@@ -63,6 +66,9 @@ export function momentCategories(moment: Moment): string[] {
     const daytime = moment.slot === "morning" || moment.slot === "noon" || moment.slot === "afternoon";
     if (moment.special?.mood === "date") return ["Restaurant", "Bar", "Cafe"];
     if (moment.special?.mood === "party" && !daytime) return ["Bar", "Club", "Restaurant"];
+    // Under the rain, a roof; in the heat, something cold and some shade.
+    if (moment.weather?.sky === "rain") return daytime ? ["Cafe", "Bakery", "Restaurant"] : ["Restaurant", "Cafe", "Bar"];
+    if (moment.weather?.sky === "heat") return ["Cafe", "Bakery", "Restaurant"];
     // Sundays and family days: the outing matters as much as the table.
     if ((moment.day === "sunday" || moment.special?.mood === "family") && daytime) {
         return ["Restaurant", "Nature", "Cafe", "Culture", "Entertainment", "Bakery"];
@@ -95,7 +101,7 @@ function capitalise(text: string) {
 
 // The words on screen for a moment: a headline, the line under it, and a
 // short note when there is something to know (a holiday, a date coming up).
-export function momentCopy(moment: Moment, locale: Locale, t: Dictionary) {
+export function momentCopy(moment: Moment, locale: Locale, t: Dictionary, city = "") {
     const { slot, day, special, upcoming } = moment;
     const late = slot === "evening" || slot === "night";
 
@@ -118,6 +124,15 @@ export function momentCopy(moment: Moment, locale: Locale, t: Dictionary) {
         night: t.host.leadNight,
     }[slot];
     if (moment.payday && late) lead = `${t.host.payday} ${lead}`;
+
+    // The sky speaks first on an ordinary day; a holiday still speaks louder.
+    if (moment.weather?.sky === "rain" && city) {
+        headline = fill(t.host.rainHeadline, { city });
+        lead = t.host.rainLead;
+    } else if (moment.weather?.sky === "heat" && city && moment.weather.temperature !== null) {
+        headline = fill(t.host.heatHeadline, { degrees: Math.round(moment.weather.temperature), city });
+        lead = t.host.heatLead;
+    }
 
     if (special) {
         headline = special.greeting[locale];
