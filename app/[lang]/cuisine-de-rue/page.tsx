@@ -65,6 +65,8 @@ export default async function StreetFoodPage({ params }: Props) {
         for (let round = 0; shown.length < PER_CHAPTER && queues.some((queue) => queue[round]); round++) {
             for (const queue of queues) if (queue[round] && shown.length < PER_CHAPTER) shown.push(queue[round]);
         }
+        // The chapter opens on a picture when it has one.
+        shown.sort((a, b) => Number(Boolean(b.cover)) - Number(Boolean(a.cover)));
         for (const place of shown) shownBefore.add(place.id);
         chapters.push({ ...chapter, collection, cities, shown });
     }
