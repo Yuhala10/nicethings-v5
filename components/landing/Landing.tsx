@@ -419,6 +419,13 @@ export default function Landing({
                 </div>
             </section>
 
+            <div className="mx-auto max-w-6xl px-4 pt-8 md:px-6">
+                <Link href={paths.help(locale)} className="nt-btn nt-btn-outline w-full sm:w-auto">
+                    {t.help.homeLink}
+                    <ArrowRight size={16} />
+                </Link>
+            </div>
+
             {/* ---------------- Made for Cameroon ---------------- */}
             <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-28">
                 <div className="nt-reveal border-t border-line pt-8 md:pt-10">

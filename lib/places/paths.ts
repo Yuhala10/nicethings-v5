@@ -24,6 +24,7 @@ import type { Locale } from "../i18n/config";
 //   /l/chepele-3fa85f            a place's short address, for sharing (lib/places/short.ts)
 //   /fr/pro                      business space (claim and manage a listing)
 //   /fr/a-propos                 who is behind NiceThings
+//   /fr/aide                     how the site works, feature by feature
 
 export function slugify(value: string) {
     return value
@@ -104,6 +105,7 @@ export const paths = {
     privacy: (locale: Locale) => `/${locale}/confidentialite`,
     terms: (locale: Locale) => `/${locale}/conditions`,
     about: (locale: Locale) => `/${locale}/a-propos`,
+    help: (locale: Locale) => `/${locale}/aide`,
     blog: (locale: Locale) => `/${locale}/blog`,
     culture: (locale: Locale) => `/${locale}/culture`,
     streetFood: (locale: Locale) => `/${locale}/cuisine-de-rue`,

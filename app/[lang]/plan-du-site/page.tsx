@@ -50,6 +50,7 @@ export default async function SiteMapPage({ params }: Props) {
         { href: paths.blog(lang), label: t.nav.blog },
         { href: paths.saved(lang), label: t.nav.saved },
         { href: paths.submit(lang), label: t.nav.suggest },
+        { href: paths.help(lang), label: t.help.nav },
         { href: paths.about(lang), label: t.about.nav },
         { href: paths.privacy(lang), label: t.footer.privacy },
         { href: paths.terms(lang), label: t.footer.terms },
