@@ -12,10 +12,13 @@ export default function NavProgress() {
     const router = useRouter();
     const [progress, setProgress] = useState<number | null>(null);
     const timer = useRef<number | undefined>(undefined);
+    const leaving = useRef<number | undefined>(undefined);
 
-    // Page changed: finish and fade out.
+    // Page changed: finish and fade out, and the page is itself again.
     useEffect(() => {
         window.clearInterval(timer.current);
+        window.clearTimeout(leaving.current);
+        document.documentElement.removeAttribute("data-nt-leaving");
          
         setProgress((current) => (current === null ? null : 100));
         const hide = window.setTimeout(() => setProgress(null), 260);
@@ -41,6 +44,13 @@ export default function NavProgress() {
             // Capture phase: runs before Next's Link cancels the default click.
             if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
             if (!internalLink(event.target)) return;
+            // The page answers the tap at once: it steps back while the next
+            // one is fetched (site.css, "data-nt-leaving"), instead of
+            // standing still until it arrives. If nothing comes of the tap,
+            // it comes back by itself.
+            document.documentElement.setAttribute("data-nt-leaving", "");
+            window.clearTimeout(leaving.current);
+            leaving.current = window.setTimeout(() => document.documentElement.removeAttribute("data-nt-leaving"), 8000);
             window.clearInterval(timer.current);
             setProgress(12);
             // Creep towards 90% while waiting; never pretend to finish.
@@ -55,6 +65,7 @@ export default function NavProgress() {
             document.removeEventListener("pointerdown", onTouch);
             document.removeEventListener("click", onClick, true);
             window.clearInterval(timer.current);
+            window.clearTimeout(leaving.current);
         };
     }, [router]);
 

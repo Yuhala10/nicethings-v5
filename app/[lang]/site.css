@@ -1224,6 +1224,15 @@
     animation: 190ms cubic-bezier(0.4, 0, 1, 1) both nt-page-out;
 }
 
+/* Before that, the tap itself is answered: the page steps back at once and
+   waits like that while the next one is fetched (components/site/
+   NavProgress.tsx). Opacity only: anything else would move what is pinned
+   to the screen inside the page. */
+html[data-nt-leaving] #main {
+    opacity: 0.42;
+    transition: opacity 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
 ::view-transition-new(.nt-page-in) {
     animation: 440ms cubic-bezier(0.2, 0.7, 0.2, 1) 90ms both nt-page-in;
 }

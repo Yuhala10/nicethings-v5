@@ -131,6 +131,9 @@ function SiteHeader() {
 export function TabBar() {
     const { locale, t } = useLocale();
     const pathname = usePathname();
+    // The island that was just tapped opens at once, before its page is there.
+    const [tapped, setTapped] = useState<{ key: string; from: string } | null>(null);
+    const chosen = tapped && tapped.from === pathname ? tapped.key : null;
     const tabs = [
         { key: "home", href: paths.home(locale), label: t.nav.home, icon: Home, active: pathname === paths.home(locale) },
         { key: "search", href: paths.searchEntry(locale), label: t.nav.search, icon: Search, active: pathname.includes("/recherche") },
@@ -145,16 +148,26 @@ export function TabBar() {
         >
             {/* Its own layer when the page changes: the menu stays still while the page moves. */}
             <ul className="nt-dock pointer-events-auto mx-auto flex w-fit items-center gap-2" style={{ viewTransitionName: "nt-dock" }}>
-                {tabs.map(({ key, href, label, icon: Icon, active }) => (
-                    <li key={key}>
-                        <Link href={href} prefetch={key === "map" || key === "search" ? false : undefined} className="nt-island" aria-current={active ? "page" : undefined} aria-label={label}>
-                            <Icon size={21} strokeWidth={active ? 2.2 : 1.9} />
-                            <span className="nt-island-label" aria-hidden>
-                                {label}
-                            </span>
-                        </Link>
-                    </li>
-                ))}
+                {tabs.map(({ key, href, label, icon: Icon, active: here }) => {
+                    const active = chosen ? chosen === key : here;
+                    return (
+                        <li key={key}>
+                            <Link
+                                href={href}
+                                prefetch={key === "map" || key === "search" ? false : undefined}
+                                onClick={() => setTapped({ key, from: pathname })}
+                                className="nt-island"
+                                aria-current={active ? "page" : undefined}
+                                aria-label={label}
+                            >
+                                <Icon size={21} strokeWidth={active ? 2.2 : 1.9} />
+                                <span className="nt-island-label" aria-hidden>
+                                    {label}
+                                </span>
+                            </Link>
+                        </li>
+                    );
+                })}
             </ul>
         </nav>
     );
