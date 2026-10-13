@@ -80,5 +80,5 @@ export function formatRelativeDays(dateIso: string, locale: Locale, now = new Da
 
 // French punctuation never starts a line: the space before it does not break.
 export function tidy(text: string) {
-    return text.replace(/ ([:;?!»])/g, " $1").replace(/« /g, "« ");
+    return text.replace(/ ([:;?!»])/g, "\u00a0$1").replace(/« /g, "«\u00a0");
 }
