@@ -77,3 +77,8 @@ export function formatRelativeDays(dateIso: string, locale: Locale, now = new Da
     if (days < 365) return rtf.format(-Math.round(days / 30), "month");
     return rtf.format(-Math.round(days / 365), "year");
 }
+
+// French punctuation never starts a line: the space before it does not break.
+export function tidy(text: string) {
+    return text.replace(/ ([:;?!»])/g, " $1").replace(/« /g, "« ");
+}

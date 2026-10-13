@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Eye, TriangleAlert, Users } from "lucide-react";
 import { fill } from "@/lib/i18n";
-import { formatDistance } from "@/lib/i18n/format";
+import { formatDistance, tidy } from "@/lib/i18n/format";
 import { useLocale } from "../site/LocaleProvider";
 
 // The last steps of a trip. The phone says the visitor is beside the place;
@@ -23,9 +23,6 @@ type Props = {
     onLooking: () => void;
     onAnswer: (answer: NearAnswer) => void;
 };
-
-// French punctuation never starts a line.
-const tidy = (text: string) => text.replace(/ ([:;?!»])/g, " $1").replace(/« /g, "« ");
 
 export default function NearSheet({ name, approximate, outdoors, access, distance, onLooking, onAnswer }: Props) {
     const { locale, t } = useLocale();

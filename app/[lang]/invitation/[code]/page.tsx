@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowDown, ArrowRight, Camera, MapPinPlus, PenLine, Share2 } from "lucide-react";
 import NotebookComposer from "@/components/guest/NotebookComposer";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
+import { tidy } from "@/lib/i18n/format";
 import { readInvitation } from "@/lib/invitations";
 import { paths } from "@/lib/places/paths";
 import { invitationShareImage } from "@/lib/share-image";
@@ -64,7 +65,7 @@ export default async function InvitationPage({ params }: Props) {
                         {invitation.name},
                         <em className="mt-2 block text-[2.25rem] leading-[1.05] text-[#d9bc8c] md:text-[2.75rem]">{t.invitation.invites}</em>
                     </h1>
-                    <p className="mx-auto mt-7 max-w-xl text-[1.125rem] leading-relaxed text-[#faf7f2]/80">{t.invitation.lead}</p>
+                    <p className="mx-auto mt-7 max-w-xl text-[1.125rem] leading-relaxed text-[#faf7f2]/80">{tidy(t.invitation.lead)}</p>
                     <a href="#carnet" className="nt-btn mt-9 bg-[#faf7f2] text-[#15110e] hover:bg-white">
                         {t.invitation.begin}
                         <ArrowDown size={17} />
@@ -86,7 +87,7 @@ export default async function InvitationPage({ params }: Props) {
                             <li key={gift.title} className="bg-bg p-6 md:p-7">
                                 <Icon size={22} strokeWidth={1.7} className="text-brand-600" />
                                 <p className="nt-serif mt-5 text-[1.5rem] leading-tight">{gift.title}</p>
-                                <p className="mt-2 text-[1rem] leading-relaxed text-muted">{gift.body}</p>
+                                <p className="mt-2 text-[1rem] leading-relaxed text-muted">{tidy(gift.body)}</p>
                             </li>
                         );
                     })}
@@ -98,7 +99,7 @@ export default async function InvitationPage({ params }: Props) {
                 <div className="mx-auto max-w-2xl">
                     <p className="nt-eyebrow">{t.invitation.composeEyebrow}</p>
                     <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[3.5rem]">{t.invitation.composeTitle}</h2>
-                    <p className="mt-3 mb-8 text-[1rem] leading-relaxed text-muted">{t.invitation.composeLead}</p>
+                    <p className="mt-3 mb-8 text-[1rem] leading-relaxed text-muted">{tidy(t.invitation.composeLead)}</p>
                 </div>
                 <NotebookComposer code={code} guest={invitation.name} />
             </section>
