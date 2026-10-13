@@ -131,13 +131,26 @@ function SiteHeader() {
 export function TabBar() {
     const { locale, t } = useLocale();
     const pathname = usePathname();
+    const city = useCurrentCity();
     // The island that was just tapped opens at once, before its page is there.
     const [tapped, setTapped] = useState<{ key: string; from: string } | null>(null);
     const chosen = tapped && tapped.from === pathname ? tapped.key : null;
+    // Search and the map are the heaviest pages. On a good connection they are
+    // fetched ahead, a moment after this page has settled, so a tap opens
+    // them at once; on a slow or metered one they are fetched when asked for.
+    const [ahead, setAhead] = useState(false);
+    useEffect(() => {
+        const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+        if (connection?.saveData || (connection?.effectiveType && connection.effectiveType !== "4g")) return;
+        const timer = window.setTimeout(() => setAhead(true), 2500);
+        return () => window.clearTimeout(timer);
+    }, []);
+    // Straight to the city's own search and map: going through the pages that
+    // pick the city first meant two page changes for one tap.
     const tabs = [
         { key: "home", href: paths.home(locale), label: t.nav.home, icon: Home, active: pathname === paths.home(locale) },
-        { key: "search", href: paths.searchEntry(locale), label: t.nav.search, icon: Search, active: pathname.includes("/recherche") },
-        { key: "map", href: paths.map(locale), label: t.nav.map, icon: MapIcon, active: pathname.includes("/carte") },
+        { key: "search", href: paths.search(locale, city), label: t.nav.search, icon: Search, active: pathname.includes("/recherche") },
+        { key: "map", href: paths.explore(locale, city), label: t.nav.map, icon: MapIcon, active: pathname.includes("/carte") },
         { key: "saved", href: paths.saved(locale), label: t.nav.saved, icon: Heart, active: pathname.startsWith(paths.saved(locale)) },
     ];
 
@@ -154,7 +167,7 @@ export function TabBar() {
                         <li key={key}>
                             <Link
                                 href={href}
-                                prefetch={key === "map" || key === "search" ? false : undefined}
+                                prefetch={key === "map" || key === "search" ? ahead : undefined}
                                 onClick={() => setTapped({ key, from: pathname })}
                                 className="nt-island"
                                 aria-current={active ? "page" : undefined}
