@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { BadgeCheck, Camera, Download, Flag, ImageIcon, Inbox, MapPin, Plus, Repeat2, Search, Star, Users } from "lucide-react";
+import WeatherNotices from "@/components/admin/WeatherNotices";
 import { useTr } from "@/components/admin/i18n";
 import { Bar, Empty, PageHeader, Skeleton, Stat, formatCount, timeAgo, useAdminData } from "@/components/admin/ui";
 import { REPORT_REASONS } from "@/lib/admin-labels";
@@ -54,6 +55,8 @@ export default function DashboardPage() {
             />
 
             {error && <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-bad">{error}</p>}
+
+            <WeatherNotices />
 
             {/* This week's audience: the first thing worth knowing. */}
             {data && data.totals.visitors7d !== null && (

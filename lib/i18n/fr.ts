@@ -529,6 +529,8 @@ export const fr = {
         rainBody: "Au sec, et ouverts à cette heure : {places}.",
         heatTitle: "{temperature} °C à {city}",
         heatBody: "De l'ombre et du frais, ouverts à cette heure : {places}.",
+        trialTitle: "NiceThings te prévient",
+        trialBody: "Essai réussi : ce téléphone recevra les alertes météo de {city}.",
     },
     invitation: {
         label: "Invitation personnelle",

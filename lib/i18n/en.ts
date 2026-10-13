@@ -527,6 +527,8 @@ export const en: Dictionary = {
         rainBody: "Dry, and open at this hour: {places}.",
         heatTitle: "{temperature} °C in {city}",
         heatBody: "Shade and something cold, open at this hour: {places}.",
+        trialTitle: "NiceThings will tell you",
+        trialBody: "Trial passed: this phone will get the weather alerts for {city}.",
     },
     invitation: {
         label: "Personal invitation",

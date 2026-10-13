@@ -1,6 +1,6 @@
 import webpush from "web-push";
 import { notInstalled } from "./atlas/store";
-import type { City } from "./cities";
+import { cityBySlug, type City } from "./cities";
 import { momentOf } from "./host/moment";
 import { proposeNow } from "./host/propose";
 import type { Weather } from "./host/weather";
@@ -146,4 +146,57 @@ export async function weatherNotice(city: City, weather: Weather, now = new Date
     );
     await db.from("nt_push_notices").update({ sent }).eq("id", noted.data.id);
     return sent;
+}
+
+// ---- For the team's console ---------------------------------------------------
+
+// How many phones asked to be told, city by city, and the last notices sent.
+export async function pushStatus() {
+    const db = getSupabaseAdminClient();
+    const phones = await db.from("nt_push_subscriptions").select("city").limit(5000);
+    if (phones.error) {
+        if (notInstalled(phones.error)) return { ready: false, phones: 0, cities: [], notices: [] };
+        throw phones.error;
+    }
+    const counts = new Map<string, number>();
+    for (const row of phones.data ?? []) counts.set(row.city, (counts.get(row.city) ?? 0) + 1);
+    const notices = await db.from("nt_push_notices").select("city,sky,sent,created_at").order("created_at", { ascending: false }).limit(5);
+    if (notices.error) throw notices.error;
+    return {
+        ready: Boolean(pushKeys()),
+        phones: phones.data?.length ?? 0,
+        cities: [...counts].map(([city, count]) => ({ city, phones: count })).sort((a, b) => b.phones - a.phones),
+        notices: notices.data ?? [],
+    };
+}
+
+// A trial notice to the phone that signed up last: the way for the team to
+// see one arrive without waiting for the rain. It says what it is, and
+// counts for nothing in the once-a-day rule.
+export async function sendTrialNotice(): Promise<{ sent: boolean; why?: "keys" | "nobody" | "gone" | "refused"; city?: string }> {
+    const keys = pushKeys();
+    if (!keys) return { sent: false, why: "keys" };
+    const db = getSupabaseAdminClient();
+    const latest = await db.from("nt_push_subscriptions").select("id,endpoint,p256dh,auth,lang,city").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (latest.error) throw latest.error;
+    const phone = latest.data;
+    if (!phone) return { sent: false, why: "nobody" };
+
+    const lang: Locale = isLocale(phone.lang) ? phone.lang : "fr";
+    const t = getDictionary(lang);
+    const city = cityBySlug(phone.city);
+    const notice = JSON.stringify({ title: t.notice.trialTitle, body: fill(t.notice.trialBody, { city: city?.name ?? phone.city }), url: `${paths.city(lang, phone.city)}?ref=meteo`, tag: "trial", lang });
+    webpush.setVapidDetails(SITE_URL, keys.publicKey, keys.privateKey);
+    try {
+        await webpush.sendNotification({ endpoint: phone.endpoint, keys: { p256dh: phone.p256dh, auth: phone.auth } }, notice, { TTL: 600 });
+        return { sent: true, city: city?.name ?? phone.city };
+    } catch (error) {
+        const status = (error as { statusCode?: number } | null)?.statusCode;
+        if (status === 404 || status === 410) {
+            await db.from("nt_push_subscriptions").delete().eq("id", phone.id);
+            return { sent: false, why: "gone" };
+        }
+        console.error("Trial notice not sent:", status ?? error);
+        return { sent: false, why: "refused" };
+    }
 }
