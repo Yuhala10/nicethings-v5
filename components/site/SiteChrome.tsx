@@ -159,8 +159,7 @@ export function TabBar() {
             className="pointer-events-none fixed inset-x-0 bottom-0 z-50 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:hidden"
             aria-label={t.nav.menu}
         >
-            {/* Its own layer when the page changes: the menu stays still while the page moves. */}
-            <ul className="nt-dock pointer-events-auto mx-auto flex w-fit items-center gap-2" style={{ viewTransitionName: "nt-dock" }}>
+            <ul className="nt-dock pointer-events-auto mx-auto flex w-fit items-center gap-2">
                 {tabs.map(({ key, href, label, icon: Icon, active: here }) => {
                     const active = chosen ? chosen === key : here;
                     return (

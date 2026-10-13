@@ -1217,45 +1217,30 @@
 }
 
 /* ---- From one page to another (app/[lang]/template.tsx) -------------------
-   The page being left fades and lifts a little; the next one rises into
-   place. Quick enough never to be waited for. The menu is its own layer and
-   stays where it is. */
-::view-transition-old(.nt-page-out) {
-    animation: 190ms cubic-bezier(0.4, 0, 1, 1) both nt-page-out;
-}
-
-/* Before that, the tap itself is answered: the page steps back at once and
-   waits like that while the next one is fetched (components/site/
-   NavProgress.tsx). Opacity only: anything else would move what is pinned
-   to the screen inside the page. */
+   The tap is answered at once: the page being left steps back and waits like
+   that while the next one is fetched (components/site/NavProgress.tsx). Then
+   the page arriving fades in. Opacity only, both times: it costs a phone
+   nothing, and it moves nothing that a page pins to the screen. The fade
+   leaves no trace once it is over, so what a page lays over the menu still
+   goes over it. */
 html[data-nt-leaving] #main {
     opacity: 0.42;
     transition: opacity 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-::view-transition-new(.nt-page-in) {
-    animation: 440ms cubic-bezier(0.2, 0.7, 0.2, 1) 90ms both nt-page-in;
-}
-
-@keyframes nt-page-out {
-    to {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.992);
-    }
+.nt-page {
+    animation: nt-page-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
 }
 
 @keyframes nt-page-in {
     from {
         opacity: 0;
-        transform: translateY(20px);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(.nt-page-out),
-    ::view-transition-new(.nt-page-in) {
-        animation-duration: 1ms;
-        animation-delay: 0ms;
+    .nt-page {
+        animation: none;
     }
 }
 
