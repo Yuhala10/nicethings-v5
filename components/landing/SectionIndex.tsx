@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 // The index of a long page, which follows the reader: it stays under the
 // top of the screen, lights up the part being read and keeps that name in
 // view; a tap on a name goes there. The page organises itself around
-// whoever is scrolling it.
+// whoever is scrolling it. Each name is its own floating pill: there is no
+// bar behind them, the page shows between.
 export default function SectionIndex({ items, label }: { items: { id: string; label: string }[]; label: string }) {
     const [active, setActive] = useState<string | null>(null);
     const bar = useRef<HTMLDivElement>(null);
@@ -39,16 +40,14 @@ export default function SectionIndex({ items, label }: { items: { id: string; la
     }, [active]);
 
     return (
-        <nav aria-label={label} className="nt-glass-strong sticky top-0 z-30 mt-10 border-y border-line md:top-16 md:mt-16">
-            <div ref={bar} className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none] md:px-5 [&::-webkit-scrollbar]:hidden">
+        <nav aria-label={label} className="pointer-events-none sticky top-0 z-30 mt-10 md:top-16 md:mt-16">
+            <div ref={bar} className="pointer-events-auto mx-auto flex max-w-6xl gap-2 overflow-x-auto px-3 pt-[max(env(safe-area-inset-top),0.6rem)] pb-3 [scrollbar-width:none] md:px-5 [&::-webkit-scrollbar]:hidden">
                 {items.map((item) => (
                     <a
                         key={item.id}
                         href={`#${item.id}`}
                         aria-current={active === item.id ? "true" : undefined}
-                        className={`inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[0.875rem] font-semibold transition-colors duration-200 ${
-                            active === item.id ? "bg-contrast text-on-contrast" : "text-text-2 hover:bg-surface-2"
-                        }`}
+                        className={`nt-pill inline-flex h-11 shrink-0 items-center rounded-full px-4 text-[0.875rem] font-semibold ${active === item.id ? "nt-pill-on" : ""}`}
                     >
                         {item.label}
                     </a>

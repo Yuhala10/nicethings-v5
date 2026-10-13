@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 import { LocaleProvider } from "@/components/site/LocaleProvider";
 import ScrollReveal from "@/components/site/ScrollReveal";
 import SiteChrome from "@/components/site/SiteChrome";
+import Welcome from "@/components/site/Welcome";
 import { FOUNDER, FOUNDER_ID, ORGANIZATION_ID } from "@/lib/founder";
 import { HEALTH_SCRIPT } from "@/lib/health-script";
 import { LOCALES, SITE_URL, getDictionary, isLocale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { siteShareImage } from "@/lib/share-image";
 import { TRANSLATE_GUARD } from "@/lib/translate-guard";
+import { WELCOME_SCRIPT } from "@/lib/welcome-script";
 import "./site.css";
 
 // Two voices: DM Sans for everything you operate, Instrument Serif for the
@@ -111,6 +113,8 @@ export default async function SiteLayout({ children, params }: Props) {
         <html lang={lang} translate="no" className={`${body.variable} ${editorial.variable}`} suppressHydrationWarning>
             <body>
                 <script dangerouslySetInnerHTML={{ __html: TRANSLATE_GUARD }} />
+                {/* Before anything is drawn: is this someone entering the site? (lib/welcome-script.ts) */}
+                <script dangerouslySetInnerHTML={{ __html: WELCOME_SCRIPT }} />
                 <script dangerouslySetInnerHTML={{ __html: HEALTH_SCRIPT }} />
                 {/* A browser without JavaScript reports itself with this invisible image. */}
                 <noscript>
@@ -138,6 +142,7 @@ export default async function SiteLayout({ children, params }: Props) {
                     }}
                 />
                 <LocaleProvider locale={lang} dictionary={dictionary}>
+                    <Welcome />
                     <SiteChrome>{children}</SiteChrome>
                 </LocaleProvider>
                 <ScrollReveal />

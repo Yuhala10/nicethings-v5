@@ -124,9 +124,10 @@ function SiteHeader() {
     );
 }
 
-// Phone navigation: four separate tiles floating over the page, the
-// current one in ink. Each tile carries its own border and shadow, so it
-// reads over photos, paper and the dark footer alike.
+// Phone navigation: four islands floating over the page, each on its own
+// (site.css, ".nt-island"). The one for the page being read opens to say its
+// name; the others are their icon alone. Dark with a light edge, so they read
+// over photos, paper and the dark footer alike.
 export function TabBar() {
     const { locale, t } = useLocale();
     const pathname = usePathname();
@@ -142,17 +143,15 @@ export function TabBar() {
             className="pointer-events-none fixed inset-x-0 bottom-0 z-50 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:hidden"
             aria-label={t.nav.menu}
         >
-            <ul className="nt-tabbar pointer-events-auto mx-auto flex w-fit gap-1 rounded-[1.45rem] p-1.5">
+            {/* Its own layer when the page changes: the menu stays still while the page moves. */}
+            <ul className="nt-dock pointer-events-auto mx-auto flex w-fit items-center gap-2" style={{ viewTransitionName: "nt-dock" }}>
                 {tabs.map(({ key, href, label, icon: Icon, active }) => (
                     <li key={key}>
-                        <Link
-                            href={href}
-                            prefetch={key === "map" || key === "search" ? false : undefined}
-                            className="nt-tab flex h-[3.3rem] w-[clamp(4.1rem,21vw,4.8rem)] flex-col items-center justify-center gap-[0.2rem] rounded-[1.05rem] text-[0.75rem] font-semibold tracking-[0.01em]"
-                            aria-current={active ? "page" : undefined}
-                        >
-                            <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
-                            {label}
+                        <Link href={href} prefetch={key === "map" || key === "search" ? false : undefined} className="nt-island" aria-current={active ? "page" : undefined} aria-label={label}>
+                            <Icon size={21} strokeWidth={active ? 2.2 : 1.9} />
+                            <span className="nt-island-label" aria-hidden>
+                                {label}
+                            </span>
                         </Link>
                     </li>
                 ))}

@@ -589,6 +589,11 @@ export const fr = {
         expiredTitle: "Cette invitation n'est plus valable.",
         expiredBody: "Elle a peut-être expiré, ou le lien a été coupé en route. Demande à la personne qui te l'a envoyée de t'en refaire une.",
     },
+    welcome: {
+        eyebrow: "Bienvenue sur",
+        skip: "Touche pour entrer",
+        lines: ["Le Cameroun n'est pas parfait. Il est immense.", "On l'appelle l'Afrique en miniature. Viens voir.", "Le Cameroun, une bonne adresse à la fois."],
+    },
     poster: {
         metaTitle: "Affiche de {name}",
         generalMetaTitle: "Affiche NiceThings",

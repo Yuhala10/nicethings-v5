@@ -587,6 +587,11 @@ export const en: Dictionary = {
         expiredTitle: "This invitation is no longer valid.",
         expiredBody: "It may have run out, or the link was cut on the way. Ask the person who sent it to make you a new one.",
     },
+    welcome: {
+        eyebrow: "Welcome to",
+        skip: "Tap to enter",
+        lines: ["Cameroon is not perfect. It is immense.", "They call it Africa in miniature. Come and see.", "Cameroon, one good place at a time."],
+    },
     poster: {
         metaTitle: "Poster for {name}",
         generalMetaTitle: "NiceThings poster",
