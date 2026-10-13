@@ -47,7 +47,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-    // Everything except admin, APIs, short links (/l/…, app/l), Next internals
-    // and files with extensions.
-    matcher: ["/((?!admin|api|l/|_next|.*\\..*).*)"],
+    // Everything except admin, APIs, short links (/l/…, app/l), invitations
+    // as they are sent (/i/…, app/i), Next internals and files with extensions.
+    matcher: ["/((?!admin|api|l/|i/|_next|.*\\..*).*)"],
 };

@@ -4,7 +4,7 @@
 // with the guest's name as its author and the tag "invite"; the site then
 // says whose it is (components/blog/ArticleView.tsx).
 
-const GUEST_TAG = "invite";
+export const GUEST_TAG = "invite";
 
 const plain = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
 

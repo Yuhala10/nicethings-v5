@@ -404,6 +404,64 @@ export async function pollShareJpeg(poll: PollState, lang: Locale) {
         .toBuffer();
 }
 
+// ---- The card of a personal invitation -------------------------------------
+// What a guest receives: their own name, set like a printed invitation, in
+// ink with a champagne line. No photo: the name is the picture.
+
+const CHAMPAGNE = "#d9bc8c";
+
+export function invitationShareImage(name: string, lang: Locale) {
+    return {
+        url: `/api/share/invitation?n=${encodeURIComponent(name)}&l=${lang}&v=${version(["invitation", lang, name])}`,
+        width: OG_SIZE.width,
+        height: OG_SIZE.height,
+        alt: name,
+        type: "image/jpeg",
+    };
+}
+
+export async function invitationShareJpeg(name: string, lang: Locale) {
+    const t = getDictionary(lang);
+    const size = name.length > 26 ? 84 : name.length > 18 ? 104 : name.length > 11 ? 128 : 156;
+    return toJpeg(
+        Promise.resolve(
+            new ImageResponse(
+                (
+                    <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: INK, color: PAPER, fontFamily: TEXT_FONT, fontWeight: 500, overflow: "hidden" }}>
+                        <div style={{ position: "absolute", top: -320, right: -220, width: 820, height: 820, borderRadius: 999, background: "radial-gradient(circle, rgba(192,71,27,0.34), rgba(21,17,14,0) 68%)" }} />
+                        <div style={{ position: "absolute", bottom: -380, left: -260, width: 760, height: 760, borderRadius: 999, background: "radial-gradient(circle, rgba(217,188,140,0.16), rgba(21,17,14,0) 68%)" }} />
+                        {/* The frame of a printed card. */}
+                        <div style={{ position: "absolute", top: 26, left: 26, right: 26, bottom: 26, borderRadius: 30, border: `2px solid ${CHAMPAGNE}`, opacity: 0.55 }} />
+                        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "70px 84px 64px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: "0.32em", color: CHAMPAGNE }}>{t.invitation.label.toLocaleUpperCase(lang)}</div>
+                                <div style={{ display: "flex", marginTop: 22, width: 90, height: 2, background: CHAMPAGNE, opacity: 0.7 }} />
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <div style={{ display: "flex", textAlign: "center", fontFamily: SERIF_FONT, fontWeight: 400, fontSize: size, lineHeight: 1, letterSpacing: "-0.015em" }}>{name}</div>
+                                <div style={{ display: "flex", marginTop: 22, fontFamily: SERIF_FONT, fontWeight: 400, fontSize: 46, color: CHAMPAGNE }}>{t.invitation.invites}</div>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                                <div style={{ display: "flex", fontFamily: TITLE_FONT, fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em" }}>
+                                    Nice<span style={{ color: "#ff7a3d" }}>Things</span>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 30px", borderRadius: 999, background: PAPER, color: INK, fontSize: 30, fontWeight: 700 }}>
+                                    {t.invitation.open}
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M5 12h14" />
+                                        <path d="m12 5 7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ),
+                { ...OG_SIZE, fonts: await cardFonts() }
+            )
+        )
+    );
+}
+
 export function postShareImage(post: PostSummary, lang: Locale) {
     const { title } = localised(post, lang);
     const v = version([lang, title, post.topic, post.cover, post.readingMinutes]);

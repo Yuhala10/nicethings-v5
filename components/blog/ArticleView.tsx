@@ -193,11 +193,11 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
 
                     {/* A guest's notebook says whose it is, and on what terms it is here. */}
                     {byGuest && (
-                        <div className="mt-8 rounded-[1.25rem] bg-surface-2 p-4 md:p-5">
-                            <p className="nt-eyebrow">{t.guest.eyebrow}</p>
-                            <p className="nt-serif mt-1 text-[1.5rem]">{post.author}</p>
-                            <p className="mt-1 text-[0.875rem] leading-relaxed text-muted">{t.guest.cardBody}</p>
-                            <Link href={paths.guests(lang)} className="nt-tap mt-3 inline-flex min-h-11 items-center gap-1.5 text-[0.875rem] font-semibold">
+                        <div className="mt-8 rounded-[1.6rem] bg-[#15110e] p-6 text-[#faf7f2] md:p-8">
+                            <p className="text-[0.75rem] font-semibold tracking-[0.24em] text-[#d9bc8c] uppercase">{t.guest.seal}</p>
+                            <p className="nt-serif mt-3 text-[2.25rem] leading-[1.05]">{post.author}</p>
+                            <p className="mt-3 max-w-xl text-[1rem] leading-relaxed text-[#faf7f2]/70">{t.guest.cardBody}</p>
+                            <Link href={paths.guests(lang)} className="nt-tap mt-5 inline-flex min-h-11 items-center gap-1.5 text-[0.875rem] font-semibold text-[#d9bc8c]">
                                 {t.guest.all}
                                 <ArrowRight size={15} />
                             </Link>
