@@ -7,6 +7,10 @@
 // or the site last seen more than half an hour ago. Robots, and the pages a
 // person opens to do one precise thing at once (their invitation, a poster
 // to print, the guidance), go straight in.
+//
+// The welcome waits for the visitor: it opens on their touch, or on any key,
+// and on nothing else. That touch is listened for here and not in the page's
+// own scripts, so it works from the first instant, before they have arrived.
 
 export const WELCOME_SEEN_KEY = "nt_seen";
 
@@ -19,4 +23,12 @@ if(/\\/(invitation|y-aller)\\//.test(location.pathname)||/\\/affiche\\/?$/.test(
 if(here&&n-last<18e5)return;
 d.setAttribute("data-nt-quote",String(Math.floor(n/1000)%3));
 d.setAttribute("data-nt-welcome","1");
+var events=["pointerdown","touchstart","keydown"];
+var open=function(){
+if(d.getAttribute("data-nt-welcome")!=="1")return;
+d.setAttribute("data-nt-welcome","open");
+for(var i=0;i<events.length;i++)removeEventListener(events[i],open,true);
+setTimeout(function(){d.removeAttribute("data-nt-welcome")},720);
+};
+for(var i=0;i<events.length;i++)addEventListener(events[i],open,{capture:true,passive:true});
 }catch(e){}})();`;
