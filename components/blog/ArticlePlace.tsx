@@ -12,32 +12,34 @@ import { useLocale } from "../site/LocaleProvider";
 import Inline from "./Inline";
 
 // A place inside an article: picture, live facts (open now, prices), the
-// writer's note, and the two actions that matter.
+// writer's note, and the two actions that matter. A place with no photo yet
+// gets no picture frame at all (an empty frame reads as a missing photo):
+// its number and heart sit beside its name instead.
 export default function ArticlePlace({ place, note, number }: { place: PlaceSummary; note: string; number?: number }) {
     const { locale, t } = useLocale();
     const kind = (place.category === "Restaurant" && cuisineLabel(place.cuisine, locale)) || tagLabel(CATEGORIES, place.category, locale);
     const area = [place.neighborhood, cityBySlug(place.city)?.name].filter(Boolean).join(", ");
+    const badge = "nt-sunset grid h-9 min-w-9 place-items-center rounded-full px-2 font-display text-sm font-extrabold text-white";
 
     return (
         <article id={`lieu-${place.slug}`} className="my-8 scroll-mt-24 overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-card">
-            <Link href={paths.place(locale, place.slug)} className="group relative block">
-                <PlaceThumb
-                    cover={place.cover}
-                    category={place.category}
-                    name={place.name}
-                    sizes="(min-width: 768px) 672px, 100vw"
-                    className="aspect-[16/10] w-full transition duration-500 group-hover:scale-[1.02]"
-                    iconSize={40}
-                />
-                {number !== undefined && (
-                    <span className="nt-sunset absolute top-3 left-3 grid h-9 min-w-9 place-items-center rounded-full px-2 font-display text-sm font-extrabold text-white shadow-lg">
-                        {number}
-                    </span>
-                )}
-                <SaveButton slug={place.slug} className="absolute top-3 right-3" />
-            </Link>
+            {place.cover && (
+                <Link href={paths.place(locale, place.slug)} className="group relative block">
+                    <PlaceThumb
+                        cover={place.cover}
+                        category={place.category}
+                        name={place.name}
+                        sizes="(min-width: 768px) 672px, 100vw"
+                        className="aspect-[16/10] w-full transition duration-500 group-hover:scale-[1.02]"
+                        iconSize={40}
+                    />
+                    {number !== undefined && <span className={`${badge} absolute top-3 left-3 shadow-lg`}>{number}</span>}
+                    <SaveButton slug={place.slug} className="absolute top-3 right-3" />
+                </Link>
+            )}
             <div className="p-5">
                 <div className="flex items-start gap-3">
+                    {!place.cover && number !== undefined && <span className={`${badge} mt-1 shrink-0`}>{number}</span>}
                     <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold tracking-wide text-brand-600 uppercase">{kind}</p>
                         <h3 className="nt-serif mt-1 flex min-w-0 items-center gap-1.5 text-[1.75rem] leading-tight">
@@ -52,6 +54,7 @@ export default function ArticlePlace({ place, note, number }: { place: PlaceSumm
                         </p>
                     </div>
                     <Rating rating={place.rating} count={place.reviewCount} />
+                    {!place.cover && <SaveButton slug={place.slug} className="shrink-0 border border-line shadow-none" />}
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                     <PriceLabel min={place.priceMin} max={place.priceMax} />
