@@ -18,6 +18,7 @@ import type { Locale } from "../i18n/config";
 //   /fr/blog, /fr/blog/<slug>    articles
 //   /fr/cuisine-de-rue           the street-food chronicles
 //   /fr/invites                  guests' notebooks, and the invitation to write one
+//   /fr/invites/<slug>           one guest's page: "Yaoundé, vu par …"
 //   /fr/invitation/<code>        one person's invitation and their notebook space
 //   /i/<code>                    the address an invitation is sent as (lib/invitations.ts)
 //   /fr/retour-au-pays           for people coming home (and its poster, /affiche)
@@ -110,6 +111,7 @@ export const paths = {
     culture: (locale: Locale) => `/${locale}/culture`,
     streetFood: (locale: Locale) => `/${locale}/cuisine-de-rue`,
     guests: (locale: Locale) => `/${locale}/invites`,
+    guest: (locale: Locale, slug: string) => `/${locale}/invites/${slug}`,
     invitation: (locale: Locale, code: string) => `/${locale}/invitation/${code}`,
     homecoming: (locale: Locale) => `/${locale}/retour-au-pays`,
     homecomingPoster: (locale: Locale) => `/${locale}/retour-au-pays/affiche`,

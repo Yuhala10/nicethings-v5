@@ -11,6 +11,8 @@ import PlaceActions from "@/components/place/PlaceActions";
 import PinCard from "@/components/place/PinCard";
 import PlaceMap from "@/components/place/PlaceMap";
 import PostWall from "@/components/place/PostWall";
+import GuestNod from "@/components/guest/GuestNod";
+import { guestsForPlace } from "@/lib/guests";
 import ReportButton from "@/components/place/ReportButton";
 import { OpenBadge, PlaceThumb, PriceLabel, Rating } from "@/components/place/bits";
 import { StickyPlaceBar } from "@/components/place/PlaceHeroBits";
@@ -297,6 +299,7 @@ export default async function PlacePage({ params }: Props) {
         ] as [string, string | null][]
     ).filter((row): row is [string, string] => Boolean(row[1]));
     const articles = await getPostsForPlace(place.slug);
+    const chosenBy = await guestsForPlace(place.slug);
     const hasHours = Boolean(place.hours.opens && place.hours.closes);
     const hasPrice = Boolean(place.priceMin || place.priceMax);
     // A lake or a mountain keeps no hours and has no price per head: nothing
@@ -350,6 +353,7 @@ export default async function PlacePage({ params }: Props) {
                     {hasPrice && <PriceLabel min={place.priceMin} max={place.priceMax} className="text-[0.875rem]" />}
                     {place.reviewCount > 0 && <Rating rating={place.rating} count={place.reviewCount} />}
                 </div>
+                {chosenBy.length > 0 && <GuestNod guests={chosenBy} locale={lang} />}
             </header>
 
             {/* The picture, or the place's printed poster. */}

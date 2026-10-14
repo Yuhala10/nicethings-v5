@@ -502,3 +502,139 @@ export function founderShareImage(lang: Locale) {
 export function founderShareJpeg(lang: Locale) {
     return toJpeg(ogCard({ eyebrow: FOUNDER.role[lang], title: FOUNDER.name, footer: FOUNDER.pull[lang].join(" "), tone: "#c0471b" }));
 }
+
+// ---- A guest's page ------------------------------------------------------------
+// "Yaoundé, vu par …", set like their invitation: ink, a champagne frame,
+// their photo. Two sizes: the card a conversation shows when their page is
+// shared, and the tall picture they post as a story (their link goes on it
+// as a sticker, so the address is written large enough to copy).
+
+export type GuestCardFacts = { slug: string; name: string; handle: string | null; number: number | null; city: string | null; cover: string | null };
+
+const STORY_SIZE = { width: 1080, height: 1920 };
+const GUEST_PHOTO_WIDTH = 520; // of the card's 1200
+
+function guestVersion(guest: GuestCardFacts, lang: Locale) {
+    return version(["guest", lang, guest.name, guest.handle, guest.number, guest.city, guest.cover]);
+}
+
+export function guestShareImage(guest: GuestCardFacts, lang: Locale) {
+    return {
+        url: `/api/share/guest/${guest.slug}?l=${lang}&v=${guestVersion(guest, lang)}`,
+        width: OG_SIZE.width,
+        height: OG_SIZE.height,
+        alt: guest.name,
+        type: "image/jpeg",
+    };
+}
+
+export function guestStoryImage(guest: GuestCardFacts, lang: Locale) {
+    return `/api/share/guest/${guest.slug}?l=${lang}&f=story&v=${guestVersion(guest, lang)}`;
+}
+
+function guestWords(guest: GuestCardFacts, lang: Locale) {
+    const t = getDictionary(lang);
+    const city = cityBySlug(guest.city)?.name ?? t.guestPage.country;
+    return {
+        city: fill(t.guestPage.cityLine, { city }),
+        by: fill(t.guestPage.byLine, { name: guest.name }),
+        seal: [t.guest.seal, guest.number ? fill(t.guestPage.number, { number: String(guest.number).padStart(2, "0") }) : null].filter(Boolean).join(" · ").toLocaleUpperCase(lang),
+    };
+}
+
+async function guestPhoto(url: string | null, width: number, height: number) {
+    if (!url) return null;
+    try {
+        const fetched = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (!fetched.ok) throw new Error(`Photo ${fetched.status}`);
+        return await sharp(Buffer.from(await fetched.arrayBuffer())).rotate().resize(width, height, { fit: "cover", position: sharp.strategy.attention }).toBuffer();
+    } catch (error) {
+        console.error("Guest photo failed, using the initial:", error);
+        return null;
+    }
+}
+
+export async function guestShareJpeg(guest: GuestCardFacts, lang: Locale) {
+    const t = getDictionary(lang);
+    const words = guestWords(guest, lang);
+    const size = words.by.length > 30 ? 54 : words.by.length > 22 ? 64 : words.by.length > 15 ? 76 : 90;
+    const photo = await guestPhoto(guest.cover, GUEST_PHOTO_WIDTH, OG_SIZE.height);
+    const overlay = new ImageResponse(
+        (
+            <div style={{ width: "100%", height: "100%", display: "flex", fontFamily: TEXT_FONT, fontWeight: 500 }}>
+                <div style={{ width: GUEST_PHOTO_WIDTH, height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: photo ? "transparent" : `linear-gradient(135deg, #2a2019, ${INK})` }}>
+                    {!photo && <div style={{ display: "flex", fontFamily: SERIF_FONT, fontWeight: 400, fontSize: 340, lineHeight: 1, color: CHAMPAGNE }}>{guest.name.trim().charAt(0).toLocaleUpperCase()}</div>}
+                </div>
+                <div style={{ flex: 1, display: "flex", position: "relative", background: INK, color: PAPER, overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: -260, right: -260, width: 640, height: 640, borderRadius: 999, background: "radial-gradient(circle, rgba(192,71,27,0.32), rgba(21,17,14,0) 68%)" }} />
+                    <div style={{ position: "absolute", top: 22, left: 22, right: 22, bottom: 22, borderRadius: 24, border: `2px solid ${CHAMPAGNE}`, opacity: 0.5 }} />
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: "100%", padding: "52px 56px 50px" }}>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <div style={{ display: "flex", fontFamily: TITLE_FONT, fontSize: 30, fontWeight: 800, letterSpacing: "-0.03em" }}>
+                                Nice<span style={{ color: "#ff7a3d" }}>Things</span>
+                            </div>
+                            <div style={{ display: "flex", marginTop: 14, fontSize: 19, fontWeight: 700, letterSpacing: "0.2em", color: CHAMPAGNE }}>{words.seal}</div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <div style={{ display: "flex", fontFamily: SERIF_FONT, fontWeight: 400, fontSize: 52, lineHeight: 1, color: CHAMPAGNE }}>{words.city}</div>
+                            <div style={{ display: "flex", marginTop: 8, fontFamily: SERIF_FONT, fontWeight: 400, fontSize: size, lineHeight: 1.02, letterSpacing: "-0.01em" }}>{words.by}</div>
+                            {guest.handle && <div style={{ display: "flex", marginTop: 16, fontSize: 28, color: "rgba(250,247,242,0.7)" }}>{guest.handle}</div>}
+                        </div>
+                        <div style={{ display: "flex" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 28px", borderRadius: 999, background: PAPER, color: INK, fontSize: 28, fontWeight: 700 }}>
+                                {t.guestPage.cardCta}
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M5 12h14" />
+                                    <path d="m12 5 7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ),
+        { ...OG_SIZE, fonts: await cardFonts() }
+    );
+    const drawn = Buffer.from(await overlay.arrayBuffer());
+    return sharp({ create: { ...OG_SIZE, channels: 3, background: INK } })
+        .composite([...(photo ? [{ input: photo, top: 0, left: 0 }] : []), { input: drawn, top: 0, left: 0 }])
+        .jpeg({ quality: QUALITY, mozjpeg: true })
+        .toBuffer();
+}
+
+export async function guestStoryJpeg(guest: GuestCardFacts, lang: Locale, address: string) {
+    const t = getDictionary(lang);
+    const words = guestWords(guest, lang);
+    const size = words.by.length > 30 ? 92 : words.by.length > 22 ? 108 : words.by.length > 15 ? 124 : 140;
+    const photoHeight = 1240;
+    const photo = await guestPhoto(guest.cover, STORY_SIZE.width, photoHeight);
+    const overlay = new ImageResponse(
+        (
+            <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", fontFamily: TEXT_FONT, fontWeight: 500, color: PAPER }}>
+                {/* The photo fades into the ink where the words begin. */}
+                <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 300, background: "linear-gradient(to bottom, rgba(21,17,14,0.75), rgba(21,17,14,0))" }} />
+                <div style={{ position: "absolute", left: 0, right: 0, top: photoHeight - 520, height: 520, background: `linear-gradient(to bottom, rgba(21,17,14,0), ${INK})` }} />
+                {!photo && <div style={{ position: "absolute", left: 0, right: 0, top: 260, display: "flex", justifyContent: "center", fontFamily: SERIF_FONT, fontWeight: 400, fontSize: 620, lineHeight: 1, color: CHAMPAGNE, opacity: 0.85 }}>{guest.name.trim().charAt(0).toLocaleUpperCase()}</div>}
+                <div style={{ position: "absolute", top: 34, left: 34, right: 34, bottom: 34, borderRadius: 40, border: `3px solid ${CHAMPAGNE}`, opacity: 0.55 }} />
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 96 }}>
+                    <div style={{ display: "flex", fontFamily: TITLE_FONT, fontSize: 52, fontWeight: 800, letterSpacing: "-0.03em" }}>
+                        Nice<span style={{ color: "#ff7a3d" }}>Things</span>
+                    </div>
+                    <div style={{ display: "flex", marginTop: 18, padding: "10px 26px", borderRadius: 999, border: `2px solid ${CHAMPAGNE}`, fontSize: 26, fontWeight: 700, letterSpacing: "0.2em", color: CHAMPAGNE, background: "rgba(21,17,14,0.45)" }}>{words.seal}</div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 80px 120px", textAlign: "center" }}>
+                    <div style={{ display: "flex", fontFamily: SERIF_FONT, fontWeight: 400, fontSize: 86, lineHeight: 1, color: CHAMPAGNE }}>{words.city}</div>
+                    <div style={{ display: "flex", marginTop: 10, fontFamily: SERIF_FONT, fontWeight: 400, fontSize: size, lineHeight: 1, letterSpacing: "-0.01em", textAlign: "center" }}>{words.by}</div>
+                    <div style={{ display: "flex", marginTop: 34, fontSize: 40, color: "rgba(250,247,242,0.75)" }}>{t.guestPage.storyLine}</div>
+                    <div style={{ display: "flex", marginTop: 54, padding: "22px 40px", borderRadius: 999, background: PAPER, color: INK, fontSize: 34, fontWeight: 700 }}>{address}</div>
+                </div>
+            </div>
+        ),
+        { ...STORY_SIZE, fonts: await cardFonts() }
+    );
+    const drawn = Buffer.from(await overlay.arrayBuffer());
+    return sharp({ create: { ...STORY_SIZE, channels: 3, background: INK } })
+        .composite([...(photo ? [{ input: photo, top: 0, left: 0 }] : []), { input: drawn, top: 0, left: 0 }])
+        .jpeg({ quality: 86, mozjpeg: true })
+        .toBuffer();
+}

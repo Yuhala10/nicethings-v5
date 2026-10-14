@@ -8,11 +8,14 @@ import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 
 // Under an article: what readers think, and a place to say it. A comment
-// is read by the team before it shows, and the form says so.
+// is read by the team before it shows, and the form says so. A guest's page
+// uses it as their guest book, with its own words (`words`).
 
 export type ShownComment = { id: string; name: string | null; body: string; date: string };
 
-export default function Comments({ postId, comments }: { postId: string; comments: ShownComment[] }) {
+type Words = { eyebrow?: string; title: string; lead: string; empty: string };
+
+export default function Comments({ postId, comments, words }: { postId: string; comments: ShownComment[]; words?: Words }) {
     const { t } = useLocale();
     const [name, setName] = useState("");
     const [body, setBody] = useState("");
@@ -49,10 +52,10 @@ export default function Comments({ postId, comments }: { postId: string; comment
         <div>
             <p className="nt-eyebrow flex items-center gap-2">
                 <MessageCircle size={14} />
-                {comments.length ? fill(comments.length === 1 ? t.comments.countOne : t.comments.countMany, { count: comments.length }) : t.comments.eyebrow}
+                {comments.length ? fill(comments.length === 1 ? t.comments.countOne : t.comments.countMany, { count: comments.length }) : (words?.eyebrow ?? t.comments.eyebrow)}
             </p>
-            <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{t.comments.title}</h2>
-            <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{comments.length ? t.comments.lead : t.comments.empty}</p>
+            <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{words?.title ?? t.comments.title}</h2>
+            <p className="mt-3 max-w-2xl text-[1rem] leading-relaxed text-text-2">{comments.length ? (words?.lead ?? t.comments.lead) : (words?.empty ?? t.comments.empty)}</p>
 
             {comments.length > 0 && (
                 <ul className="mt-7 flex flex-col gap-3">

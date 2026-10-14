@@ -15,6 +15,7 @@ import { paths } from "@/lib/places/paths";
 import { getAllPlaces, getStoryPlaces } from "@/lib/places/server";
 import { todaysStories } from "@/lib/places/stories";
 import { getPosts } from "@/lib/blog/server";
+import { getGuests } from "@/lib/guests";
 import type { PlaceSummary } from "@/lib/places/types";
 import { AMENITIES, CATEGORIES, GOOD_FOR, VIBES, tagLabel } from "@/lib/tags";
 
@@ -149,6 +150,7 @@ export default async function HomePage({ params }: Props) {
             demos={demos}
             nowPlaces={compactPlaces(hostPool(homePlaces, NOW_PLACES))}
             stories={stories}
+            guests={await getGuests().catch(() => [])}
         />
     );
 }

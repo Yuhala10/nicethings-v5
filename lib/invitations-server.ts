@@ -4,6 +4,7 @@ import { readPostChanges, uniquePostSlug } from "./blog/admin";
 import type { Block } from "./blog/blocks";
 import { GUEST_TAG } from "./blog/guest";
 import { cityBySlug } from "./cities";
+import { cleanHandle, saveGuestCard } from "./guests";
 import type { Invitation } from "./invitations";
 import { getAllPlaces, getPlacesBySlugs } from "./places/server";
 import { getSupabaseAdminClient } from "./supabase/admin";
@@ -83,9 +84,15 @@ export function readNotebook(invitation: Invitation, body: Record<string, unknow
     }
     if (entries.length === 0 || body.agree !== true) return null;
     const link = text(body.link, 200);
+    // Their guest's card: a photo of them (sent through this invitation too),
+    // their account, one sentence about who they are.
+    const portrait = typeof body.portrait === "string" && body.portrait.startsWith(mine) && /^[\w./:-]+\.jpg$/.test(body.portrait) ? body.portrait : null;
     return {
         name: text(body.name, 60).replace(/\s+/g, " ") || invitation.name,
         link: /^https:\/\/[^\s"'<>]+$/.test(link) ? link : null,
+        handle: cleanHandle(body.handle),
+        portrait,
+        intro: text(body.intro, 160).replace(/\s+/g, " ") || null,
         title: text(body.title, 120).replace(/\s+/g, " "),
         entries,
     };
@@ -126,6 +133,13 @@ export async function saveNotebook(invitation: Invitation, notebook: NonNullable
     const columns = readPostChanges({ title_fr: title, body_fr: blocks, body_en: [], author: notebook.name, tags: [GUEST_TAG, mark], topic: "guide", city: firstCity, cover_url: cover?.url ?? null, cover_alt: cover?.alt ?? null, status: "DRAFT" });
     const saved = await db.from("nt_posts").insert({ ...columns, slug: await uniquePostSlug(db, title) });
     if (saved.error) throw saved.error;
+
+    // Their card, which becomes their page once the team publishes a notebook.
+    try {
+        await saveGuestCard(invitation, { name: notebook.name, handle: notebook.handle, link: notebook.link, portrait: notebook.portrait, intro: notebook.intro });
+    } catch (error) {
+        console.error("Guest card not saved:", error);
+    }
 
     // Places the site does not have yet go to the team's queue, marked as the guest's.
     const proposed = notebook.entries.flatMap((entry) => (entry.fresh ? [entry] : []));

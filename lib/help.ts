@@ -132,10 +132,14 @@ export const HELP: Record<Locale, HelpTopic[]> = {
         {
             id: "invites",
             icon: "guest",
-            title: "Carnets d'invités",
-            lead: "Des gens d'ici racontent leurs adresses.",
-            steps: ["Un chef, une créatrice, un voyageur : leurs lieux, leurs photos, leur nom en signature.", "On devient invité sur invitation de l'équipe, ou en proposant son carnet."],
-            link: { label: "Voir les carnets", to: "guests" },
+            title: "Les invités",
+            lead: "Le Cameroun, à travers leurs yeux.",
+            steps: [
+                "Un chef, une créatrice, un voyageur : chaque invité a sa page, « Yaoundé, vu par … », avec ses lieux, ses photos et ses mots.",
+                "Un lieu qu'il a choisi porte son visage sous son nom. Donne-lui un coup de cœur, laisse-lui un mot dans son livre d'or.",
+                "On devient invité sur invitation : demande la tienne sur la page des invités, l'équipe répond en message privé.",
+            ],
+            link: { label: "Voir les invités", to: "guests" },
         },
         {
             id: "pro",
@@ -280,10 +284,14 @@ export const HELP: Record<Locale, HelpTopic[]> = {
         {
             id: "invites",
             icon: "guest",
-            title: "Guest notebooks",
-            lead: "People from here tell their places.",
-            steps: ["A chef, a creator, a traveller: their places, their photos, their name on it.", "One becomes a guest by invitation from the team, or by proposing a notebook."],
-            link: { label: "See the notebooks", to: "guests" },
+            title: "The guests",
+            lead: "Cameroon, through their eyes.",
+            steps: [
+                "A chef, a creator, a traveller: each guest has their page, “Yaoundé, as seen by …”, with their places, their photos and their words.",
+                "A place they chose shows their face under its name. Give them a heart, leave them a word in their guest book.",
+                "Guests come by invitation: ask for yours on the guests' page, and the team answers in a private message.",
+            ],
+            link: { label: "See the guests", to: "guests" },
         },
         {
             id: "pro",

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Database, MapPin, Newspaper, PenLine, Plus, Star } from "lucide-react";
+import GuestRequests from "@/components/admin/blog/GuestRequests";
 import InviteGuest from "@/components/admin/blog/InviteGuest";
 import { useAdminLang, useTr } from "@/components/admin/i18n";
 import { Empty, PageHeader, Skeleton, timeAgo, useAdminData, useAdminToast } from "@/components/admin/ui";
@@ -69,6 +70,7 @@ export default function BlogAdminPage() {
             />
 
             {data && !data.setup && <InviteGuest />}
+            {data && !data.setup && <GuestRequests />}
 
             {loading && !data ? (
                 <div className="grid gap-3">

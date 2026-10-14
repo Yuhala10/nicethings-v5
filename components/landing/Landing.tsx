@@ -1,4 +1,5 @@
 import Film from "./Film";
+import GuestsSection from "./GuestsSection";
 import ReturnMode from "./ReturnMode";
 import SectionIndex from "./SectionIndex";
 import type { StoryPlace } from "@/lib/places/server";
@@ -19,6 +20,7 @@ import type { EditorialRail } from "@/lib/places/editorial";
 import { paths } from "@/lib/places/paths";
 import type { PlaceSummary } from "@/lib/places/types";
 import type { PostSummary } from "@/lib/blog/server";
+import type { Guest } from "@/lib/guests";
 import Constellation from "./Constellation";
 import HeroSearch from "./HeroSearch";
 
@@ -42,6 +44,7 @@ export default function Landing({
     demos,
     nowPlaces,
     stories,
+    guests,
 }: {
     locale: Locale;
     points: number[];
@@ -57,6 +60,7 @@ export default function Landing({
     posts: PostSummary[];
     demos: Demo[];
     nowPlaces: CompactPlace[]; // the home city's best-known places, for "right now"
+    guests: Guest[]; // invited people whose page is out
 }) {
     const t = getDictionary(locale);
     const total = Object.values(cityCounts).reduce((sum, value) => sum + value, 0);
@@ -195,6 +199,9 @@ export default function Landing({
                     </Link>
                 </section>
             )}
+
+            {/* ---------------- The guests: the city through their eyes ---------------- */}
+            <GuestsSection guests={guests} locale={locale} />
 
             {/* ---------------- The home city, by mood ---------------- */}
             {rails.length > 0 && (

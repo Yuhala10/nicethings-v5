@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPosts, loadPosts } from "@/lib/blog/server";
 import { CITIES } from "@/lib/cities";
+import { getGuests } from "@/lib/guests";
 import { SITE_URL, type Locale } from "@/lib/i18n/config";
 import { areasOf } from "@/lib/places/areas";
 import { availableCollections } from "@/lib/places/collections";
@@ -84,7 +85,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push(...entry(paths.culture, 0.7));
     entries.push(...entry(paths.streetFood, 0.6));
     entries.push(...entry(paths.homecoming, 0.6));
-    entries.push(...entry(paths.guests, 0.4));
+    entries.push(...entry(paths.guests, 0.5));
+    // Each guest's page, once it is out.
+    for (const guest of await getGuests().catch(() => [])) entries.push(...entry((l) => paths.guest(l, guest.slug), 0.6));
     entries.push(...entry(paths.sitemapPage, 0.3));
 
     // The blog, and each article (English only when it is translated).

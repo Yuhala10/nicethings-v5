@@ -8,6 +8,7 @@ import { getPosts, localised, type Post } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
 import { cityBySlug } from "@/lib/cities";
 import { FOUNDER, ORGANIZATION_ID, founderJsonLd, isFounder } from "@/lib/founder";
+import { getGuests, refOf } from "@/lib/guests";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { getPlacesBySlugs } from "@/lib/places/server";
@@ -41,6 +42,9 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
     const shareImage = postShareImage(post, lang).url;
     const byFounder = isFounder(post.author);
     const byGuest = !byFounder && isGuest(post);
+    // The guest's own page, once it is out: their notebook leads to it.
+    const guestRef = byGuest ? refOf(post) : null;
+    const guestPage = guestRef ? ((await getGuests().catch(() => [])).find((guest) => guest.ref === guestRef) ?? null) : null;
 
     const all = await getPosts().catch(() => []);
     // Not on the preview of a draft: nobody can comment on what is not out.
@@ -193,14 +197,24 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
 
                     {/* A guest's notebook says whose it is, and on what terms it is here. */}
                     {byGuest && (
-                        <div className="mt-8 rounded-[1.6rem] bg-[#15110e] p-6 text-[#faf7f2] md:p-8">
-                            <p className="text-[0.75rem] font-semibold tracking-[0.24em] text-[#d9bc8c] uppercase">{t.guest.seal}</p>
-                            <p className="nt-serif mt-3 text-[2.25rem] leading-[1.05]">{post.author}</p>
-                            <p className="mt-3 max-w-xl text-[1rem] leading-relaxed text-[#faf7f2]/70">{t.guest.cardBody}</p>
-                            <Link href={paths.guests(lang)} className="nt-tap mt-5 inline-flex min-h-11 items-center gap-1.5 text-[0.875rem] font-semibold text-[#d9bc8c]">
-                                {t.guest.all}
-                                <ArrowRight size={15} />
-                            </Link>
+                        <div className="mt-8 flex items-center gap-5 rounded-[1.6rem] bg-[#15110e] p-6 text-[#faf7f2] md:p-8">
+                            {guestPage?.cover && (
+                                <Link href={paths.guest(lang, guestPage.slug)} className="relative h-28 w-[5.25rem] shrink-0 overflow-hidden rounded-t-[999px] rounded-b-[0.9rem] border border-[#d9bc8c]/70">
+                                    <Image src={guestPage.cover} alt={post.author} fill sizes="84px" className="object-cover" />
+                                </Link>
+                            )}
+                            <div className="min-w-0">
+                                <p className="text-[0.75rem] font-semibold tracking-[0.24em] text-[#d9bc8c] uppercase">
+                                    {t.guest.seal}
+                                    {guestPage?.number ? ` · ${fill(t.guestPage.number, { number: String(guestPage.number).padStart(2, "0") })}` : ""}
+                                </p>
+                                <p className="nt-serif mt-3 text-[2.25rem] leading-[1.05]">{post.author}</p>
+                                <p className="mt-3 max-w-xl text-[1rem] leading-relaxed text-[#faf7f2]/70">{t.guest.cardBody}</p>
+                                <Link href={guestPage ? paths.guest(lang, guestPage.slug) : paths.guests(lang)} className="nt-tap mt-5 inline-flex min-h-11 items-center gap-1.5 text-[0.875rem] font-semibold text-[#d9bc8c]">
+                                    {guestPage ? t.guestPage.cardCta : t.guest.all}
+                                    <ArrowRight size={15} />
+                                </Link>
+                            </div>
                         </div>
                     )}
 

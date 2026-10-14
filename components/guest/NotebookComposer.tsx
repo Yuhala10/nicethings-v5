@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, ImagePlus, MapPin, Plus, Search, Send, Sparkles, X } from "lucide-react";
+import { ArrowRight, Camera, Check, ImagePlus, MapPin, Plus, Search, Send, Sparkles, X } from "lucide-react";
 import { CITIES } from "@/lib/cities";
 import { compressImage } from "@/lib/compress-image";
 import { fill } from "@/lib/i18n";
@@ -10,9 +10,11 @@ import { paths } from "@/lib/places/paths";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
-// A guest's notebook, written by the guest (app/[lang]/invitation). For each
-// place: find it on NiceThings, or add it if the site does not have it yet
-// (a guest's privilege), then their own pictures and why they go there.
+// A guest's notebook, written by the guest (app/[lang]/invitation). First
+// their guest's card (a photo of them, their account, one sentence), which
+// becomes their page once the notebook is out. Then, for each place: find
+// it on NiceThings, or add it if the site does not have it yet (a guest's
+// privilege), then their own pictures and why they go there.
 // Nothing is published from here: sending hands the notebook to the team,
 // which reads it and brings it out under the guest's name. What is being
 // written is kept on the phone, so closing the page loses nothing.
@@ -20,7 +22,8 @@ import { useToast } from "../site/Toast";
 type Found = { slug: string; name: string; area: string };
 type Fresh = { name: string; city: string; where: string };
 type Entry = { id: string; place: Found | null; fresh: Fresh | null; photos: string[]; words: string };
-type Draft = { name: string; link: string; title: string; entries: Entry[] };
+type Draft = { name: string; link: string; title: string; entries: Entry[]; handle: string; intro: string; portrait: string };
+type Card = { handle: string; link: string; intro: string; portrait: string };
 
 const MAX_PLACES = 10;
 const MAX_PHOTOS = 3;
@@ -213,11 +216,54 @@ function PlaceEntry({ index, entry, code, alone, onChange, onRemove }: { index: 
     );
 }
 
-export default function NotebookComposer({ code, guest }: { code: string; guest: string }) {
+// Their photo: one picture of them, sent through the invitation like the others.
+function Portrait({ code, url, onChange }: { code: string; url: string; onChange: (url: string) => void }) {
+    const { t } = useLocale();
+    const toast = useToast();
+    const picker = useRef<HTMLInputElement>(null);
+    const [sending, setSending] = useState(false);
+    const choose = async (files: FileList | null) => {
+        const file = files?.[0];
+        if (!file) return;
+        setSending(true);
+        try {
+            const form = new FormData();
+            form.set("code", code);
+            form.set("file", await compressImage(file, 1600, 0.86));
+            const answer = await fetch("/api/invitations/photo", { method: "POST", body: form });
+            const data = (await answer.json().catch(() => null)) as { ok?: boolean; url?: string; why?: string } | null;
+            if (data?.ok && data.url) onChange(data.url);
+            else toast(data?.why === "many" ? t.invitation.tooManyPictures : t.invitation.pictureFailed);
+        } catch {
+            toast(t.invitation.pictureFailed);
+        }
+        setSending(false);
+        if (picker.current) picker.current.value = "";
+    };
+    return (
+        <div className="flex items-center gap-4">
+            <button type="button" onClick={() => picker.current?.click()} className="relative h-28 w-[5.25rem] shrink-0 overflow-hidden rounded-t-[999px] rounded-b-[0.9rem] border border-[#d9bc8c] bg-surface p-1" aria-label={url ? t.invitation.portraitChange : t.invitation.portraitAdd}>
+                <span className="relative block h-full w-full overflow-hidden rounded-t-[999px] rounded-b-[0.7rem] bg-surface-2">
+                    {sending ? <span className="nt-skeleton absolute inset-0" aria-hidden /> : url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <Camera size={22} className="absolute inset-0 m-auto text-muted" />}
+                </span>
+            </button>
+            <div className="min-w-0">
+                <p className={LABEL}>{t.invitation.portrait}</p>
+                <p className="mt-0.5 text-[0.875rem] leading-snug text-muted">{t.invitation.portraitHint}</p>
+                <button type="button" onClick={() => picker.current?.click()} className="nt-tap mt-1 min-h-11 text-[0.875rem] font-semibold text-brand-600 underline-offset-4 hover:underline">
+                    {url ? t.invitation.portraitChange : t.invitation.portraitAdd}
+                </button>
+            </div>
+            <input ref={picker} type="file" accept="image/*" hidden onChange={(event) => void choose(event.target.files)} />
+        </div>
+    );
+}
+
+export default function NotebookComposer({ code, guest, card = null }: { code: string; guest: string; card?: Card | null }) {
     const { locale, t } = useLocale();
     const toast = useToast();
     const counter = useRef(1);
-    const [draft, setDraft] = useState<Draft>({ name: guest, link: "", title: "", entries: [empty("p1")] });
+    const [draft, setDraft] = useState<Draft>({ name: guest, link: card?.link ?? "", title: "", entries: [empty("p1")], handle: card?.handle ?? "", intro: card?.intro ?? "", portrait: card?.portrait ?? "" });
     const [agree, setAgree] = useState(false);
     const [state, setState] = useState<"writing" | "sending" | "sent">("writing");
     const [restored, setRestored] = useState(false);
@@ -229,7 +275,15 @@ export default function NotebookComposer({ code, guest }: { code: string; guest:
             const kept = JSON.parse(localStorage.getItem(storageKey) ?? "null") as Draft | null;
             if (kept && Array.isArray(kept.entries) && kept.entries.length) {
                 counter.current = kept.entries.length + 1;
-                setDraft({ name: kept.name || guest, link: kept.link ?? "", title: kept.title ?? "", entries: kept.entries.map((entry, index) => ({ ...empty(`p${index + 1}`), ...entry, id: `p${index + 1}` })) });
+                setDraft({
+                    name: kept.name || guest,
+                    link: kept.link ?? card?.link ?? "",
+                    title: kept.title ?? "",
+                    entries: kept.entries.map((entry, index) => ({ ...empty(`p${index + 1}`), ...entry, id: `p${index + 1}` })),
+                    handle: kept.handle ?? card?.handle ?? "",
+                    intro: kept.intro ?? card?.intro ?? "",
+                    portrait: kept.portrait ?? card?.portrait ?? "",
+                });
             }
         } catch {
             // Nothing kept, or nothing readable: a blank notebook.
@@ -259,7 +313,17 @@ export default function NotebookComposer({ code, guest }: { code: string; guest:
             const answer = await fetch("/api/invitations", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code, name: draft.name, link: draft.link.trim(), title: draft.title, agree: true, places: filled.map((entry) => ({ slug: entry.place?.slug ?? null, fresh: entry.fresh, photos: entry.photos, words: entry.words })) }),
+                body: JSON.stringify({
+                    code,
+                    name: draft.name,
+                    link: draft.link.trim(),
+                    handle: draft.handle.trim(),
+                    intro: draft.intro,
+                    portrait: draft.portrait || null,
+                    title: draft.title,
+                    agree: true,
+                    places: filled.map((entry) => ({ slug: entry.place?.slug ?? null, fresh: entry.fresh, photos: entry.photos, words: entry.words })),
+                }),
             });
             const data = (await answer.json().catch(() => null)) as { ok?: boolean; why?: string } | null;
             if (!data?.ok) {
@@ -298,14 +362,27 @@ export default function NotebookComposer({ code, guest }: { code: string; guest:
 
     return (
         <div className="mx-auto max-w-2xl">
-            <div className="grid gap-4 rounded-[1.6rem] bg-surface-2 p-5 md:p-7">
+            <div className="grid gap-4 rounded-[1.6rem] border border-[#d9bc8c]/70 bg-surface-2 p-5 md:p-7">
+                <div>
+                    <p className="text-[0.75rem] font-bold tracking-[0.2em] text-[#a8824a] uppercase">{t.invitation.cardEyebrow}</p>
+                    <p className="mt-1 text-[0.875rem] leading-relaxed text-muted">{t.invitation.cardLead}</p>
+                </div>
+                <Portrait code={code} url={draft.portrait} onChange={(portrait) => setDraft((current) => ({ ...current, portrait }))} />
                 <label className="grid gap-1.5">
                     <span className={LABEL}>{t.invitation.yourName}</span>
                     <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={60} autoComplete="name" className={FIELD} />
                 </label>
                 <label className="grid gap-1.5">
+                    <span className={LABEL}>{t.invitation.yourHandle}</span>
+                    <input value={draft.handle} onChange={(event) => setDraft({ ...draft, handle: event.target.value })} maxLength={120} autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="@…" className={FIELD} />
+                </label>
+                <label className="grid gap-1.5">
                     <span className={LABEL}>{t.invitation.yourLink}</span>
                     <input value={draft.link} onChange={(event) => setDraft({ ...draft, link: event.target.value })} maxLength={200} inputMode="url" placeholder="https://www.tiktok.com/@…" className={FIELD} />
+                </label>
+                <label className="grid gap-1.5">
+                    <span className={LABEL}>{t.invitation.yourIntro}</span>
+                    <input value={draft.intro} onChange={(event) => setDraft({ ...draft, intro: event.target.value })} maxLength={160} placeholder={t.invitation.yourIntroHint} className={FIELD} />
                 </label>
                 <label className="grid gap-1.5">
                     <span className={LABEL}>{t.invitation.notebookTitle}</span>
