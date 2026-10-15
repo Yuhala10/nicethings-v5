@@ -410,9 +410,14 @@ export async function pollShareJpeg(poll: PollState, lang: Locale) {
 
 const CHAMPAGNE = "#d9bc8c";
 
-export function invitationShareImage(name: string, lang: Locale) {
+// What an invitation card shows besides the name: its rank, and the guest of
+// honour who gave it (their name, read from their card, never from the URL).
+export type InvitationLook = { tier?: "guest" | "honour"; giver?: { ref: string; name: string } | null };
+
+export function invitationShareImage(name: string, lang: Locale, look: InvitationLook = {}) {
+    const marks = `${look.tier === "honour" ? "&t=h" : ""}${look.giver ? `&g=${look.giver.ref}` : ""}`;
     return {
-        url: `/api/share/invitation?n=${encodeURIComponent(name)}&l=${lang}&v=${version(["invitation", lang, name])}`,
+        url: `/api/share/invitation?n=${encodeURIComponent(name)}&l=${lang}${marks}&v=${version(["invitation", lang, name, look.tier ?? "guest", look.giver?.name ?? null])}`,
         width: OG_SIZE.width,
         height: OG_SIZE.height,
         alt: name,
@@ -420,34 +425,57 @@ export function invitationShareImage(name: string, lang: Locale) {
     };
 }
 
-export async function invitationShareJpeg(name: string, lang: Locale) {
+// The green and gold of a guest of honour.
+const EMERALD = "#0a3326";
+const EMERALD_DEEP = "#06231a";
+const GOLD = "#e2c065";
+const GOLD_LIGHT = "#f3d77e";
+const IVORY = "#fbf6e9";
+
+function GoldStar({ size }: { size: number }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24">
+            <path d="M12 2.2l2.95 6.3 6.9.8-5.1 4.7 1.37 6.8L12 17.4l-6.12 3.4 1.37-6.8-5.1-4.7 6.9-.8z" fill={GOLD_LIGHT} />
+        </svg>
+    );
+}
+
+export async function invitationShareJpeg(name: string, lang: Locale, look: InvitationLook = {}) {
     const t = getDictionary(lang);
+    const honour = look.tier === "honour";
+    const ink = honour ? EMERALD : INK;
+    const gold = honour ? GOLD : CHAMPAGNE;
+    const paper = honour ? IVORY : PAPER;
     const size = name.length > 26 ? 84 : name.length > 18 ? 104 : name.length > 11 ? 128 : 156;
+    const label = (honour ? t.honour.label : t.invitation.label).toLocaleUpperCase(lang);
+    const line = look.giver ? fill(t.honour.giftedBy, { name: look.giver.name }) : honour ? t.honour.invites : t.invitation.invites;
     return toJpeg(
         Promise.resolve(
             new ImageResponse(
                 (
-                    <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: INK, color: PAPER, fontFamily: TEXT_FONT, fontWeight: 500, overflow: "hidden" }}>
-                        <div style={{ position: "absolute", top: -320, right: -220, width: 820, height: 820, borderRadius: 999, background: "radial-gradient(circle, rgba(192,71,27,0.34), rgba(21,17,14,0) 68%)" }} />
-                        <div style={{ position: "absolute", bottom: -380, left: -260, width: 760, height: 760, borderRadius: 999, background: "radial-gradient(circle, rgba(217,188,140,0.16), rgba(21,17,14,0) 68%)" }} />
-                        {/* The frame of a printed card. */}
-                        <div style={{ position: "absolute", top: 26, left: 26, right: 26, bottom: 26, borderRadius: 30, border: `2px solid ${CHAMPAGNE}`, opacity: 0.55 }} />
+                    <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: ink, color: paper, fontFamily: TEXT_FONT, fontWeight: 500, overflow: "hidden" }}>
+                        <div style={{ position: "absolute", top: -320, right: -220, width: 820, height: 820, borderRadius: 999, background: honour ? "radial-gradient(circle, rgba(226,192,101,0.30), rgba(10,51,38,0) 68%)" : "radial-gradient(circle, rgba(192,71,27,0.34), rgba(21,17,14,0) 68%)" }} />
+                        <div style={{ position: "absolute", bottom: -380, left: -260, width: 760, height: 760, borderRadius: 999, background: honour ? "radial-gradient(circle, rgba(6,35,26,0.9), rgba(10,51,38,0) 68%)" : "radial-gradient(circle, rgba(217,188,140,0.16), rgba(21,17,14,0) 68%)" }} />
+                        {/* The frame of a printed card; doubled in gold for honour. */}
+                        <div style={{ position: "absolute", top: 26, left: 26, right: 26, bottom: 26, borderRadius: 30, border: `2px solid ${gold}`, opacity: honour ? 0.9 : 0.55 }} />
+                        {honour && <div style={{ position: "absolute", top: 38, left: 38, right: 38, bottom: 38, borderRadius: 22, border: `1px solid ${gold}`, opacity: 0.45 }} />}
                         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "70px 84px 64px" }}>
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                                <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: "0.32em", color: CHAMPAGNE }}>{t.invitation.label.toLocaleUpperCase(lang)}</div>
-                                <div style={{ display: "flex", marginTop: 22, width: 90, height: 2, background: CHAMPAGNE, opacity: 0.7 }} />
+                                {honour && <GoldStar size={44} />}
+                                <div style={{ display: "flex", marginTop: honour ? 12 : 0, fontSize: 26, fontWeight: 700, letterSpacing: "0.32em", color: honour ? GOLD_LIGHT : gold }}>{label}</div>
+                                <div style={{ display: "flex", marginTop: 22, width: 90, height: 2, background: gold, opacity: 0.7 }} />
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                                 <div style={{ display: "flex", textAlign: "center", fontFamily: SERIF_FONT, fontWeight: 400, fontSize: size, lineHeight: 1, letterSpacing: "-0.015em" }}>{name}</div>
-                                <div style={{ display: "flex", marginTop: 22, fontFamily: SERIF_FONT, fontWeight: 400, fontSize: 46, color: CHAMPAGNE }}>{t.invitation.invites}</div>
+                                <div style={{ display: "flex", marginTop: 22, fontFamily: SERIF_FONT, fontWeight: 400, fontSize: line.length > 34 ? 38 : 46, color: honour ? GOLD_LIGHT : gold, textAlign: "center" }}>{line}</div>
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                                 <div style={{ display: "flex", fontFamily: TITLE_FONT, fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em" }}>
-                                    Nice<span style={{ color: "#ff7a3d" }}>Things</span>
+                                    Nice<span style={{ color: honour ? GOLD_LIGHT : "#ff7a3d" }}>Things</span>
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 30px", borderRadius: 999, background: PAPER, color: INK, fontSize: 30, fontWeight: 700 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 30px", borderRadius: 999, background: honour ? GOLD : PAPER, color: honour ? EMERALD_DEEP : INK, fontSize: 30, fontWeight: 700 }}>
                                     {t.invitation.open}
-                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={honour ? EMERALD_DEEP : INK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M5 12h14" />
                                         <path d="m12 5 7 7-7 7" />
                                     </svg>
@@ -509,13 +537,13 @@ export function founderShareJpeg(lang: Locale) {
 // shared, and the tall picture they post as a story (their link goes on it
 // as a sticker, so the address is written large enough to copy).
 
-export type GuestCardFacts = { slug: string; name: string; handle: string | null; number: number | null; city: string | null; cover: string | null };
+export type GuestCardFacts = { slug: string; name: string; handle: string | null; number: number | null; city: string | null; cover: string | null; tier?: "guest" | "honour" };
 
 const STORY_SIZE = { width: 1080, height: 1920 };
 const GUEST_PHOTO_WIDTH = 520; // of the card's 1200
 
 function guestVersion(guest: GuestCardFacts, lang: Locale) {
-    return version(["guest", lang, guest.name, guest.handle, guest.number, guest.city, guest.cover]);
+    return version(["guest", lang, guest.name, guest.handle, guest.number, guest.city, guest.cover, guest.tier ?? "guest"]);
 }
 
 export function guestShareImage(guest: GuestCardFacts, lang: Locale) {
@@ -532,13 +560,18 @@ export function guestStoryImage(guest: GuestCardFacts, lang: Locale) {
     return `/api/share/guest/${guest.slug}?l=${lang}&f=story&v=${guestVersion(guest, lang)}`;
 }
 
+// The colours of a guest's rank: ink and champagne, or emerald and gold.
+function guestColours(guest: GuestCardFacts) {
+    return guest.tier === "honour" ? { INK: EMERALD, PAPER: IVORY, CHAMPAGNE: GOLD } : { INK, PAPER, CHAMPAGNE };
+}
+
 function guestWords(guest: GuestCardFacts, lang: Locale) {
     const t = getDictionary(lang);
     const city = cityBySlug(guest.city)?.name ?? t.guestPage.country;
     return {
         city: fill(t.guestPage.cityLine, { city }),
         by: fill(t.guestPage.byLine, { name: guest.name }),
-        seal: [t.guest.seal, guest.number ? fill(t.guestPage.number, { number: String(guest.number).padStart(2, "0") }) : null].filter(Boolean).join(" · ").toLocaleUpperCase(lang),
+        seal: [guest.tier === "honour" ? t.honour.rank : t.guest.seal, guest.number ? fill(t.guestPage.number, { number: String(guest.number).padStart(2, "0") }) : null].filter(Boolean).join(" · ").toLocaleUpperCase(lang),
     };
 }
 
@@ -557,6 +590,7 @@ async function guestPhoto(url: string | null, width: number, height: number) {
 export async function guestShareJpeg(guest: GuestCardFacts, lang: Locale) {
     const t = getDictionary(lang);
     const words = guestWords(guest, lang);
+    const { INK, PAPER, CHAMPAGNE } = guestColours(guest);
     const size = words.by.length > 30 ? 54 : words.by.length > 22 ? 64 : words.by.length > 15 ? 76 : 90;
     const photo = await guestPhoto(guest.cover, GUEST_PHOTO_WIDTH, OG_SIZE.height);
     const overlay = new ImageResponse(
@@ -605,6 +639,7 @@ export async function guestShareJpeg(guest: GuestCardFacts, lang: Locale) {
 export async function guestStoryJpeg(guest: GuestCardFacts, lang: Locale, address: string) {
     const t = getDictionary(lang);
     const words = guestWords(guest, lang);
+    const { INK, PAPER, CHAMPAGNE } = guestColours(guest);
     const size = words.by.length > 30 ? 92 : words.by.length > 22 ? 108 : words.by.length > 15 ? 124 : 140;
     const photoHeight = 1240;
     const photo = await guestPhoto(guest.cover, STORY_SIZE.width, photoHeight);

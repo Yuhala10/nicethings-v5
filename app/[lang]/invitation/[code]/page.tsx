@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowRight, Camera, MapPinPlus, PenLine, Share2 } from "lucide-react";
+import { ArrowDown, ArrowRight, AtSign, Camera, Gift, MapPinPlus, PenLine, Share2, Star } from "lucide-react";
+import GiftInvites from "@/components/guest/GiftInvites";
 import GuestKit from "@/components/guest/GuestKit";
 import NotebookComposer from "@/components/guest/NotebookComposer";
 import { cityBySlug } from "@/lib/cities";
-import { guestOfInvitation, guestReach, type Reach } from "@/lib/guests";
+import { themeOf } from "@/lib/guest-theme";
+import { GIFTS, giverOf, guestOfInvitation, guestReach, invitationLook, type Reach } from "@/lib/guests";
 import { SITE_URL, fill, getDictionary, isLocale } from "@/lib/i18n";
 import { formatNumber, tidy } from "@/lib/i18n/format";
 import { readInvitation } from "@/lib/invitations";
@@ -29,9 +31,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const t = getDictionary(lang);
     const invitation = readInvitation(decodeURIComponent(code));
     if (!invitation) return { title: t.invitation.expiredTitle, robots: { index: false, follow: false } };
-    const title = fill(t.invitation.cardTitle, { name: invitation.name });
-    const card = invitationShareImage(invitation.name, lang);
-    return { title, description: t.invitation.cardBody, robots: { index: false, follow: false }, openGraph: { title, description: t.invitation.cardBody, images: [card] }, twitter: { card: "summary_large_image", images: [card.url] } };
+    const look = await invitationLook(invitation).catch(() => ({ tier: invitation.tier, giver: null }));
+    const honour = invitation.tier === "honour";
+    const title = look.giver ? fill(t.honour.giftedBy, { name: look.giver.name }) : fill(honour ? t.honour.cardTitle : t.invitation.cardTitle, { name: invitation.name });
+    const card = invitationShareImage(invitation.name, lang, look);
+    return { title, description: honour ? t.honour.cardBody : t.invitation.cardBody, robots: { index: false, follow: false }, openGraph: { title, description: honour ? t.honour.cardBody : t.invitation.cardBody, images: [card] }, twitter: { card: "summary_large_image", images: [card.url] } };
 }
 
 export default async function InvitationPage({ params }: Props) {
@@ -58,6 +62,7 @@ export default async function InvitationPage({ params }: Props) {
     }
 
     const gifts = [PenLine, MapPinPlus, Camera, Share2];
+    const honourGifts = [Star, AtSign, Gift, PenLine];
     const until = new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(invitation.until);
     const mine = await guestOfInvitation(invitation).catch(() => null);
     const live = mine?.published ?? null;
@@ -65,17 +70,32 @@ export default async function InvitationPage({ params }: Props) {
     const liveCity = live ? (cityBySlug(live.city)?.name ?? t.guestPage.country) : "";
     const liveUrl = live ? `${SITE_URL}${paths.guest(lang, live.slug)}` : "";
     const liveNumber = String(live?.number ?? 1).padStart(2, "0");
+    // The rank, from the signed invitation; and who gave it, when a guest of honour did.
+    const honour = invitation.tier === "honour";
+    const theme = themeOf(invitation.tier);
+    const giver = await giverOf(invitation).catch(() => null);
+    const giftsLeft = live && honour ? Math.max(0, GIFTS - (live.giftsGiven ?? 0)) : 0;
+    const shortAddress = live ? `${SITE_URL.replace(/^https:\/\/(www\.)?/, "")}/@${live.slug}` : "";
     return (
         <div className="pb-24">
             {/* ---------------- Their page is out: their own space ---------------- */}
             {live && (
                 <header className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1rem)] md:px-6 md:pt-10">
-                    <div className="nt-invitation relative overflow-hidden rounded-[2rem] bg-[#15110e] px-6 py-12 text-[#faf7f2] md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] md:gap-12 md:px-12 md:py-16">
-                        <span className="pointer-events-none absolute inset-2.5 rounded-[1.6rem] border border-[#d9bc8c]/35" aria-hidden />
+                    <div className={`relative overflow-hidden rounded-[2rem] px-6 py-12 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] md:gap-12 md:px-12 md:py-16 ${theme.panel} ${theme.text}`}>
+                        <span className={`pointer-events-none absolute inset-2.5 rounded-[1.6rem] border ${theme.frame}`} aria-hidden />
                         <div className="relative">
-                            <p className="text-[0.75rem] font-semibold tracking-[0.3em] text-[#d9bc8c] uppercase">{t.guestKit.liveEyebrow}</p>
+                            <p className={`flex items-center gap-2 text-[0.75rem] font-semibold tracking-[0.3em] uppercase ${honour ? "text-[#f3d77e]" : "text-[#d9bc8c]"}`}>
+                                {honour && <Star size={13} className="fill-[#f3d77e]" />}
+                                {honour ? t.honour.rank : t.guestKit.liveEyebrow}
+                            </p>
                             <h1 className="nt-serif mt-4 text-[2.75rem] leading-[0.98] md:text-[4rem]">{fill(t.guestKit.liveTitle, { name: live.name })}</h1>
-                            <p className="mt-4 max-w-md text-[1.125rem] leading-relaxed text-[#faf7f2]/75">{fill(t.guestKit.liveLead, { number: liveNumber })}</p>
+                            <p className={`mt-4 max-w-md text-[1.125rem] leading-relaxed ${theme.soft}`}>{honour ? `${t.honour.rank} · ${fill(t.guestPage.number, { number: liveNumber })}` : fill(t.guestKit.liveLead, { number: liveNumber })}</p>
+                            {honour && (
+                                <p className="mt-3 text-[1rem]">
+                                    <span className="text-[#fbf6e9]/60">{t.honour.myAddress} : </span>
+                                    <span className="nt-foil font-bold">{shortAddress}</span>
+                                </p>
+                            )}
                             {reach && (
                                 <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/10">
                                     {(
@@ -86,9 +106,9 @@ export default async function InvitationPage({ params }: Props) {
                                             [reach.words, t.guestKit.statWords],
                                         ] as [number, string][]
                                     ).map(([value, label]) => (
-                                        <div key={label} className="bg-[#15110e] p-4 md:p-5">
+                                        <div key={label} className={`p-4 md:p-5 ${theme.panel}`}>
                                             <dt className="sr-only">{label}</dt>
-                                            <dd className="nt-serif text-[2.75rem] leading-none text-[#d9bc8c]">{formatNumber(value, lang)}</dd>
+                                            <dd className={`nt-serif text-[2.75rem] leading-none ${theme.accent}`}>{formatNumber(value, lang)}</dd>
                                             <dd className="mt-2 text-[0.875rem] leading-snug text-[#faf7f2]/70">{label}</dd>
                                         </div>
                                     ))}
@@ -107,11 +127,18 @@ export default async function InvitationPage({ params }: Props) {
                                 preview={guestShareImage(live, lang).url}
                                 story={guestStoryImage(live, lang)}
                                 slug={live.slug}
-                                caption={fill(t.guestKit.captionText, { number: liveNumber, city: liveCity, url: liveUrl })}
+                                caption={fill(honour ? t.honour.captionText : t.guestKit.captionText, { number: liveNumber, city: liveCity, url: liveUrl })}
                             />
                         </div>
                     </div>
                 </header>
+            )}
+
+            {/* ---------------- A guest of honour's three invitations to give ---------------- */}
+            {live && honour && (
+                <section className="mx-auto max-w-6xl px-4 pt-6 md:px-6">
+                    <GiftInvites code={code} left={giftsLeft} total={GIFTS} />
+                </section>
             )}
 
             {/* ---------------- Sent, being read ---------------- */}
@@ -128,19 +155,25 @@ export default async function InvitationPage({ params }: Props) {
             {/* ---------------- The invitation itself ---------------- */}
             {!live && (
             <header className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1rem)] md:px-6 md:pt-10">
-                <div className="nt-invitation relative overflow-hidden rounded-[2rem] bg-[#15110e] px-6 py-14 text-center text-[#faf7f2] md:px-12 md:py-24">
-                    <p className="text-[0.75rem] font-semibold tracking-[0.3em] text-[#d9bc8c] uppercase">{t.invitation.label}</p>
-                    <span className="mx-auto mt-5 block h-px w-16 bg-[#d9bc8c]/60" aria-hidden />
-                    <h1 className="nt-serif mt-7 text-[3.5rem] leading-[0.95] md:text-[4.5rem]">
+                <div className={`relative overflow-hidden rounded-[2rem] px-6 py-14 text-center md:px-12 md:py-24 ${theme.panel} ${theme.text}`}>
+                    <span className={`pointer-events-none absolute inset-2.5 rounded-[1.6rem] border ${theme.frame}`} aria-hidden />
+                    {honour && <span className="pointer-events-none absolute inset-4 rounded-[1.35rem] border border-[#e2c065]/20" aria-hidden />}
+                    <span className={`pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full ${theme.glow}`} aria-hidden />
+                    {honour && <Star size={30} className="relative mx-auto mb-4 fill-[#f3d77e] text-[#f3d77e]" />}
+                    <p className={`relative text-[0.75rem] font-semibold tracking-[0.3em] uppercase ${honour ? "text-[#f3d77e]" : "text-[#d9bc8c]"}`}>{honour ? t.honour.label : t.invitation.label}</p>
+                    <span className={`relative mx-auto mt-5 block h-px w-16 ${honour ? "bg-[#e2c065]/70" : "bg-[#d9bc8c]/60"}`} aria-hidden />
+                    <h1 className="nt-serif relative mt-7 text-[3.5rem] leading-[0.95] md:text-[4.5rem]">
                         {invitation.name},
-                        <em className="mt-2 block text-[2.25rem] leading-[1.05] text-[#d9bc8c] md:text-[2.75rem]">{t.invitation.invites}</em>
+                        <em className={`mt-2 block text-[2.25rem] leading-[1.05] md:text-[2.75rem] ${theme.accent}`}>
+                            {giver ? fill(t.honour.giftedBy, { name: giver.name }) : honour ? t.honour.invites : t.invitation.invites}
+                        </em>
                     </h1>
-                    <p className="mx-auto mt-7 max-w-xl text-[1.125rem] leading-relaxed text-[#faf7f2]/80">{tidy(t.invitation.lead)}</p>
-                    <a href="#carnet" className="nt-btn mt-9 bg-[#faf7f2] text-[#15110e] hover:bg-white">
+                    <p className={`relative mx-auto mt-7 max-w-xl text-[1.125rem] leading-relaxed ${theme.soft}`}>{tidy(honour ? t.honour.lead : t.invitation.lead)}</p>
+                    <a href="#carnet" className={`nt-btn relative mt-9 ${theme.button}`}>
                         {t.invitation.begin}
                         <ArrowDown size={17} />
                     </a>
-                    <p className="mt-6 text-[0.75rem] font-medium tracking-[0.08em] text-[#faf7f2]/50">{fill(t.invitation.until, { date: until })}</p>
+                    <p className={`relative mt-6 text-[0.75rem] font-medium tracking-[0.08em] ${honour ? "text-[#fbf6e9]/50" : "text-[#faf7f2]/50"}`}>{fill(t.invitation.until, { date: until })}</p>
                 </div>
             </header>
             )}
@@ -149,15 +182,15 @@ export default async function InvitationPage({ params }: Props) {
             {!live && (
             <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-20">
                 <div className="nt-reveal max-w-2xl">
-                    <p className="nt-eyebrow">{t.invitation.giftsEyebrow}</p>
-                    <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[3.5rem]">{t.invitation.giftsTitle}</h2>
+                    <p className="nt-eyebrow">{honour ? t.honour.giftsEyebrow : t.invitation.giftsEyebrow}</p>
+                    <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[3.5rem]">{honour ? t.honour.giftsTitle : t.invitation.giftsTitle}</h2>
                 </div>
                 <ul className="nt-reveal mt-8 grid gap-px overflow-hidden rounded-[1.6rem] border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-                    {t.invitation.gifts.map((gift, index) => {
-                        const Icon = gifts[index] ?? PenLine;
+                    {(honour ? t.honour.gifts : t.invitation.gifts).map((gift, index) => {
+                        const Icon = (honour ? honourGifts : gifts)[index] ?? PenLine;
                         return (
                             <li key={gift.title} className="bg-bg p-6 md:p-7">
-                                <Icon size={22} strokeWidth={1.7} className="text-brand-600" />
+                                <Icon size={22} strokeWidth={1.7} className={honour ? "text-[#b4862a]" : "text-brand-600"} />
                                 <p className="nt-serif mt-5 text-[1.5rem] leading-tight">{gift.title}</p>
                                 <p className="mt-2 text-[1rem] leading-relaxed text-muted">{tidy(gift.body)}</p>
                             </li>

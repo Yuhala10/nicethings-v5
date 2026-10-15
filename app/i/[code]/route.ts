@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_LOCALE, LOCALE_COOKIE, SITE_URL, getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { fill } from "@/lib/i18n";
+import { invitationLook } from "@/lib/guests";
 import { readInvitation } from "@/lib/invitations";
 import { paths } from "@/lib/places/paths";
 import { invitationShareImage } from "@/lib/share-image";
@@ -36,19 +37,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // The card is written in French, the language most invitations are sent in.
     const t = getDictionary(DEFAULT_LOCALE);
-    const title = fill(t.invitation.cardTitle, { name: invitation.name });
-    const image = invitationShareImage(invitation.name, DEFAULT_LOCALE);
+    const look = await invitationLook(invitation).catch(() => ({ tier: invitation.tier, giver: null }));
+    const honour = invitation.tier === "honour";
+    const title = look.giver ? fill(t.honour.giftedBy, { name: look.giver.name }) : fill(honour ? t.honour.cardTitle : t.invitation.cardTitle, { name: invitation.name });
+    const body = honour ? t.honour.cardBody : t.invitation.cardBody;
+    const image = invitationShareImage(invitation.name, DEFAULT_LOCALE, look);
     const html = `<!doctype html>
 <html lang="${DEFAULT_LOCALE}">
 <head>
 <meta charset="utf-8">
 <title>${escape(title)}</title>
-<meta name="description" content="${escape(t.invitation.cardBody)}">
+<meta name="description" content="${escape(body)}">
 <meta name="robots" content="noindex">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="NiceThings">
 <meta property="og:title" content="${escape(title)}">
-<meta property="og:description" content="${escape(t.invitation.cardBody)}">
+<meta property="og:description" content="${escape(body)}">
 <meta property="og:image" content="${SITE_URL}${escape(image.url)}">
 <meta property="og:image:type" content="${image.type}">
 <meta property="og:image:width" content="${image.width}">

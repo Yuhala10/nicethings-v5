@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, ExternalLink, MessageCircle, Sparkles, Users } from "lucide-react";
+import { Copy, ExternalLink, MessageCircle, Sparkles, Star, Users } from "lucide-react";
 import { useTr } from "@/components/admin/i18n";
 import { useAdminToast } from "@/components/admin/ui";
 import { adminPost } from "@/lib/admin-client";
 
-type Made = { name: string; path: string; until: string | null };
+type Made = { name: string; path: string; until: string | null; tier?: "guest" | "honour" };
 
 // How many invitations one paste may make at once.
 const MAX_AT_ONCE = 40;
@@ -18,6 +18,9 @@ const MAX_AT_ONCE = 40;
 //
 // For a campaign ("comment INVITE"), many names can be pasted at once, one
 // per line: each gets its link and a message ready to send in private.
+//
+// "Invité d'honneur" makes the green and gold invitation: their page leads
+// the guests, with their own short address and three invitations to give.
 export default function InviteGuest() {
     const tr = useTr();
     const toast = useAdminToast();
@@ -25,21 +28,27 @@ export default function InviteGuest() {
     const [many, setMany] = useState(false);
     const [made, setMade] = useState<Made[]>([]);
     const [busy, setBusy] = useState(false);
+    const [honour, setHonour] = useState(false);
 
     const wanted = [...new Set(names.split(/\n|,/).map((name) => name.replace(/\s+/g, " ").trim()).filter((name) => name.length >= 2))].slice(0, MAX_AT_ONCE);
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const link = (item: Made) => `${origin}${item.path}`;
     const message = (item: Made) =>
-        tr(
-            `Salut ${item.name.split(" ")[0]} ! Merci pour ton commentaire 🙌 Voici ton invitation personnelle NiceThings : ${link(item)}`,
-            `Hi ${item.name.split(" ")[0]}! Thanks for your comment 🙌 Here is your personal NiceThings invitation: ${link(item)}`
-        );
+        item.tier === "honour"
+            ? tr(
+                  `${item.name.split(" ")[0]}, NiceThings t'invite comme invité(e) d'honneur 🌟 Ton invitation personnelle, en vert et or : ${link(item)}`,
+                  `${item.name.split(" ")[0]}, NiceThings invites you as a guest of honour 🌟 Your personal invitation, in green and gold: ${link(item)}`
+              )
+            : tr(
+                  `Salut ${item.name.split(" ")[0]} ! Merci pour ton commentaire 🙌 Voici ton invitation personnelle NiceThings : ${link(item)}`,
+                  `Hi ${item.name.split(" ")[0]}! Thanks for your comment 🙌 Here is your personal NiceThings invitation: ${link(item)}`
+              );
 
     const create = async () => {
         setBusy(true);
         const done: Made[] = [];
         try {
-            for (const name of wanted) done.push(await adminPost<Made>("invitations", { name }));
+            for (const name of wanted) done.push(await adminPost<Made>("invitations", { name, tier: honour ? "honour" : "guest" }));
             setMade(done);
             if (done.length > 1) toast(tr(`${done.length} invitations prêtes.`, `${done.length} invitations ready.`));
         } catch (error) {
@@ -91,6 +100,17 @@ export default function InviteGuest() {
                           : tr("Créer l'invitation", "Create the invitation")}
                 </button>
             </div>
+            {/* The rank of what is made next. */}
+            <label className={`mt-3 flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 text-sm ${honour ? "border-[#e2c065] bg-[#0a3326] text-[#fbf6e9]" : "border-line"}`}>
+                <input type="checkbox" checked={honour} onChange={(event) => setHonour(event.target.checked)} className="h-4 w-4 accent-[#c99a35]" />
+                <Star size={15} className={honour ? "fill-[#f3d77e] text-[#f3d77e]" : "text-text-2"} />
+                <span className="min-w-0">
+                    <span className="block font-semibold">{tr("Invité d'honneur", "Guest of honour")}</span>
+                    <span className={`block text-xs ${honour ? "text-[#fbf6e9]/70" : "text-text-2"}`}>
+                        {tr("Carte vert et or, page en tête des invités, adresse nicethings.site/@nom, trois invitations à offrir.", "Green and gold card, page leading the guests, nicethings.site/@name address, three invitations to give.")}
+                    </span>
+                </span>
+            </label>
             <button type="button" onClick={() => setMany(!many)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-text-2 hover:text-text">
                 <Users size={13} />
                 {many ? tr("Une seule personne", "Just one person") : tr("Plusieurs à la fois (une campagne « Commente INVITE »)", "Several at once (a “comment INVITE” campaign)")}
@@ -98,7 +118,7 @@ export default function InviteGuest() {
 
             {made.length === 1 && (
                 <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
-                    <img src={`/api/share/invitation?n=${encodeURIComponent(made[0].name)}&l=fr`} alt="" className="w-full rounded-xl border border-line" />
+                    <img src={`/api/share/invitation?n=${encodeURIComponent(made[0].name)}&l=fr${made[0].tier === "honour" ? "&t=h" : ""}`} alt="" className="w-full rounded-xl border border-line" />
                     <div className="min-w-0">
                         <p className="text-sm font-bold">
                             {tr("Le lien à envoyer à", "The link to send to")} {made[0].name}
@@ -140,7 +160,10 @@ export default function InviteGuest() {
                     <ul className="mt-2 grid gap-2">
                         {made.map((item) => (
                             <li key={item.path} className="flex flex-wrap items-center gap-2 rounded-xl border border-line p-2.5">
-                                <span className="min-w-0 flex-1 truncate text-sm font-semibold">{item.name}</span>
+                                <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+                                    {item.tier === "honour" && <Star size={13} className="mr-1 inline fill-[#e2c065] text-[#e2c065]" />}
+                                    {item.name}
+                                </span>
                                 <button type="button" onClick={() => copy(message(item), tr(`Message pour ${item.name} copié.`, `Message for ${item.name} copied.`))} className="a-btn a-btn-soft h-9 text-xs">
                                     <MessageCircle size={14} />
                                     {tr("Copier le message", "Copy the message")}

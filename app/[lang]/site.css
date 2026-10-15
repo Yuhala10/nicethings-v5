@@ -1384,3 +1384,38 @@ html[data-nt-welcome] .nt-welcome-hint > .nt-welcome-rise {
         visibility: hidden;
     }
 }
+
+/* ---- Guests of honour: green and gold ------------------------------------
+   Gold leaf on the words and frames of a guest of honour (lib/guest-theme.ts).
+   The light slides slowly across the gold; still for those who ask for less
+   motion. Colours only: nothing here moves a page. */
+.nt-foil {
+    background: linear-gradient(100deg, #b4862a 0%, #f6dd86 30%, #c99a35 50%, #fff1b5 70%, #b4862a 100%);
+    background-size: 240% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: nt-foil-shine 7s ease-in-out infinite alternate;
+}
+
+.nt-foil-bg {
+    background: linear-gradient(120deg, #b4862a 0%, #f6dd86 32%, #c99a35 52%, #fff1b5 72%, #b4862a 100%);
+    background-size: 240% 240%;
+    animation: nt-foil-shine 7s ease-in-out infinite alternate;
+}
+
+@keyframes nt-foil-shine {
+    from {
+        background-position: 0% 50%;
+    }
+    to {
+        background-position: 100% 50%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nt-foil,
+    .nt-foil-bg {
+        animation: none;
+    }
+}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Camera, MapPin, PenLine } from "lucide-react";
+import { Camera, MapPin, PenLine, Star } from "lucide-react";
 import PostCard from "@/components/blog/PostCard";
 import GuestCard from "@/components/guest/GuestCard";
 import RequestInvitation from "@/components/guest/RequestInvitation";
@@ -38,6 +38,8 @@ export default async function GuestsPage({ params }: Props) {
     if (!isLocale(lang)) notFound();
     const t = getDictionary(lang);
     const guests = await getGuests().catch(() => []);
+    const honoured = guests.filter((guest) => guest.tier === "honour");
+    const invited = guests.filter((guest) => guest.tier !== "honour");
     // Notebooks signed by a guest who has no page (written by the team on their behalf).
     const withPage = new Set(guests.map((guest) => guest.ref));
     const loose = (await getPosts().catch(() => [])).filter((post) => isGuest(post) && !withPage.has(refOf(post) ?? ""));
@@ -53,13 +55,30 @@ export default async function GuestsPage({ params }: Props) {
                 </div>
             </header>
 
-            {/* ---------------- The guests ---------------- */}
-            {guests.length > 0 && (
+            {/* ---------------- Guests of honour, then the guests ---------------- */}
+            {honoured.length > 0 && (
                 <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-20">
-                    <ul className="grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-                        {guests.map((guest, index) => (
+                    <p className="flex items-center gap-2 text-[0.75rem] font-bold tracking-[0.24em] text-[#b4862a] uppercase">
+                        <Star size={14} className="fill-[#e2c065] text-[#e2c065]" />
+                        {t.honour.homeEyebrow}
+                    </p>
+                    <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[3.5rem]">{t.honour.homeTitle}</h2>
+                    <ul className="mt-8 grid gap-x-5 gap-y-10 sm:grid-cols-2">
+                        {honoured.map((guest, index) => (
                             <li key={guest.ref} className="nt-reveal">
                                 <GuestCard guest={guest} locale={lang} priority={index < 2} />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+            {invited.length > 0 && (
+                <section className="mx-auto max-w-6xl px-4 pt-14 md:px-6 md:pt-20">
+                    {honoured.length > 0 && <p className="nt-eyebrow mb-6">{t.guestPage.homeEyebrow}</p>}
+                    <ul className="grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                        {invited.map((guest, index) => (
+                            <li key={guest.ref} className="nt-reveal">
+                                <GuestCard guest={guest} locale={lang} priority={honoured.length === 0 && index < 2} />
                             </li>
                         ))}
                     </ul>

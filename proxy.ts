@@ -33,6 +33,8 @@ export function proxy(request: NextRequest) {
     const first = pathname.split("/")[1];
 
     if (isLocale(first)) return NextResponse.next();
+    // A guest of honour's short address (/@theirname) is answered by app/api/at.
+    if (pathname.startsWith("/@")) return NextResponse.next();
 
     const locale = preferredLocale(request);
     let target = pathname === "/" ? "" : pathname;

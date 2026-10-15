@@ -11,6 +11,11 @@ const nextConfig = {
     redirects() {
         return [{ source: "/:lang(fr|en)/about", destination: "/:lang/a-propos", permanent: true }];
     },
+    // A guest of honour's own short address, nicethings.site/@theirname
+    // (app/api/at): answered before any page, dots in the name included.
+    rewrites() {
+        return { beforeFiles: [{ source: "/@:handle", destination: "/api/at/:handle" }] };
+    },
     // The recorded guidance voice (public/voice): a clip never changes under
     // its address (lib/voice.ts adds a version), so a phone keeps it for good
     // and the next trip speaks without the network.

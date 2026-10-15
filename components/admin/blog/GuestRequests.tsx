@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, ExternalLink, Eye, Inbox, MessageCircle, X } from "lucide-react";
+import { Check, Copy, ExternalLink, Eye, Inbox, MessageCircle, Star, X } from "lucide-react";
 import { useTr } from "@/components/admin/i18n";
 import { timeAgo, useAdminData, useAdminToast } from "@/components/admin/ui";
 import { adminPatch } from "@/lib/admin-client";
@@ -20,7 +20,7 @@ type Request = {
     status: "PENDING" | "INVITED" | "DECLINED";
     created_at: string;
 };
-type Card = { ref: string; slug: string; name: string; handle: string | null; portrait_url: string | null; created_at: string; number: number | null };
+type Card = { ref: string; slug: string; name: string; handle: string | null; portrait_url: string | null; created_at: string; number: number | null; tier?: string | null };
 type Data = { requests: Request[]; guests: Card[]; setup?: boolean };
 
 const LIKES: Record<string, [string, string]> = {
@@ -42,23 +42,28 @@ export default function GuestRequests() {
     const tr = useTr();
     const toast = useAdminToast();
     const { data, reload } = useAdminData<Data>("guest-requests");
-    const [made, setMade] = useState<Record<string, string>>({}); // request id → invitation address
+    const [made, setMade] = useState<Record<string, { link: string; honour: boolean }>>({}); // request id → invitation made
     const [busy, setBusy] = useState<string | null>(null);
     const [showDone, setShowDone] = useState(false);
 
     if (!data) return null;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const message = (name: string, link: string) =>
-        tr(
-            `Salut ${name.split(" ")[0]} ! Tu as demandé une invitation NiceThings : la voici, à ton nom 🙌 ${link}`,
-            `Hi ${name.split(" ")[0]}! You asked for a NiceThings invitation: here it is, in your name 🙌 ${link}`
-        );
+    const message = (name: string, link: string, honour: boolean) =>
+        honour
+            ? tr(
+                  `${name.split(" ")[0]}, tu as demandé une invitation NiceThings : on te reçoit comme invité(e) d'honneur 🌟 La voici, en vert et or : ${link}`,
+                  `${name.split(" ")[0]}, you asked for a NiceThings invitation: we are welcoming you as a guest of honour 🌟 Here it is, in green and gold: ${link}`
+              )
+            : tr(
+                  `Salut ${name.split(" ")[0]} ! Tu as demandé une invitation NiceThings : la voici, à ton nom 🙌 ${link}`,
+                  `Hi ${name.split(" ")[0]}! You asked for a NiceThings invitation: here it is, in your name 🙌 ${link}`
+              );
 
-    const decide = async (row: Request, status: "INVITED" | "DECLINED") => {
+    const decide = async (row: Request, status: "INVITED" | "DECLINED", honour = false) => {
         setBusy(row.id);
         try {
-            const answer = await adminPatch<{ path?: string }>("guest-requests", { id: row.id, status });
-            if (answer.path) setMade((current) => ({ ...current, [row.id]: `${origin}${answer.path}` }));
+            const answer = await adminPatch<{ path?: string }>("guest-requests", { id: row.id, status, tier: honour ? "honour" : "guest" });
+            if (answer.path) setMade((current) => ({ ...current, [row.id]: { link: `${origin}${answer.path}`, honour } }));
             await reload();
         } catch (error) {
             toast((error as Error).message, true);
@@ -97,7 +102,8 @@ export default function GuestRequests() {
 
     const renderRow = (row: Request) => {
         const profile = profileUrl(row.platform, row.handle);
-        const link = made[row.id];
+        const link = made[row.id]?.link;
+        const honourMade = made[row.id]?.honour ?? false;
         return (
             <li key={row.id} className="rounded-xl border border-line p-3">
                 <div className="flex flex-wrap items-start gap-2">
@@ -139,6 +145,16 @@ export default function GuestRequests() {
                                 <Check size={14} />
                                 {tr("Inviter", "Invite")}
                             </button>
+                            <button
+                                type="button"
+                                disabled={busy === row.id}
+                                onClick={() => void decide(row, "INVITED", true)}
+                                className="a-btn h-9 border border-[#e2c065] bg-[#0a3326] text-xs text-[#f3d77e] hover:brightness-110"
+                                title={tr("Invité d'honneur : vert et or, en tête, adresse @, trois invitations à offrir", "Guest of honour: green and gold, first, @ address, three invitations to give")}
+                            >
+                                <Star size={14} className="fill-[#f3d77e]" />
+                                {tr("Honneur", "Honour")}
+                            </button>
                             <button type="button" disabled={busy === row.id} onClick={() => void decide(row, "DECLINED")} className="a-btn a-btn-ghost h-9 text-xs">
                                 <X size={14} />
                                 {tr("Pas maintenant", "Not now")}
@@ -149,9 +165,9 @@ export default function GuestRequests() {
                 </div>
                 {link && (
                     <div className="mt-2 rounded-lg bg-soft p-2.5">
-                        <p className="text-xs font-semibold">{tr(`Invitation prête pour ${row.name}. Envoie-la en message privé sur ${PLATFORM[row.platform] ?? row.platform}.`, `Invitation ready for ${row.name}. Send it in a private message on ${PLATFORM[row.platform] ?? row.platform}.`)}</p>
+                        <p className="text-xs font-semibold">{honourMade && "★ "}{tr(`Invitation prête pour ${row.name}. Envoie-la en message privé sur ${PLATFORM[row.platform] ?? row.platform}.`, `Invitation ready for ${row.name}. Send it in a private message on ${PLATFORM[row.platform] ?? row.platform}.`)}</p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                            <button type="button" onClick={() => void copy(message(row.name, link), tr("Message copié : colle-le en message privé.", "Message copied: paste it in a private message."))} className="a-btn a-btn-soft h-9 text-xs">
+                            <button type="button" onClick={() => void copy(message(row.name, link, honourMade), tr("Message copié : colle-le en message privé.", "Message copied: paste it in a private message."))} className="a-btn a-btn-soft h-9 text-xs">
                                 <MessageCircle size={14} />
                                 {tr("Copier le message", "Copy the message")}
                             </button>
@@ -214,6 +230,7 @@ export default function GuestRequests() {
                                 <span className="min-w-0 flex-1">
                                     <span className="block truncate text-sm font-semibold">{card.name}</span>
                                     <span className="block truncate text-xs text-text-2">
+                                        {card.tier === "honour" ? "★ " : ""}
                                         {card.number ? tr(`En ligne · n°${String(card.number).padStart(2, "0")}`, `Live · no. ${String(card.number).padStart(2, "0")}`) : tr("Carnet en relecture", "Notebook being read")}
                                         {card.handle ? ` · ${card.handle}` : ""}
                                     </span>

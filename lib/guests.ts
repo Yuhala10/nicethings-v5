@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 import { notInstalled } from "./atlas/store";
 import { isGuest } from "./blog/guest";
 import { POSTS_TAG, getPost, getPosts, toPost, type Post, type PostSummary } from "./blog/server";
-import type { Invitation } from "./invitations";
+import { createInvitation, type Invitation, type Tier } from "./invitations";
 import { slugify } from "./places/paths";
 import { getSupabaseAdminClient } from "./supabase/admin";
 
@@ -15,13 +15,21 @@ import { getSupabaseAdminClient } from "./supabase/admin";
 // then on it is their page, numbered in the order guests came out, with the
 // hearts of the people who liked their places. Nothing about a person is
 // shown that they did not send themselves and agree to.
+//
+// Two ranks (database script 010): guests of honour lead every list, in
+// green and gold, numbered among themselves, with their own short address
+// and three invitations of their own to give.
 
 export const GUESTS_TAG = "guests";
+export const GIFTS = 3; // invitations a guest of honour may give
 
 export type GuestPick = { name: string; slug: string | null; photos: string[]; words: string };
 
 export type Guest = {
     ref: string;
+    tier: Tier;
+    invitedBy: string | null; // ref of the guest of honour who invited them
+    giftsGiven: number;
     slug: string;
     name: string;
     handle: string | null;
@@ -29,7 +37,7 @@ export type Guest = {
     portrait: string | null;
     intro: string | null;
     hearts: number;
-    number: number | null; // the n° of a published guest, in the order they came out
+    number: number | null; // the n° of a published guest, in the order they came out, within their rank
     city: string | null; // where most of their places are
     cover: string | null; // their portrait, else their first photo
     places: string[]; // every place of their published notebooks
@@ -37,7 +45,20 @@ export type Guest = {
     since: string | null; // when their first notebook came out
 };
 
-type Row = { ref: string; slug: string; name: string; handle: string | null; link: string | null; portrait_url: string | null; intro: string | null; hearts: number | null };
+type Row = {
+    ref: string;
+    slug: string;
+    name: string;
+    handle: string | null;
+    link: string | null;
+    portrait_url: string | null;
+    intro: string | null;
+    hearts: number | null;
+    // From script 010; absent before it is run.
+    tier?: string | null;
+    invited_by?: string | null;
+    gifts_given?: number | null;
+};
 
 const REF = /^carnet-([0-9a-f]{12})$/;
 export const refOf = (post: { tags: string[] }) => post.tags.map((tag) => REF.exec(tag)?.[1]).find(Boolean) ?? null;
@@ -48,6 +69,9 @@ function toGuest(row: Row, notebooks: PostSummary[], number: number | null): Gue
     const places = [...new Set(notebooks.flatMap((post) => post.places))];
     return {
         ref: row.ref,
+        tier: row.tier === "honour" ? "honour" : "guest",
+        invitedBy: row.invited_by ?? null,
+        giftsGiven: row.gifts_given ?? 0,
         slug: row.slug,
         name: row.name,
         handle: row.handle,
@@ -74,15 +98,16 @@ async function loadGuests(): Promise<Guest[]> {
         if (ref) byRef.set(ref, [...(byRef.get(ref) ?? []), post]);
     }
     if (!byRef.size) return [];
-    const { data, error } = await getSupabaseAdminClient().from("nt_guests").select("ref,slug,name,handle,link,portrait_url,intro,hearts").in("ref", [...byRef.keys()]);
+    const { data, error } = await getSupabaseAdminClient().from("nt_guests").select("*").in("ref", [...byRef.keys()]);
     if (error) {
         if (notInstalled(error)) return [];
         throw error;
     }
     const first = (ref: string) => (byRef.get(ref) ?? []).map((post) => post.publishedAt).sort()[0] ?? "";
-    return ((data ?? []) as Row[])
-        .sort((a, b) => first(a.ref).localeCompare(first(b.ref)))
-        .map((row, index) => toGuest(row, byRef.get(row.ref) ?? [], index + 1));
+    // Guests of honour first; each rank numbered in the order its guests came out.
+    const rows = ((data ?? []) as Row[]).sort((a, b) => Number(b.tier === "honour") - Number(a.tier === "honour") || first(a.ref).localeCompare(first(b.ref)));
+    const counted = { honour: 0, guest: 0 };
+    return rows.map((row) => toGuest(row, byRef.get(row.ref) ?? [], ++counted[row.tier === "honour" ? "honour" : "guest"]));
 }
 
 export const getGuests = unstable_cache(loadGuests, ["guests:all:v1"], { revalidate: 300, tags: [POSTS_TAG, GUESTS_TAG] });
@@ -99,15 +124,16 @@ export async function guestsForPlace(slug: string) {
 // card and every notebook they sent, drafts included.
 export async function previewGuest(slug: string): Promise<{ guest: Guest; posts: Post[] } | null> {
     const db = getSupabaseAdminClient();
-    const { data, error } = await db.from("nt_guests").select("ref,slug,name,handle,link,portrait_url,intro,hearts").eq("slug", slug).maybeSingle();
+    const { data, error } = await db.from("nt_guests").select("*").eq("slug", slug).maybeSingle();
     if (error || !data) return null;
     const row = data as Row;
     const sent = await db.from("nt_posts").select("*").contains("tags", [`carnet-${row.ref}`]).order("created_at", { ascending: false });
     if (sent.error) throw sent.error;
     const posts = (sent.data ?? []).map((item) => toPost(item));
-    const published = (await getGuests().catch(() => [])).find((guest) => guest.ref === row.ref);
-    const count = (await getGuests().catch(() => [])).length;
-    return { guest: toGuest(row, posts, published?.number ?? count + 1), posts };
+    const all = await getGuests().catch(() => []);
+    const published = all.find((guest) => guest.ref === row.ref);
+    const rank = row.tier === "honour" ? "honour" : "guest";
+    return { guest: toGuest(row, posts, published?.number ?? all.filter((guest) => guest.tier === rank).length + 1), posts };
 }
 
 // The full notebooks of a published guest, newest first.
@@ -217,18 +243,63 @@ export async function saveGuestCard(invitation: Invitation, card: GuestCardInput
     }
     const slug = (held.data?.slug as string | undefined) ?? (await freeSlug(card.handle?.slice(1) ?? card.name, invitation.ref));
     const now = new Date().toISOString();
-    const saved = await db.from("nt_guests").upsert(
-        { ref: invitation.ref, slug, name: card.name, handle: card.handle, link: card.link, portrait_url: card.portrait, intro: card.intro, consent_at: now, updated_at: now },
-        { onConflict: "ref" }
-    );
+    const row = { ref: invitation.ref, slug, name: card.name, handle: card.handle, link: card.link, portrait_url: card.portrait, intro: card.intro, consent_at: now, updated_at: now };
+    // The rank and the giver come from the signed invitation, never from what was typed.
+    let saved = await db.from("nt_guests").upsert({ ...row, tier: invitation.tier, invited_by: invitation.by }, { onConflict: "ref" });
+    // Before script 010, the card is kept without them.
+    if (saved.error && /tier|invited_by/.test(saved.error.message)) saved = await db.from("nt_guests").upsert(row, { onConflict: "ref" });
     if (saved.error) throw saved.error;
     return slug;
 }
 
 // The card behind an invitation, published or not (for the guest's own page).
 export async function guestOfInvitation(invitation: Invitation) {
-    const { data, error } = await getSupabaseAdminClient().from("nt_guests").select("ref,slug,name,handle,link,portrait_url,intro,hearts").eq("ref", invitation.ref).maybeSingle();
+    const { data, error } = await getSupabaseAdminClient().from("nt_guests").select("*").eq("ref", invitation.ref).maybeSingle();
     if (error || !data) return null;
     const published = (await getGuests().catch(() => [])).find((guest) => guest.ref === invitation.ref) ?? null;
     return { card: data as Row, published };
+}
+
+// The guest of honour behind an invitation they gave (their name and page).
+export async function giverOf(invitation: Invitation) {
+    if (!invitation.by) return null;
+    const all = await getGuests().catch(() => []);
+    const live = all.find((guest) => guest.ref === invitation.by);
+    if (live) return { name: live.name, slug: live.slug as string | null, cover: live.cover };
+    const { data } = await getSupabaseAdminClient().from("nt_guests").select("name,portrait_url").eq("ref", invitation.by).maybeSingle();
+    return data ? { name: data.name as string, slug: null, cover: (data.portrait_url as string | null) ?? null } : null;
+}
+
+// A guest of honour gives one of their three invitations, once their page is
+// out. Answers the new invitation's code, or why not.
+export async function giveInvitation(invitation: Invitation, name: string) {
+    if (invitation.tier !== "honour") return { ok: false as const, why: "rank" };
+    const live = (await getGuests().catch(() => [])).find((guest) => guest.ref === invitation.ref);
+    if (!live) return { ok: false as const, why: "not-live" };
+    const db = getSupabaseAdminClient();
+    const { data, error } = await db.from("nt_guests").select("gifts_given").eq("ref", invitation.ref).maybeSingle();
+    if (error) throw error;
+    const given = (data?.gifts_given as number | undefined) ?? 0;
+    if (given >= GIFTS) return { ok: false as const, why: "none-left" };
+    // Counted only if nobody gave one at the same moment.
+    const counted = await db.from("nt_guests").update({ gifts_given: given + 1 }).eq("ref", invitation.ref).eq("gifts_given", given).select("gifts_given");
+    if (counted.error) throw counted.error;
+    if (!counted.data?.length) return { ok: false as const, why: "busy" };
+    return { ok: true as const, code: createInvitation(name, { by: invitation.ref }), left: GIFTS - given - 1 };
+}
+
+// A guest of honour by their page's address (for nicethings.site/@name).
+export async function honourBySlug(slug: string) {
+    return (await getGuests().catch(() => [])).find((guest) => guest.tier === "honour" && guest.slug === slug) ?? null;
+}
+
+// What an invitation's card shows besides the name (lib/share-image.tsx):
+// its rank, and the guest of honour who gave it.
+export async function invitationLook(invitation: Invitation) {
+    let giver: { ref: string; name: string } | null = null;
+    if (invitation.by) {
+        const { data } = await getSupabaseAdminClient().from("nt_guests").select("name,tier").eq("ref", invitation.by).maybeSingle();
+        if (data && data.tier === "honour") giver = { ref: invitation.by, name: data.name as string };
+    }
+    return { tier: invitation.tier, giver };
 }

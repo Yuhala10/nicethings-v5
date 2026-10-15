@@ -6,14 +6,15 @@ import { cleanGuestName, createInvitation, readInvitation } from "@/lib/invitati
 
 // The team's side of "Demande ton invitation" and of guests' pages.
 //   GET                          requests (waiting first) and every guest's card
-//   PATCH { id, status }         INVITED (answers the invitation to send) or DECLINED
+//   PATCH { id, status, tier }   INVITED (answers the invitation to send, as a guest
+//                                or a guest of honour) or DECLINED
 
 export async function GET() {
     const { db, denied } = await requireAdmin();
     if (denied) return denied;
     const [requests, cards] = await Promise.all([
         db.from("nt_guest_requests").select("*").order("created_at", { ascending: false }).limit(150),
-        db.from("nt_guests").select("ref,slug,name,handle,portrait_url,created_at").order("created_at", { ascending: false }).limit(100),
+        db.from("nt_guests").select("*").order("created_at", { ascending: false }).limit(100),
     ]);
     if (requests.error || cards.error) {
         if (notInstalled(requests.error) || notInstalled(cards.error)) return NextResponse.json({ ok: true, setup: true, requests: [], guests: [] });
@@ -42,6 +43,7 @@ export async function PATCH(request: Request) {
 
     // Their invitation, made in the name they gave.
     const name = cleanGuestName(row.name) ?? "Invité";
-    const code = createInvitation(name);
-    return NextResponse.json({ ok: true, name, path: `/i/${code}`, until: readInvitation(code)?.until.toISOString() ?? null });
+    const tier = body.tier === "honour" ? "honour" : "guest";
+    const code = createInvitation(name, { tier });
+    return NextResponse.json({ ok: true, name, tier, path: `/i/${code}`, until: readInvitation(code)?.until.toISOString() ?? null });
 }

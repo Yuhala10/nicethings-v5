@@ -3,17 +3,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
-import { ArrowRight, ArrowUpRight, MapPin, Navigation, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, MapPin, Navigation, Sparkles, Star } from "lucide-react";
 import Comments, { type ShownComment } from "@/components/blog/Comments";
 import Inline from "@/components/blog/Inline";
 import PostCard from "@/components/blog/PostCard";
-import GuestCard, { quoted } from "@/components/guest/GuestCard";
+import GuestCard, { quoted, sealOf } from "@/components/guest/GuestCard";
 import GuestHeart from "@/components/guest/GuestHeart";
 import GuestShare from "@/components/guest/GuestShare";
 import { hasAdminSession } from "@/lib/admin-auth";
 import { getComments } from "@/lib/blog/comments";
 import type { Post } from "@/lib/blog/server";
 import { cityBySlug } from "@/lib/cities";
+import { themeOf } from "@/lib/guest-theme";
 import { getGuest, getGuests, guestPosts, picksOf, previewGuest, type Guest } from "@/lib/guests";
 import { SITE_URL, fill, getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { tidy } from "@/lib/i18n/format";
@@ -27,7 +28,8 @@ import { guestShareImage } from "@/lib/share-image";
 // places with their photos and words), and out only once the team has
 // published one of their notebooks (lib/guests.ts). Visitors can give it a
 // heart and leave a word in its guest book; the guest sees both on their
-// own page, with how many people came.
+// own page, with how many people came. A guest of honour's page is green and
+// gold (lib/guest-theme.ts), with their own short address.
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -83,7 +85,13 @@ export default async function GuestPage({ params }: Props) {
     const listed = await getPlacesBySlugs(picks.flatMap((pick) => (pick.slug ? [pick.slug] : []))).catch(() => [] as PlaceSummary[]);
     const places = new Map(listed.map((place) => [place.slug, place] as const));
     const others = (await getGuests().catch(() => [])).filter((other) => other.ref !== guest.ref).slice(0, 6);
-    const number = guest.number ? fill(t.guestPage.number, { number: String(guest.number).padStart(2, "0") }) : null;
+    // (Guests of honour come first in that list: getGuests sorts them so.)
+    const number = sealOf(guest, lang);
+    const theme = themeOf(guest.tier);
+    const honour = guest.tier === "honour";
+    const all = await getGuests().catch(() => []);
+    const giver = guest.invitedBy ? (all.find((other) => other.ref === guest.invitedBy) ?? null) : null;
+    const address = `${SITE_URL.replace(/^https:\/\/(www\.)?/, "")}/@${guest.slug}`;
     const day = new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Douala" });
     const facts = [fill(picks.length === 1 ? t.guestPage.placesOne : t.guestPage.placesMany, { count: picks.length }), guest.since ? fill(t.guestPage.since, { date: day.format(new Date(guest.since)) }) : null].filter(Boolean).join(" · ");
 
@@ -113,47 +121,59 @@ export default async function GuestPage({ params }: Props) {
             {/* ---------------- Their cover: who they are ---------------- */}
             <header className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1rem)] md:px-6 md:pt-10">
                 {preview && <p className="mb-3 rounded-[1rem] bg-amber-50 px-4 py-3 text-[0.875rem] font-semibold text-[#8a5a00]">{t.guestPage.preview}</p>}
-                <div className="nt-invitation relative overflow-hidden rounded-[2rem] bg-[#15110e] px-6 pt-10 pb-9 text-[#faf7f2] md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,21rem)] md:items-center md:gap-14 md:px-14 md:py-16">
-                    <span className="pointer-events-none absolute inset-2.5 rounded-[1.6rem] border border-[#d9bc8c]/35" aria-hidden />
-                    <span className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(192,71,27,0.35),transparent_68%)]" aria-hidden />
+                <div className={`relative overflow-hidden rounded-[2rem] px-6 pt-10 pb-9 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,21rem)] md:items-center md:gap-14 md:px-14 md:py-16 ${theme.panel} ${theme.text}`}>
+                    <span className={`pointer-events-none absolute inset-2.5 rounded-[1.6rem] border ${theme.frame}`} aria-hidden />
+                    {honour && <span className="pointer-events-none absolute inset-4 rounded-[1.35rem] border border-[#e2c065]/20" aria-hidden />}
+                    <span className={`pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full ${theme.glow}`} aria-hidden />
 
-                    {/* Their photo, framed like an arch. */}
+                    {/* Their photo, framed like an arch; in gold leaf for a guest of honour. */}
                     <div className="relative mx-auto w-[min(68vw,17rem)] md:order-2 md:w-full">
-                        <div className="relative aspect-[3/4] overflow-hidden rounded-t-[999px] rounded-b-[1.6rem] border border-[#d9bc8c]/60 bg-[#241b15] p-1.5">
-                            <div className="relative h-full w-full overflow-hidden rounded-t-[999px] rounded-b-[1.3rem]">
+                        <div className={`relative aspect-[3/4] overflow-hidden rounded-t-[999px] rounded-b-[1.6rem] p-1.5 ${honour ? "nt-foil-bg" : `border ${theme.ring} ${theme.portraitBack}`}`}>
+                            <div className={`relative h-full w-full overflow-hidden rounded-t-[999px] rounded-b-[1.3rem] ${theme.portraitBack}`}>
                                 {guest.cover ? (
                                     <Image src={guest.cover} alt={guest.name} fill priority sizes="(min-width: 768px) 21rem, 68vw" className="object-cover" />
                                 ) : (
-                                    <span className="nt-serif absolute inset-0 grid place-items-center text-[9rem] text-[#d9bc8c]" aria-hidden>
+                                    <span className={`nt-serif absolute inset-0 grid place-items-center text-[9rem] ${theme.accent}`} aria-hidden>
                                         {guest.name.trim().charAt(0).toUpperCase()}
                                     </span>
                                 )}
                             </div>
                         </div>
                         {number && (
-                            <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-[#d9bc8c] bg-[#15110e] px-4 py-1.5 text-[0.75rem] font-bold tracking-[0.18em] whitespace-nowrap text-[#d9bc8c] uppercase">
+                            <span className={`absolute -bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border px-4 py-1.5 text-[0.75rem] font-bold tracking-[0.16em] whitespace-nowrap uppercase ${theme.seal}`}>
+                                {honour && <Star size={12} className="fill-[#f3d77e]" />}
                                 {number}
                             </span>
                         )}
                     </div>
 
                     <div className="relative mt-9 text-center md:order-1 md:mt-0 md:text-left">
-                        <p className="text-[0.75rem] font-semibold tracking-[0.3em] text-[#d9bc8c] uppercase">{t.guestPage.presents}</p>
+                        <p className={`text-[0.75rem] font-semibold tracking-[0.3em] uppercase ${honour ? "text-[#f3d77e]" : "text-[#d9bc8c]"}`}>{t.guestPage.presents}</p>
                         <h1 className="nt-serif mt-4 leading-[0.98]">
-                            <span className="block text-[2.25rem] text-[#d9bc8c] md:text-[3.5rem]">{fill(t.guestPage.cityLine, { city })}</span>
+                            <span className={`block text-[2.25rem] md:text-[3.5rem] ${theme.accent}`}>{fill(t.guestPage.cityLine, { city })}</span>
                             <span className="mt-1 block text-[2.75rem] md:text-[4.5rem]">{fill(t.guestPage.byLine, { name: guest.name })}</span>
                         </h1>
                         {guest.handle &&
                             (guest.link ? (
-                                <a href={guest.link} target="_blank" rel="noopener noreferrer" className="nt-tap mt-3 inline-flex min-h-11 items-center gap-1 text-[1rem] font-semibold text-[#faf7f2]/80 underline-offset-4 hover:underline">
+                                <a href={guest.link} target="_blank" rel="noopener noreferrer" className={`nt-tap mt-3 inline-flex min-h-11 items-center gap-1 text-[1rem] font-semibold underline-offset-4 hover:underline ${theme.soft}`}>
                                     {guest.handle}
                                     <ArrowUpRight size={15} />
                                 </a>
                             ) : (
-                                <p className="mt-3 text-[1rem] font-semibold text-[#faf7f2]/80">{guest.handle}</p>
+                                <p className={`mt-3 text-[1rem] font-semibold ${theme.soft}`}>{guest.handle}</p>
                             ))}
-                        {guest.intro && <p className="nt-serif mx-auto mt-5 max-w-md text-[1.5rem] leading-[1.25] text-[#faf7f2]/90 italic md:mx-0">{quoted(guest.intro, lang)}</p>}
-                        <p className="mt-5 text-[0.75rem] font-medium tracking-[0.08em] text-[#faf7f2]/50 uppercase">{t.guest.seal}</p>
+                        {guest.intro && <p className={`nt-serif mx-auto mt-5 max-w-md text-[1.5rem] leading-[1.25] italic md:mx-0 ${theme.soft}`}>{quoted(guest.intro, lang)}</p>}
+                        <p className={`mt-5 text-[0.75rem] font-medium tracking-[0.08em] uppercase ${honour ? "text-[#f3d77e]/80" : "text-[#faf7f2]/50"}`}>
+                            {honour ? t.honour.rank : t.guest.seal}
+                            {giver ? ` · ${fill(t.honour.giftedNote, { name: giver.name })}` : ""}
+                        </p>
+                        {/* A guest of honour's own short address, made for a bio. */}
+                        {honour && !preview && (
+                            <p className="mt-2 text-[0.875rem]">
+                                <span className="text-[#fbf6e9]/55">{t.honour.address} </span>
+                                <span className="nt-foil font-bold">{address}</span>
+                            </p>
+                        )}
                         {!preview && (
                             <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5 md:justify-start">
                                 <GuestHeart slug={guest.slug} initial={guest.hearts} />
