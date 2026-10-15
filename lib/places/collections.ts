@@ -297,6 +297,24 @@ export const COLLECTIONS: Collection[] = [
         test: (place) => atTable(place) && (serves(place, "chicken") || called(place, "poulet", "poulets", "chicken")),
     },
     {
+        // What the open map files as fast food (cuisine "fast_food", set from
+        // its "amenity=fast_food"), or what says so in its cuisine or name.
+        key: "fast-food",
+        slug: { fr: "fast-food", en: "fast-food" },
+        name: { fr: "Fast-food", en: "Fast food" },
+        title: { fr: "Fast-food à {city} : burgers, tacos, poulet frit", en: "Fast food in {city}: burgers, tacos, fried chicken" },
+        blurb: { fr: "Burgers, chawarma, tacos, poulet croustillant : quand la faim n'attend pas.", en: "Burgers, shawarma, tacos, crispy chicken: when hunger will not wait." },
+        intro: {
+            fr: "{count} adresses de {city} pour manger vite : burgers, pizzas, chawarma, tacos et poulet frit, d'après leur nom ou ce que la carte ouverte en dit.",
+            en: "{count} places in {city} to eat fast: burgers, pizzas, shawarma, tacos and fried chicken, going by their name or what the open map says.",
+        },
+        test: (place) =>
+            atTable(place) &&
+            (serves(place, "fast food", "burger", "kebab", "shawarma", "tacos", "hot dog", "fried chicken", "friture", "sandwich") ||
+                named(place, "burger", "kebab", "shawarma", "chawarma", "tacos", "fastfood", "crousty", "crispy", "pizz", "frit") ||
+                called(place, "fast", "snap", "chicken")),
+    },
+    {
         key: "beignets",
         slug: { fr: "beignets-haricots", en: "beignets-and-beans" },
         name: { fr: "Beignets-haricots", en: "Beignets & beans" },
