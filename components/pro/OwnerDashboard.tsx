@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, Eye, ImagePlus, LocateFixed, Navigation, Plus, QrCode, Star, Trash2, Users } from "lucide-react";
+import { BadgeCheck, Eye, ImagePlus, LocateFixed, MessageCircle, Navigation, Plus, QrCode, Star, Trash2, Users } from "lucide-react";
 import { compressImage } from "@/lib/compress-image";
 import { formatRelativeDays } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
@@ -20,7 +20,7 @@ type Data = {
     photos: { id: string; image_url: string; sort_order: number }[];
     menu: MenuItem[];
     history: { field: string; label: string; status: string; created_at: string }[];
-    stats: { views: number; visitors: number; directions: number };
+    stats: { views: number; visitors: number; directions: number; contacts?: number };
 };
 type Tab = "info" | "hours" | "menu" | "photos" | "vibe" | "fix";
 
@@ -136,12 +136,13 @@ export default function OwnerDashboard({ slug }: { slug: string }) {
 
             <section className="mt-6 rounded-[1.8rem] bg-ink p-5 text-white">
                 <p className="text-xs font-bold tracking-wider text-white/60 uppercase">{t.owner.stats}</p>
-                <dl className="mt-3 grid grid-cols-3 gap-3">
+                <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {(
                         [
                             [Eye, data.stats.views, t.owner.views],
                             [Users, data.stats.visitors, t.owner.visitors],
                             [Navigation, data.stats.directions, t.owner.directions],
+                            [MessageCircle, data.stats.contacts ?? 0, t.owner.contacts],
                         ] as const
                     ).map(([Icon, count, label]) => (
                         <div key={label} className="rounded-2xl bg-white/[0.07] p-3">

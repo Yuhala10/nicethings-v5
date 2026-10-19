@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fill } from "@/lib/i18n";
 import { formatNumber, formatPrice, formatRelativeDays } from "@/lib/i18n/format";
 import { call, useMe, withMe } from "@/lib/people/client";
-import { COMPANIES, DISLIKE_TAGS, LIKE_TAGS, MAX_REVIEW } from "@/lib/people/rules";
+import { COMPANIES, DISLIKE_TAGS, FACT_TAGS, LIKE_TAGS, MAX_REVIEW } from "@/lib/people/rules";
 import type { ReviewSummary, ReviewView } from "@/lib/people/types";
 import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
@@ -80,6 +80,8 @@ function Composer({ slug, mine, open, onClose, onSaved }: { slug: string; mine: 
                 <div className="flex flex-wrap gap-2">{LIKE_TAGS.map(chip)}</div>
                 <p className="mt-5 mb-2.5 text-[0.875rem] font-semibold">{words.reviews.disliked}</p>
                 <div className="flex flex-wrap gap-2">{DISLIKE_TAGS.map(chip)}</div>
+                <p className="mt-5 mb-2.5 text-[0.875rem] font-semibold">{words.reviews.facts}</p>
+                <div className="flex flex-wrap gap-2">{FACT_TAGS.map(chip)}</div>
 
                 <p className="mt-5 mb-2.5 text-[0.875rem] font-semibold">{words.reviews.with}</p>
                 <div className="flex flex-wrap gap-2">
@@ -285,6 +287,19 @@ export default function PlaceReviews({ slug, initial }: { slug: string; initial:
                                     <span className="text-muted tabular-nums">{count}</span>
                                 </span>
                             ))}
+                        </div>
+                    )}
+                    {summary.facts?.length > 0 && (
+                        <div className="mt-4">
+                            <p className="mb-2 text-[0.75rem] font-semibold tracking-[0.12em] text-muted uppercase">{words.reviews.saidFacts}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {summary.facts.map(({ tag, count }) => (
+                                    <span key={tag} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#15110e] px-3 text-[0.75rem] font-semibold text-white">
+                                        {words.tags[tag as keyof typeof words.tags]}
+                                        <span className="text-white/60 tabular-nums">{count}</span>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
                     {summary.price && <p className="mt-4 text-[0.875rem] leading-relaxed font-semibold">{fill(words.reviews.priceSaid, { count: summary.price.count, price: formatPrice(summary.price.median, locale) })}</p>}

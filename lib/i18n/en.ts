@@ -1265,6 +1265,7 @@ export const en: Dictionary = {
         views: "views",
         visitors: "visitors",
         directions: "directions",
+        contacts: "messages and calls sent",
         tabs: { info: "Info", hours: "Hours", menu: "Prices & menu", photos: "Photos", vibe: "Vibe", fix: "Corrections" },
         description: "About",
         descriptionHint: "What makes your place unique: specialities, atmosphere, best moments.",

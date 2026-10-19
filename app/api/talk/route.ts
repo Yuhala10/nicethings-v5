@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { notInstalled } from "@/lib/atlas/store";
 import { UUID } from "@/lib/posts";
 import { COMMENTS_PER_HOUR, MAX_COMMENT, MIN_COMMENT, needsReading } from "@/lib/people/rules";
+import { checkLevel, notify } from "@/lib/people/notices";
 import { reviewsTag } from "@/lib/people/reviews";
 import { currentProfile, deny, peopleByIds, readBody, requireProfile } from "@/lib/people/server";
 import { TARGETS, loadTalk, recount, talkTag, targetExists, type Target } from "@/lib/people/talk";
@@ -73,6 +74,15 @@ export async function POST(request: Request) {
         if (saved.error) throw saved.error;
         await recount(target, id);
         await refresh(target, id);
+        // The author of the review or of the photo hears of it.
+        if (target !== "article") {
+            const owner = target === "review" ? await db.from("nt_reviews").select("profile_id,spot_id").eq("id", id).maybeSingle() : await db.from("nt_spot_posts").select("profile_id,spot_id").eq("id", id).maybeSingle();
+            if (owner.data?.profile_id) {
+                const spot = await db.from("nt_spots").select("slug,name").eq("id", owner.data.spot_id).maybeSingle();
+                await notify(owner.data.profile_id as string, target === "review" ? "reply" : "comment", { id: profile.id, handle: profile.handle }, { place: spot.data?.slug as string, name: spot.data?.name as string, snippet: text.slice(0, 80), ...(target === "review" ? { review: id } : { post: id }) });
+            }
+        }
+        await checkLevel(profile.id);
         return NextResponse.json({ ok: true, comments: await loadTalk(target, [id], profile.id) });
     } catch (error) {
         if (notInstalled(error)) return deny("closed", 503);

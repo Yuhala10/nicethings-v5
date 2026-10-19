@@ -22,6 +22,13 @@ if (typeof window !== "undefined") {
         const cached = JSON.parse(sessionStorage.getItem(CACHE) ?? "null") as Me | null;
         if (cached?.handle) state = { me: cached, ready: false, closed: false };
     } catch {}
+    let readAt = 0;
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && state.me && Date.now() - readAt > 120_000) {
+            readAt = Date.now();
+            loadMe();
+        }
+    });
     // A heart given on this phone is also given on the profile.
     window.addEventListener("nt:save-toggle", (event) => {
         const detail = (event as CustomEvent<{ slug: string; on: boolean }>).detail;

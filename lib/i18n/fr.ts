@@ -1270,6 +1270,7 @@ export const fr = {
         views: "vues",
         visitors: "visiteurs",
         directions: "itinéraires",
+        contacts: "messages et appels envoyés",
         tabs: { info: "Infos", hours: "Horaires", menu: "Prix & menu", photos: "Photos", vibe: "Ambiance", fix: "Corrections" },
         description: "Présentation",
         descriptionHint: "Ce qui rend ton lieu unique : spécialités, ambiance, moments idéaux.",

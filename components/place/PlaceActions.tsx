@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { Heart, MessageCircle, Navigation, Phone, Share2, type LucideIcon } from "lucide-react";
-import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { useSaved } from "@/lib/hooks/useSaved";
 import { sharePlace } from "@/lib/share";
+import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
@@ -26,6 +26,12 @@ function Action({ icon: Icon, label, primary = false, active = false }: { icon: 
             <span className={`mt-1.5 block truncate text-center text-[0.75rem] font-semibold ${primary ? "text-text" : "text-text-2"}`}>{label}</span>
         </>
     );
+}
+
+// A message or a call started here is counted for the place's owner: the
+// customers NiceThings sends them. It never holds the message back.
+function counted(slug: string, channel: "whatsapp" | "call") {
+    fetch("/api/contacts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ place: slug, channel, v: visitorId() }), keepalive: true }).catch(() => {});
 }
 
 export default function PlaceActions({
@@ -55,15 +61,16 @@ export default function PlaceActions({
                 <Action icon={Navigation} label={t.spot.directions} primary />
             </Link>
             {phone && (
-                <a href={`tel:${phone}`} className={item}>
+                <a href={`tel:${phone}`} onClick={() => counted(slug, "call")} className={item}>
                     <Action icon={Phone} label={t.spot.call} />
                 </a>
             )}
             {whatsapp && (
                 <a
-                    href={`https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(fill(t.spot.shareText, { name }))}`}
+                    href={`https://wa.me/${whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(t.people.contact.message)}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => counted(slug, "whatsapp")}
                     className={item}
                 >
                     <Action icon={MessageCircle} label={t.spot.whatsapp} />

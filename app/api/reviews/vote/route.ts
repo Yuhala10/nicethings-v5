@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { UUID } from "@/lib/posts";
+import { checkLevel, notify } from "@/lib/people/notices";
 import { reviewsTag } from "@/lib/people/reviews";
 import { deny, readBody, requireProfile } from "@/lib/people/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -26,5 +27,10 @@ export async function POST(request: Request) {
     const { count } = await db.from("nt_review_votes").select("review_id", { count: "exact", head: true }).eq("review_id", id);
     await db.from("nt_reviews").update({ helpful: count ?? 0 }).eq("id", id);
     revalidateTag(reviewsTag(review.data.spot_id as string), { expire: 0 });
+    if (body.on !== false) {
+        const spot = await db.from("nt_spots").select("slug,name").eq("id", review.data.spot_id).maybeSingle();
+        await notify(review.data.profile_id as string, "vote", { id: profile.id, handle: profile.handle }, { place: spot.data?.slug as string, name: spot.data?.name as string, review: id });
+        await checkLevel(review.data.profile_id as string);
+    }
     return NextResponse.json({ ok: true, helpful: count ?? 0 });
 }

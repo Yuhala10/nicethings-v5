@@ -12,6 +12,7 @@ import NowSection from "@/components/host/NowSection";
 import PinCard from "@/components/place/PinCard";
 import { LanguageSwitch, Logo } from "@/components/site/SiteChrome";
 import HelloMe from "@/components/people/HelloMe";
+import KwatFeed from "@/components/people/KwatFeed";
 import { CITIES, type City } from "@/lib/cities";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
@@ -180,6 +181,9 @@ export default function Landing({
             <div id="maintenant" className="scroll-mt-28">
                 <NowSection city={homeCity.slug} initial={nowPlaces} />
             </div>
+
+            {/* ---------------- What members give, as it happens ---------------- */}
+            <KwatFeed />
 
             {/* ---------------- Places with a story ---------------- */}
             {/* A mosaic: one wide tile, then two side by side. */}

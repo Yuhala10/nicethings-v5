@@ -44,6 +44,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "Ta photo est redessinée par nos serveurs en 400 × 400 pixels, ce qui efface les informations cachées dans le fichier, comme l'endroit où elle a été prise.",
                     "Tes avis, commentaires, j'aime et « validé » sont publiés avec ton @nom et ta tête. Tes favoris sont gardés avec ton profil pour te suivre d'un téléphone à l'autre.",
                     "Depuis « Moi », tu modifies tout, tu te déconnectes de tous tes téléphones, et tu peux supprimer ton profil : il disparaît avec tes avis, commentaires et j'aime ; les photos des murs restent, sans ton nom.",
+                    "Les chemins que tu écris (« Dis au taxi », le chemin en mots) et les nouvelles en direct que tu donnes (ouvert, ça bouge, coupure…) sont publiés avec ton @nom ; une nouvelle en direct s'efface de la fiche après quelques heures. Ton activité (qui a validé, répondu, aimé) n'est visible que par toi. Si tu actives ses notifications, on garde ce que ton navigateur remet pour t'écrire, rattaché à ton profil, jusqu'à ce que tu les coupes.",
                 ],
             },
             {
@@ -56,6 +57,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "Quand tu ajoutes une photo ou une vidéo à un lieu, on garde le fichier, le mot que tu y joins et l'identifiant tiré au hasard de ton navigateur. Elle n'est publiée qu'après vérification par l'équipe, et tu peux nous demander de la retirer. Un cœur sur une publication est enregistré avec ton profil.",
                     "Les commentaires sous les articles, les photos et les avis se font avec un profil (voir plus haut). Un commentaire qui contient un lien ou un numéro est lu par l'équipe avant d'apparaître.",
                     "Quand tu demandes une invitation, on garde ce que tu écris dans le formulaire (ton nom, ton compte, ta ville, ce que tu aimes) pour te répondre : rien n'en est publié. Un invité choisit lui-même ce qui va sur sa page (sa photo, son compte, sa phrase) et peut demander qu'elle soit corrigée ou retirée. Un coup de cœur garde seulement l'identifiant anonyme de ton navigateur.",
+                    "Quand tu touches « Appeler » ou « WhatsApp » sur la fiche d'un lieu, on compte ce geste (le lieu, le moment, et l'identifiant tiré au hasard de ton navigateur ou ton profil) pour montrer au propriétaire combien de clients NiceThings lui envoie. Il ne voit qu'un nombre, jamais qui. Le message pré-écrit (« Je vous ai trouvé sur NiceThings ») part de ton WhatsApp, et tu peux le changer avant de l'envoyer.",
                     "Quand tu crées ou ouvres un vote « On se voit où ? », on garde les lieux proposés, le choix de chacun, le prénom si tu en donnes un, et ce même identifiant. Ceux qui ont le lien du vote voient les choix et les prénoms.",
                 ],
             },
@@ -109,6 +111,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "Your photo is redrawn by our servers at 400 × 400 pixels, which erases what a file can hide, such as where it was taken.",
                     "Your reviews, comments, likes and “validated” are published with your @name and face. Your saved places are kept with your profile so they follow you from one phone to another.",
                     "From “Me”, you change everything, sign out of all your phones, and can delete your profile: it disappears with your reviews, comments and likes; photos on walls stay, without your name.",
+                    "The ways you write (“Tell the taxi”, the way in words) and the live news you give (open, lively, power cut…) are published with your @name; a live news leaves the page after a few hours. Your activity (who validated, replied, liked) is visible to you alone. If you turn on its notifications, we keep what your browser hands us to write to you, tied to your profile, until you turn them off.",
                 ],
             },
             {
@@ -121,6 +124,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "When you add a photo or a video to a place, we keep the file, the words you add and your browser's random identifier. It is published only after the team has checked it, and you can ask us to take it down. A heart on a post is recorded with your profile.",
                     "Comments under articles, photos and reviews are made with a profile (see above). A comment containing a link or a phone number is read by the team before it shows.",
                     "When you ask for an invitation, we keep what you write in the form (your name, your account, your city, what you love) to answer you: none of it is published. A guest chooses what goes on their page (their photo, their account, their sentence) and can ask for it to be corrected or taken down. A heart only keeps your browser's anonymous identifier.",
+                    "When you tap “Call” or “WhatsApp” on a place's page, we count that tap (the place, the time, and your browser's random identifier or your profile) to show its owner how many customers NiceThings sends them. They see a number, never who. The pre-written message (“I found you on NiceThings”) leaves from your WhatsApp, and you can change it before sending.",
                     "When you create or open a “Where shall we meet?” vote, we keep the places proposed, each person’s choice, the first name if you give one, and that same identifier. Those who have the link to the vote see the choices and the first names.",
                 ],
             },

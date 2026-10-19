@@ -4,6 +4,7 @@ import { notInstalled } from "@/lib/atlas/store";
 import { getPlace } from "@/lib/places/server";
 import { UUID } from "@/lib/posts";
 import { COMPANIES, MAX_PRICE, MAX_REVIEW, REVIEWS_PER_DAY, REVIEW_TAGS, needsReading } from "@/lib/people/rules";
+import { checkLevel } from "@/lib/people/notices";
 import { refreshPerson } from "@/lib/people/pages";
 import { loadReviews, reviewsTag } from "@/lib/people/reviews";
 import { currentProfile, deny, readBody, requireProfile } from "@/lib/people/server";
@@ -71,7 +72,9 @@ export async function POST(request: Request) {
         );
         if (saved.error) throw saved.error;
         revalidateTag(reviewsTag(place.id), NOW);
+        revalidateTag("kwat", NOW);
         refreshPerson(profile.handle);
+        await checkLevel(profile.id);
         return NextResponse.json({ ok: true, ...(await loadReviews(place.id, profile.id)) });
     } catch (error) {
         if (notInstalled(error) || (error as { code?: string }).code === "42703") return deny("closed", 503);

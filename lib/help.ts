@@ -92,6 +92,19 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             ],
         },
         {
+            id: "kwat",
+            icon: "now",
+            title: "Dis au taxi, en ce moment, ça bouge",
+            lead: "Ce que les autres plateformes ne savent pas d'ici.",
+            steps: [
+                "« Dis au taxi » : sur la fiche d'un lieu, la phrase à dire au taxi ou au moto-taxi. Copie-la, montre-la. Ceux qui y sont allés écrivent la leur et le chemin en mots ; « Ça m'a aidé » fait monter la meilleure.",
+                "« En ce moment » : tu y es ? Dis en un geste si c'est ouvert, fermé, plein, calme, si ça bouge ou s'il y a une coupure de courant. Les autres le voient pendant quelques heures, avec ta tête.",
+                "Dans ton avis, « Bon à savoir » : groupe électrogène, match diffusé, MoMo / OM, parking gardé, accessible quand il pleut.",
+                "« Ça bouge au kwat », sur l'accueil : les derniers avis, photos et nouvelles de ta ville, ton quartier d'abord.",
+                "Dans « Moi », ton activité : qui a validé ton avis, répondu, aimé ta photo, et les niveaux que tu atteins. Active les notifications pour les recevoir sur ton téléphone.",
+            ],
+        },
+        {
             id: "vote",
             icon: "vote",
             title: "On se voit où ?",
@@ -266,6 +279,19 @@ export const HELP: Record<Locale, HelpTopic[]> = {
                 "Say what you liked, what could be better, who you were with and how much you paid: visitors' prices show on the page.",
                 "Tap “Validated” under a review that helped you, reply to it, and like or comment on the photos and videos of the walls.",
                 "A message with a link or a phone number waits for the team to read it; a message reported three times is hidden meanwhile.",
+            ],
+        },
+        {
+            id: "kwat",
+            icon: "now",
+            title: "Tell the taxi, right now, what's happening",
+            lead: "What other platforms don't know about here.",
+            steps: [
+                "“Tell the taxi”: on a place's page, the sentence to tell the taxi or motorbike-taxi driver. Copy it, show it. Those who went write theirs and the way in words; “It helped me” brings the best one up.",
+                "“Right now”: are you there? Say in one tap whether it's open, closed, full, quiet, lively or if there's a power cut. Others see it for a few hours, with your face.",
+                "In your review, “Good to know”: generator, shows the match, MoMo / OM, guarded parking, reachable when it rains.",
+                "“What's happening around”, on the home page: the latest reviews, photos and news of your city, your neighbourhood first.",
+                "In “Me”, your activity: who validated your review, replied, liked your photo, and the levels you reach. Turn on notifications to get them on your phone.",
             ],
         },
         {

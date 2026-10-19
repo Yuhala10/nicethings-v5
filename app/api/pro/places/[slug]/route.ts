@@ -23,12 +23,14 @@ export async function GET(_request: Request, context: Context) {
 
     // The owner's own numbers: views of the listing and route requests.
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
-    const [photos, menu, history, views, directions] = await Promise.all([
+    const [photos, menu, history, views, directions, contacts] = await Promise.all([
         db.from("nt_spot_photos").select("id,image_url,sort_order").eq("spot_id", spot.id).order("sort_order"),
         db.from("nt_spot_menu").select("name,description,price,popular,available").eq("spot_id", spot.id).order("created_at"),
         db.from("nt_spot_changes").select("field,status,created_at").eq("spot_id", spot.id).order("created_at", { ascending: false }).limit(20),
         db.from("nt_events").select("visitor_id").eq("page", "place").eq("place", spot.slug).gte("created_at", since).limit(20000),
         db.from("nt_events").select("id", { count: "exact", head: true }).eq("page", "directions").eq("place", spot.slug).gte("created_at", since),
+        // WhatsApp messages and calls started from the page (script 012).
+        db.from("nt_place_contacts").select("id", { count: "exact", head: true }).eq("spot_id", spot.id).gte("created_at", since),
     ]);
 
     const editable = Object.fromEntries(
@@ -55,6 +57,7 @@ export async function GET(_request: Request, context: Context) {
                 views: views.data?.length ?? 0,
                 visitors: new Set((views.data ?? []).map((row) => row.visitor_id)).size,
                 directions: directions.count ?? 0,
+                contacts: contacts.error ? 0 : (contacts.count ?? 0),
             },
         },
         { headers: { "Cache-Control": "private, no-store" } }

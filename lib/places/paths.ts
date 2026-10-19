@@ -122,6 +122,7 @@ export const paths = {
     manage: (locale: Locale, slug: string) => `/${locale}/pro/lieu/${slug}`,
     me: (locale: Locale) => `/${locale}/moi`,
     person: (locale: Locale, handle: string) => `/${locale}/u/${handle}`,
+    kwat: (locale: Locale) => `/${locale}/kwat`,
 };
 
 export { CATEGORIES };

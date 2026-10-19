@@ -2,6 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { cleanText } from "@/lib/feedback";
 import { UUID } from "@/lib/posts";
+import { tipsTag } from "@/lib/people/kwat";
 import { reviewsTag } from "@/lib/people/reviews";
 import { currentProfile, deny, foreign, readBody, robot } from "@/lib/people/server";
 import { talkTag, type Target } from "@/lib/people/talk";
@@ -15,7 +16,7 @@ const HIDE_AT = 3;
 export async function POST(request: Request) {
     const body = await readBody(request);
     if (robot(request, body) || foreign(request)) return deny("invalid", 400);
-    const kind = body.kind === "comment" || body.kind === "review" || body.kind === "profile" ? body.kind : null;
+    const kind = body.kind === "comment" || body.kind === "review" || body.kind === "profile" || body.kind === "tip" ? body.kind : null;
     const id = typeof body.id === "string" && UUID.test(body.id) ? body.id : null;
     if (!kind || !id) return deny("invalid", 400);
     const profile = await currentProfile().catch(() => null);
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     const { count } = await db.from("nt_flags").select("item_id", { count: "exact", head: true }).eq("kind", kind).eq("item_id", id);
 
     if (kind !== "profile") {
-        const table = kind === "comment" ? "nt_comments" : "nt_reviews";
+        const table = kind === "comment" ? "nt_comments" : kind === "tip" ? "nt_place_tips" : "nt_reviews";
         const hide = (count ?? 0) >= HIDE_AT;
         const updated = await db
             .from(table)
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
             .maybeSingle();
         const row = updated.data as { target?: Target; target_id?: string; spot_id?: string } | null;
         if (hide && row?.target && row.target_id) revalidateTag(talkTag(row.target, row.target_id), { expire: 0 });
-        if (hide && row?.spot_id) revalidateTag(reviewsTag(row.spot_id), { expire: 0 });
+        if (hide && row?.spot_id) revalidateTag(kind === "tip" ? tipsTag(row.spot_id) : reviewsTag(row.spot_id), { expire: 0 });
     }
     return NextResponse.json({ ok: true });
 }

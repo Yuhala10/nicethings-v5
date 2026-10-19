@@ -9,6 +9,7 @@ import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
 import { useMe } from "@/lib/people/client";
 import AuthSheet from "../people/AuthSheet";
+import LevelUp from "../people/LevelUp";
 import { Face } from "../people/Person";
 import Analytics from "./Analytics";
 import LanguagePrompt from "./LanguagePrompt";
@@ -75,10 +76,16 @@ export function Logo({ compact = false, light = false }: { compact?: boolean; li
 }
 
 // The way to one's profile: their face once signed in, otherwise a person.
+// A red dot when something happened to what they gave (Activité).
 function MeIcon({ size }: { size: number }) {
     const { me } = useMe();
-    if (me) return <Face person={me} size={size} />;
-    return <UserRound size={size - 3} strokeWidth={1.9} />;
+    if (!me) return <UserRound size={size - 3} strokeWidth={1.9} />;
+    return (
+        <span className="relative inline-flex">
+            <Face person={me} size={size} />
+            {me.unread > 0 && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#15110e] bg-closed" aria-hidden />}
+        </span>
+    );
 }
 
 function SiteHeader() {
@@ -296,6 +303,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             )}
             {layout !== "navigation" && <TabBar />}
             <AuthSheet />
+            <LevelUp />
         </ToastProvider>
     );
 }

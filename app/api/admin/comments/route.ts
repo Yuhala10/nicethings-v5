@@ -2,6 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { UUID_PATTERN, fail, readJson, requireAdmin } from "@/lib/admin-api";
 import { notInstalled } from "@/lib/atlas/store";
+import { tipsTag } from "@/lib/people/kwat";
 import { reviewsTag } from "@/lib/people/reviews";
 import { peopleByIds } from "@/lib/people/server";
 import { recount, talkTag, type Target } from "@/lib/people/talk";
@@ -11,7 +12,7 @@ import { recount, talkTag, type Target } from "@/lib/people/talk";
 // once; the ones carrying a link or a phone number wait here, and the ones
 // reported three times step aside until someone looks.
 
-type Item = { kind: "comment" | "review"; id: string; body: string | null; rating: number | null; status: string; reports: number; created_at: string; profile_id: string; where: { label: string; href: string | null } };
+type Item = { kind: "comment" | "review" | "tip"; id: string; body: string | null; rating: number | null; status: string; reports: number; created_at: string; profile_id: string; where: { label: string; href: string | null } };
 
 export async function GET() {
     const { db, denied } = await requireAdmin();
@@ -26,6 +27,13 @@ export async function GET() {
             db.from("nt_reviews").select(reviewColumns).not("profile_id", "is", null).eq("status", "PUBLISHED").order("created_at", { ascending: false }).limit(40),
         ]);
         for (const result of [commentsWaiting, commentsRecent, reviewsWaiting, reviewsRecent]) if (result.error) throw result.error;
+        // Ways to places (script 012): absent before, then read like the rest.
+        const tipColumns = "id,spot_id,profile_id,kind,body,status,reports,created_at";
+        const [tipsWaiting, tipsRecent] = await Promise.all([
+            db.from("nt_place_tips").select(tipColumns).or("status.neq.PUBLISHED,reports.gt.0").order("created_at", { ascending: true }).limit(100),
+            db.from("nt_place_tips").select(tipColumns).eq("status", "PUBLISHED").order("created_at", { ascending: false }).limit(20),
+        ]);
+        const tips = [...(tipsWaiting.error ? [] : (tipsWaiting.data ?? [])), ...(tipsRecent.error ? [] : (tipsRecent.data ?? []))];
 
         const comments = [...(commentsWaiting.data ?? []), ...(commentsRecent.data ?? [])];
         const reviews = [...(reviewsWaiting.data ?? []), ...(reviewsRecent.data ?? [])];
@@ -38,7 +46,7 @@ export async function GET() {
             postIds.length ? db.from("nt_spot_posts").select("id,spot_id").in("id", postIds) : null,
             reviewIds.length ? db.from("nt_reviews").select("id,spot_id").in("id", reviewIds) : null,
         ]);
-        const spotIds = [...new Set([...reviews.map((row) => row.spot_id as string), ...(posts?.data ?? []).map((row) => row.spot_id as string), ...(parents?.data ?? []).map((row) => row.spot_id as string)])];
+        const spotIds = [...new Set([...reviews.map((row) => row.spot_id as string), ...tips.map((row) => row.spot_id as string), ...(posts?.data ?? []).map((row) => row.spot_id as string), ...(parents?.data ?? []).map((row) => row.spot_id as string)])];
         const spots = spotIds.length ? await db.from("nt_spots").select("id,slug,name").in("id", spotIds) : null;
         const spotOf = new Map<string, { slug: string; name: string }>((spots?.data ?? []).map((spot) => [spot.id as string, { slug: spot.slug as string, name: spot.name as string }]));
         const articleOf = new Map<string, { slug: string; title: string }>((articles?.data ?? []).map((post) => [post.id as string, { slug: post.slug as string, title: post.title_fr as string }]));
@@ -77,8 +85,19 @@ export async function GET() {
             where: placeLink(row.spot_id as string, "#avis"),
         });
 
-        const waiting = [...(commentsWaiting.data ?? []).map(commentItem), ...(reviewsWaiting.data ?? []).map(reviewItem)].sort((a, b) => a.created_at.localeCompare(b.created_at));
-        const recent = [...(commentsRecent.data ?? []).map(commentItem), ...(reviewsRecent.data ?? []).map(reviewItem)].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 50);
+        const tipItem = (row: (typeof tips)[number]): Item => ({
+            kind: "tip",
+            id: row.id as string,
+            body: `${row.kind === "taxi" ? "🚕 " : "🧭 "}${row.body as string}`,
+            rating: null,
+            status: row.status as string,
+            reports: (row.reports as number) ?? 0,
+            created_at: row.created_at as string,
+            profile_id: row.profile_id as string,
+            where: placeLink(row.spot_id as string, "#y-aller"),
+        });
+        const waiting = [...(commentsWaiting.data ?? []).map(commentItem), ...(reviewsWaiting.data ?? []).map(reviewItem), ...(tipsWaiting.error ? [] : (tipsWaiting.data ?? [])).map(tipItem)].sort((a, b) => a.created_at.localeCompare(b.created_at));
+        const recent = [...(commentsRecent.data ?? []).map(commentItem), ...(reviewsRecent.data ?? []).map(reviewItem), ...(tipsRecent.error ? [] : (tipsRecent.data ?? [])).map(tipItem)].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 60);
         const people = await peopleByIds([...waiting, ...recent].map((item) => item.profile_id));
         const withPerson = (item: Item) => ({ ...item, person: people.get(item.profile_id) ?? null });
         return NextResponse.json({ ok: true, setup: false, waiting: waiting.map(withPerson), recent: recent.map(withPerson) });
@@ -93,13 +112,13 @@ export async function POST(request: Request) {
     const { db, denied } = await requireAdmin();
     if (denied) return denied;
     const body = await readJson(request);
-    const kind = body?.kind === "review" ? "review" : body?.kind === "comment" ? "comment" : null;
+    const kind = body?.kind === "review" ? "review" : body?.kind === "comment" ? "comment" : body?.kind === "tip" ? "tip" : null;
     const id = typeof body?.id === "string" && UUID_PATTERN.test(body.id) ? body.id : null;
     const action = body?.action;
     if (!kind || !id || (action !== "approve" && action !== "hide" && action !== "delete")) return NextResponse.json({ ok: false, message: "Invalid request." }, { status: 400 });
 
     try {
-        const table = kind === "comment" ? "nt_comments" : "nt_reviews";
+        const table = kind === "comment" ? "nt_comments" : kind === "tip" ? "nt_place_tips" : "nt_reviews";
         const columns = kind === "comment" ? "target,target_id" : "spot_id";
         const change =
             action === "delete"
@@ -118,7 +137,7 @@ export async function POST(request: Request) {
             await recount(row.target, row.target_id);
             revalidateTag(talkTag(row.target, row.target_id), { expire: 0 });
         }
-        if (row?.spot_id) revalidateTag(reviewsTag(row.spot_id), { expire: 0 });
+        if (row?.spot_id) revalidateTag(kind === "tip" ? tipsTag(row.spot_id) : reviewsTag(row.spot_id), { expire: 0 });
         return NextResponse.json({ ok: true });
     } catch (error) {
         return fail(error);

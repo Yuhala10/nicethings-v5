@@ -228,8 +228,14 @@ export function toPerson(row: ProfileRow, stats: Stats = NO_STATS): Person {
 export async function statsOf(ids: string[]) {
     const stats = new Map<string, Stats>();
     if (!ids.length) return stats;
-    const { data } = await getSupabaseAdminClient().from("nt_profile_stats").select("id,reviews,photos,comments,cheers").in("id", ids);
-    for (const row of data ?? []) stats.set(row.id as string, { reviews: Number(row.reviews), photos: Number(row.photos), comments: Number(row.comments), cheers: Number(row.cheers) });
+    const db = getSupabaseAdminClient();
+    // Ways and live news are counted once script 012 has been run.
+    const columns = (all: boolean) => (all ? "id,reviews,photos,comments,cheers,tips,pulses" : "id,reviews,photos,comments,cheers");
+    let read: { data: unknown[] | null; error: { code?: string } | null } = await db.from("nt_profile_stats").select(columns(true)).in("id", ids);
+    if (read.error?.code === "42703") read = await db.from("nt_profile_stats").select(columns(false)).in("id", ids);
+    for (const row of (read.data ?? []) as Record<string, unknown>[]) {
+        stats.set(row.id as string, { reviews: Number(row.reviews), photos: Number(row.photos), comments: Number(row.comments), cheers: Number(row.cheers), tips: Number(row.tips ?? 0), pulses: Number(row.pulses ?? 0) });
+    }
     return stats;
 }
 
@@ -245,7 +251,12 @@ export async function peopleByIds(ids: string[]) {
 
 export async function meOf(row: ProfileRow): Promise<Me> {
     const db = getSupabaseAdminClient();
-    const [stats, saves] = await Promise.all([statsOf([row.id]), db.from("nt_profile_saves").select("slug").eq("profile_id", row.id).order("created_at", { ascending: false }).limit(500)]);
+    const [stats, saves, unread, level] = await Promise.all([
+        statsOf([row.id]),
+        db.from("nt_profile_saves").select("slug").eq("profile_id", row.id).order("created_at", { ascending: false }).limit(500),
+        db.from("nt_notices").select("id", { count: "exact", head: true }).eq("profile_id", row.id).is("read_at", null),
+        db.from("nt_notices").select("id,data").eq("profile_id", row.id).eq("kind", "level").is("read_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
     const own = stats.get(row.id) ?? NO_STATS;
     return {
         ...toPerson(row, own),
@@ -256,5 +267,8 @@ export async function meOf(row: ProfileRow): Promise<Me> {
         saves: (saves.data ?? []).map((save) => save.slug as string),
         stats: own,
         createdAt: row.created_at,
+        // Before script 012 there is no Activité: nothing unread.
+        unread: unread.error ? 0 : (unread.count ?? 0),
+        levelUp: level.data ? { id: level.data.id as string, level: Number((level.data.data as { level?: number }).level ?? 0) } : null,
     };
 }

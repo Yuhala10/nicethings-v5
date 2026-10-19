@@ -12,6 +12,9 @@ import PinCard from "@/components/place/PinCard";
 import PlaceMap from "@/components/place/PlaceMap";
 import PostWall from "@/components/place/PostWall";
 import PlaceReviews from "@/components/people/PlaceReviews";
+import PlacePulse from "@/components/people/PlacePulse";
+import PlaceWay from "@/components/people/PlaceWay";
+import { getPlaceTips } from "@/lib/people/kwat";
 import { getPlaceReviews } from "@/lib/people/reviews";
 import GuestNod from "@/components/guest/GuestNod";
 import { guestsForPlace } from "@/lib/guests";
@@ -304,6 +307,8 @@ export default async function PlacePage({ params }: Props) {
     const chosenBy = await guestsForPlace(place.slug);
     // Reviews with a face (script 011); none shown while profiles are not open.
     const reviews = await getPlaceReviews(place.id).catch(() => null);
+    // Ways written by members (script 012); the team's words alone before.
+    const tips = await getPlaceTips(place.id).catch(() => null);
     const hasHours = Boolean(place.hours.opens && place.hours.closes);
     const hasPrice = Boolean(place.priceMin || place.priceMax);
     // A lake or a mountain keeps no hours and has no price per head: nothing
@@ -358,6 +363,8 @@ export default async function PlacePage({ params }: Props) {
                     {place.reviewCount > 0 && <Rating rating={place.rating} count={place.reviewCount} />}
                 </div>
                 {chosenBy.length > 0 && <GuestNod guests={chosenBy} locale={lang} />}
+                {/* Open, lively, a power cut: from people there in the last hours. */}
+                <PlacePulse slug={place.slug} />
             </header>
 
             {/* The picture, or the place's printed poster. */}
@@ -426,11 +433,18 @@ export default async function PlacePage({ params }: Props) {
                         <p className="max-w-2xl text-[1.125rem] leading-[1.75] whitespace-pre-line text-text-2">{story}</p>
                     </Section>
                 )}
-                {(access || !place.positionExact) && (
-                    <Section title={t.spot.accessTitle}>
-                        {!place.positionExact && <p className="mb-3 rounded-[1rem] bg-surface-2 px-4 py-3 text-[0.875rem] font-semibold">{t.spot.accessApprox}</p>}
-                        {access && <p className="max-w-2xl text-[1rem] leading-[1.75] whitespace-pre-line text-text-2">{access}</p>}
-                    </Section>
+                {tips ? (
+                    <section id="y-aller" className="mt-10 scroll-mt-20 border-t border-line pt-6">
+                        <h2 className="nt-eyebrow mb-4">{t.spot.accessTitle}</h2>
+                        <PlaceWay slug={place.slug} landmark={place.landmark} neighborhood={area} access={access} approximate={!place.positionExact} initial={tips} />
+                    </section>
+                ) : (
+                    (access || !place.positionExact) && (
+                        <Section title={t.spot.accessTitle}>
+                            {!place.positionExact && <p className="mb-3 rounded-[1rem] bg-surface-2 px-4 py-3 text-[0.875rem] font-semibold">{t.spot.accessApprox}</p>}
+                            {access && <p className="max-w-2xl text-[1rem] leading-[1.75] whitespace-pre-line text-text-2">{access}</p>}
+                        </Section>
+                    )
                 )}
                 {goodToKnow.length > 0 && (
                     <Section title={t.spot.goodToKnow}>

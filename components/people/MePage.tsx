@@ -15,6 +15,7 @@ import type { Me } from "@/lib/people/types";
 import { useSaved } from "@/lib/hooks/useSaved";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
+import Activity from "./Activity";
 import AvatarPicker, { type FaceChoice } from "./AvatarPicker";
 import { displayName } from "./Person";
 import PinInput from "./PinInput";
@@ -392,6 +393,8 @@ export default function MePage() {
             </ProfileHeader>
 
             <p className="mt-3 px-1 text-[0.75rem] leading-relaxed text-muted">{words.howPoints}</p>
+
+            <Activity />
 
             <section className="mt-8">
                 <h2 className="nt-section-title mb-4">{words.me.top}</h2>

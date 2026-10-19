@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { getSupabaseAdminClient } from "../supabase/admin";
-import { REVIEW_TAGS } from "./rules";
+import { FACT_TAGS, REVIEW_TAGS } from "./rules";
 import { peopleByIds } from "./server";
 import type { ReviewSummary, ReviewView } from "./types";
 
@@ -43,11 +43,14 @@ export function summarize(rows: Pick<Row, "rating" | "tags" | "price_paid">[]): 
         if (row.price_paid && row.price_paid > 0) prices.push(row.price_paid);
     }
     const count = rows.length;
+    const counted = [...tags].map(([tag, total]) => ({ tag, count: total })).sort((a, b) => b.count - a.count);
+    const isFact = (tag: string) => (FACT_TAGS as readonly string[]).includes(tag);
     return {
         count,
         average: count ? Math.round((rows.reduce((sum, row) => sum + row.rating, 0) / count) * 10) / 10 : 0,
         spread,
-        tags: [...tags].map(([tag, total]) => ({ tag, count: total })).sort((a, b) => b.count - a.count).slice(0, 6),
+        tags: counted.filter((item) => !isFact(item.tag)).slice(0, 6),
+        facts: counted.filter((item) => isFact(item.tag)),
         // Two people saying the same thing is a hint; one is an anecdote.
         price: prices.length >= 2 ? { median: Math.round(median(prices) / 50) * 50, count: prices.length } : null,
     };

@@ -84,19 +84,38 @@ export const RATINGS = [1, 2, 3, 4, 5] as const;
 // `people.tags`).
 export const LIKE_TAGS = ["food", "ambiance", "welcome", "value", "clean", "music", "view", "calm", "fast", "portions", "wifi", "date", "family"] as const;
 export const DISLIKE_TAGS = ["pricey", "slow", "noisy", "small", "dirty", "hard_to_find"] as const;
-export const REVIEW_TAGS: readonly string[] = [...LIKE_TAGS, ...DISLIKE_TAGS];
+// What is good to know here, and that no other platform says: still lit
+// during a power cut, the match on screen, Mobile Money taken…
+export const FACT_TAGS = ["generator", "match", "momo", "guarded_parking", "rain_ok", "card"] as const;
+export const REVIEW_TAGS: readonly string[] = [...LIKE_TAGS, ...DISLIKE_TAGS, ...FACT_TAGS];
 
 export const COMPANIES = ["solo", "couple", "friends", "family", "work"] as const;
 
 // ---------------------------------------------------------------- levels
 
-export type Stats = { reviews: number; photos: number; comments: number; cheers: number };
+export type Stats = { reviews: number; photos: number; comments: number; cheers: number; tips?: number; pulses?: number };
 
-// What each gesture is worth: a review counts most, then a photo, then
-// what others gave back (likes on photos, "validé" on reviews).
+// What each gesture is worth: a review counts most, then a photo, then the
+// way to a place, then what others gave back (likes, "validé", "utile").
 export function pointsOf(stats: Stats) {
-    return stats.reviews * 10 + stats.photos * 8 + stats.comments * 2 + stats.cheers;
+    return stats.reviews * 10 + stats.photos * 8 + (stats.tips ?? 0) * 5 + stats.comments * 2 + (stats.pulses ?? 0) + stats.cheers;
 }
+
+// ---------------------------------------------------------------- live news and ways
+
+// What someone there can say in one tap.
+export const PULSES = ["open", "closed", "lively", "calm", "full", "power_cut"] as const;
+export type Pulse = (typeof PULSES)[number];
+// How long a live news stays on a place's page.
+export const PULSE_HOURS = 6;
+// One news per member and place in this time, and so many a day in all.
+export const PULSE_REST_MINUTES = 90;
+export const PULSES_PER_DAY = 15;
+
+export const TIP_KINDS = ["taxi", "way"] as const;
+export type TipKind = (typeof TIP_KINDS)[number];
+export const MAX_TIP: Record<TipKind, number> = { taxi: 140, way: 400 };
+export const MIN_TIP = 6;
 
 // From "Nouveau" to "Légende du kwat" (names in `people.levels`).
 export const LEVELS = [0, 30, 100, 250, 600] as const;

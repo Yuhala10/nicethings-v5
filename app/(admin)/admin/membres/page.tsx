@@ -13,7 +13,7 @@ import type { Person } from "@/lib/people/types";
 // a phone number in it) or was reported, and the latest ones.
 
 type Member = Person & { bio: string | null; status: string; photo: boolean; stats: { reviews: number; photos: number; comments: number; cheers: number }; reports: number; createdAt: string; lastSeen: string };
-type Word = { kind: "comment" | "review"; id: string; body: string | null; rating: number | null; status: string; reports: number; created_at: string; person: Person | null; where: { label: string; href: string | null } };
+type Word = { kind: "comment" | "review" | "tip"; id: string; body: string | null; rating: number | null; status: string; reports: number; created_at: string; person: Person | null; where: { label: string; href: string | null } };
 
 const LEVELS = [
     ["Nouveau", "Newcomer"],
@@ -67,7 +67,7 @@ export default function MembersPage() {
                 <div className="min-w-0 text-sm">
                     <p className="truncate font-semibold">{item.person ? `@${item.person.handle}` : "—"}</p>
                     <p className="text-xs text-muted">
-                        {item.kind === "review" ? tr("Avis", "Review") : tr("Commentaire", "Comment")} · {timeAgo(item.created_at)}
+                        {item.kind === "review" ? tr("Avis", "Review") : item.kind === "tip" ? tr("Chemin", "Way") : tr("Commentaire", "Comment")} · {timeAgo(item.created_at)}
                     </p>
                 </div>
                 {item.reports > 0 && (
