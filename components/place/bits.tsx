@@ -159,7 +159,10 @@ export function SaveButton({ slug, className = "", onToggle }: { slug: string; c
             onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onToggle?.(toggle(slug));
+                // Saved first, then told: `onToggle?.(toggle(slug))` skipped the
+                // save itself on every card, where no `onToggle` is given.
+                const saved = toggle(slug);
+                onToggle?.(saved);
             }}
             aria-pressed={saved}
             aria-label={saved ? t.spot.saved : t.spot.save}
