@@ -175,11 +175,11 @@ const PAPER = "#faf7f2";
 const INK = "#15110e";
 const SOFT = "#6f665d";
 const BRAND = "#c0471b";
-const SERIF_FONT = "Instrument Serif";
+export const SERIF_FONT = "Instrument Serif";
 const PHOTO_WIDTH = 640; // of the card's 1200
 
 let serif: Promise<Buffer> | undefined;
-async function cardFonts() {
+export async function cardFonts() {
     serif ??= readFile(join(process.cwd(), "assets/fonts", "InstrumentSerif-Regular.ttf"));
     return [...(await ogFonts()), { name: SERIF_FONT, data: await serif, weight: 400 as const, style: "normal" as const }];
 }

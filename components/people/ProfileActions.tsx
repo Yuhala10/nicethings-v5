@@ -2,30 +2,23 @@
 
 import Link from "next/link";
 import { Flag, Pencil, Share2 } from "lucide-react";
-import { SITE_URL } from "@/lib/i18n";
+import { useState } from "react";
 import { paths } from "@/lib/places/paths";
 import { call, useMe } from "@/lib/people/client";
 import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
+import ShareCard from "./ShareCard";
 
-// Under a profile: share it, and for its owner, change it; for others,
-// report it.
-export default function ProfileActions({ id, handle, name }: { id: string; handle: string; name: string }) {
+// Under a profile: share its card, and for its owner, change it; for
+// others, report it.
+export default function ProfileActions({ id, handle, name, version }: { id: string; handle: string; name: string; version: string }) {
     const { locale, t } = useLocale();
     const words = t.people;
     const toast = useToast();
     const { me } = useMe();
     const mine = me?.id === id;
-    const url = `${SITE_URL.replace(/^https:\/\/www\./, "https://")}/@${handle}`;
-
-    const share = async () => {
-        try {
-            if (navigator.share) return await navigator.share({ title: name, url });
-            await navigator.clipboard.writeText(url);
-            toast(t.common.copied);
-        } catch {}
-    };
+    const [sharing, setSharing] = useState(false);
 
     return (
         <>
@@ -35,7 +28,7 @@ export default function ProfileActions({ id, handle, name }: { id: string; handl
                     {words.me.edit}
                 </Link>
             )}
-            <button type="button" onClick={share} className="inline-flex h-11 items-center gap-2 rounded-full bg-white/10 px-5 text-[0.875rem] font-semibold text-white">
+            <button type="button" onClick={() => setSharing(true)} className="inline-flex h-11 items-center gap-2 rounded-full bg-white/10 px-5 text-[0.875rem] font-semibold text-white">
                 <Share2 size={15} />
                 {mine ? words.me.share : words.profile.share}
             </button>
@@ -52,6 +45,7 @@ export default function ProfileActions({ id, handle, name }: { id: string; handl
                     <Flag size={15} />
                 </button>
             )}
+            <ShareCard open={sharing} onClose={() => setSharing(false)} handle={handle} name={name} version={version} mine={mine} />
         </>
     );
 }

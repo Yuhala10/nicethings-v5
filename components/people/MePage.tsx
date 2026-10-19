@@ -4,10 +4,11 @@ import Link from "next/link";
 import { ChevronRight, Heart, KeyRound, LifeBuoy, LogOut, Pencil, Share2, Smartphone, Star, Trash2, TrendingUp, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CITIES } from "@/lib/cities";
-import { SITE_URL, fill } from "@/lib/i18n";
+import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import type { PlaceSummary } from "@/lib/places/types";
 import { defaultAvatar } from "@/lib/people/avatars";
+import { cardVersion } from "@/lib/people/card-version";
 import { call, openAuth, setMe, useMe } from "@/lib/people/client";
 import { MAX_BIO, MAX_NAME, pinProblem } from "@/lib/people/rules";
 import type { Me } from "@/lib/people/types";
@@ -18,6 +19,7 @@ import AvatarPicker, { type FaceChoice } from "./AvatarPicker";
 import { displayName } from "./Person";
 import PinInput from "./PinInput";
 import ProfileHeader from "./ProfileHeader";
+import ShareCard from "./ShareCard";
 import Sheet from "./Sheet";
 
 // "Moi": the profile of the person signed in on this phone, and everything
@@ -346,10 +348,10 @@ function SecretSheet({ panel, onClose }: { panel: "pin" | "recovery" | "delete";
 export default function MePage() {
     const { locale, t } = useLocale();
     const words = t.people;
-    const toast = useToast();
     const { me, ready } = useMe();
     const { saved } = useSaved();
     const [panel, setPanel] = useState<Panel>(null);
+    const [sharing, setSharing] = useState(false);
     // The names of their three places, for the list below.
     const [names, setNames] = useState<Record<string, string>>({});
     const topKey = me?.topPlaces.join(",") ?? "";
@@ -370,14 +372,6 @@ export default function MePage() {
         return <Join />;
     }
 
-    const share = async () => {
-        const url = `${SITE_URL.replace(/^https:\/\/www\./, "https://")}/@${me.handle}`;
-        try {
-            if (navigator.share) return await navigator.share({ title: displayName(me), url });
-            await navigator.clipboard.writeText(url);
-            toast(t.common.copied);
-        } catch {}
-    };
 
     const signOut = async (everywhere: boolean) => {
         await call("/api/me/logout", "POST", { everywhere });
@@ -391,7 +385,7 @@ export default function MePage() {
                     <Pencil size={15} />
                     {words.me.edit}
                 </button>
-                <button type="button" onClick={share} className="inline-flex h-11 items-center gap-2 rounded-full bg-white/10 px-5 text-[0.875rem] font-semibold text-white">
+                <button type="button" onClick={() => setSharing(true)} className="inline-flex h-11 items-center gap-2 rounded-full bg-white/10 px-5 text-[0.875rem] font-semibold text-white">
                     <Share2 size={15} />
                     {words.me.share}
                 </button>
@@ -441,6 +435,7 @@ export default function MePage() {
                 @{me.handle} · {fill(words.memberNo, { number: me.memberNo })}
             </p>
 
+            <ShareCard open={sharing} onClose={() => setSharing(false)} handle={me.handle} name={displayName(me)} version={cardVersion({ person: me, stats: me.stats, top: me.topPlaces.map((slug) => ({ slug })) })} mine />
             {panel === "edit" && <EditSheet me={me} open onClose={() => setPanel(null)} />}
             {panel === "top" && <TopSheet me={me} open onClose={() => setPanel(null)} />}
             {(panel === "pin" || panel === "recovery" || panel === "delete") && <SecretSheet panel={panel} onClose={() => setPanel(null)} />}

@@ -11,6 +11,8 @@ import { cityBySlug } from "@/lib/cities";
 import { fill, getDictionary, isLocale } from "@/lib/i18n";
 import { formatPrice, formatRelativeDays } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
+import { personShareImage } from "@/lib/people/card";
+import { cardVersion } from "@/lib/people/card-version";
 import { getProfilePage } from "@/lib/people/pages";
 import { normalizeHandle } from "@/lib/people/rules";
 
@@ -47,7 +49,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title,
         description,
         alternates: { canonical: paths.person(lang, page.person.handle) },
-        openGraph: { type: "profile", title, description, images: [{ url: page.person.face }] },
+        openGraph: { type: "profile", title, description, url: paths.person(lang, page.person.handle), images: [personShareImage(page, lang)] },
+        twitter: { card: "summary_large_image", images: [personShareImage(page, lang).url] },
         // A profile with nothing written yet is not worth a search result.
         robots: page.stats.reviews > 0 ? undefined : { index: false, follow: true },
     };
@@ -67,7 +70,7 @@ export default async function PersonPage({ params }: Props) {
             <BackButton className="mb-4 border border-line !bg-surface !shadow-none !backdrop-blur-none" />
 
             <ProfileHeader person={person} bio={page.bio} createdAt={page.createdAt} stats={page.stats} locale={lang}>
-                <ProfileActions id={person.id} handle={person.handle} name={displayName(person)} />
+                <ProfileActions id={person.id} handle={person.handle} name={displayName(person)} version={cardVersion(page)} />
             </ProfileHeader>
 
             {page.top.length > 0 && (
