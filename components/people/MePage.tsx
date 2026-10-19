@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Heart, KeyRound, LifeBuoy, LogOut, MessageCircle, Pencil, Share2, Smartphone, Star, Trash2, UserRound } from "lucide-react";
+import { ChevronRight, Heart, KeyRound, LifeBuoy, LogOut, Pencil, Share2, Smartphone, Star, Trash2, TrendingUp, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CITIES } from "@/lib/cities";
 import { SITE_URL, fill } from "@/lib/i18n";
@@ -53,7 +53,7 @@ function Join() {
         <div className="relative overflow-hidden rounded-[2rem] bg-[#15110e] px-6 pt-10 pb-8 text-white md:px-10">
             <span className="pointer-events-none absolute -top-32 -right-32 h-80 w-80 rounded-full bg-[#d9572b]/25 blur-3xl" aria-hidden />
             <div className="relative flex -space-x-3">
-                {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "lo.p4n8tt.2.3", "pp.qq19ve.1.0"].map((sample, index) => (
+                {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "mc.nina44.0.3", "pp.qq19ve.1.0"].map((sample, index) => (
                     <span key={sample} className="nt-face h-14 w-14 ring-[3px] ring-[#15110e]" style={{ zIndex: 5 - index }}>
                         { }
                         <img src={`/api/avatar/${sample}`} alt="" width={56} height={56} />
@@ -65,7 +65,7 @@ function Join() {
             <p className="relative mt-3 max-w-md text-[1rem] leading-relaxed text-white/80">{words.join.lead}</p>
             <ul className="relative mt-6 flex flex-col gap-3">
                 {words.join.perks.map((perk, index) => {
-                    const Icon = [Star, Heart, MessageCircle][index] ?? Star;
+                    const Icon = [Star, Heart, TrendingUp][index] ?? Star;
                     return (
                         <li key={perk} className="flex items-center gap-3 text-[0.875rem] font-medium">
                             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/10 text-[#f6dd86]">

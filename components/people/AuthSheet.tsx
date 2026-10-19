@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check, Copy, Heart, MessageCircle, Star } from "lucide-react";
+import { ArrowLeft, Check, Copy, Heart, Star, TrendingUp } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { fill } from "@/lib/i18n";
@@ -246,7 +246,7 @@ export default function AuthSheet() {
                 <div className="pb-2">
                     <div className="relative -mx-5 -mt-2 mb-6 overflow-hidden px-5 pt-2 pb-6">
                         <div className="flex -space-x-3">
-                            {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "lo.p4n8tt.2.3", "pp.qq19ve.1.0"].map((sample, index) => (
+                            {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "mc.nina44.0.3", "pp.qq19ve.1.0"].map((sample, index) => (
                                 <span key={sample} className="nt-face h-14 w-14 ring-[3px] ring-bg" style={{ zIndex: 5 - index }}>
                                     { }
                                     <img src={`/api/avatar/${sample}`} alt="" width={56} height={56} />
@@ -258,7 +258,7 @@ export default function AuthSheet() {
                         <p className="mt-3 text-[1rem] leading-relaxed text-text-2">{reason === "generic" ? words.join.lead : words.join.reasons[reason]}</p>
                         <ul className="mt-5 flex flex-col gap-2.5">
                             {words.join.perks.map((perk, index) => {
-                                const Icon = [Star, Heart, MessageCircle][index] ?? Star;
+                                const Icon = [Star, Heart, TrendingUp][index] ?? Star;
                                 return (
                                     <li key={perk} className="flex items-center gap-3 text-[0.875rem] font-medium">
                                         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-700/25 dark:text-brand-200">
