@@ -7,7 +7,6 @@ import {
     CloudSun,
     Heart,
     Landmark,
-    type LucideIcon,
     Map as MapIcon,
     Navigation,
     PenLine,
@@ -16,9 +15,12 @@ import {
     Search,
     Send,
     Smartphone,
+    Star,
     Store,
+    UserRound,
     Users,
     Wallet,
+    type LucideIcon,
 } from "lucide-react";
 import { HELP, type HelpIcon, type HelpLink } from "@/lib/help";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
@@ -47,6 +49,8 @@ const ICONS: Record<HelpIcon, LucideIcon> = {
     owner: Store,
     install: Smartphone,
     free: Wallet,
+    profile: UserRound,
+    review: Star,
 };
 
 const linkTo = (to: HelpLink, lang: Locale) =>
@@ -62,6 +66,7 @@ const linkTo = (to: HelpLink, lang: Locale) =>
         guests: paths.guests(lang),
         pro: paths.pro(lang),
         privacy: paths.privacy(lang),
+        me: paths.me(lang),
     })[to];
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

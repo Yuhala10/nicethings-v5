@@ -3,6 +3,7 @@ import { NextResponse, userAgent } from "next/server";
 import { looksAutomated } from "@/lib/analytics";
 import { notInstalled } from "@/lib/atlas/store";
 import { cleanText } from "@/lib/feedback";
+import { currentProfile } from "@/lib/people/server";
 import { getPlace } from "@/lib/places/server";
 import { MAX_CAPTION, MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, POSTS_PER_DAY, POST_BUCKET, POST_TYPES, UUID } from "@/lib/posts";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -52,19 +53,22 @@ export async function POST(request: Request) {
         const name = randomUUID();
         const mediaPath = `${place.id}/${name}.${type.ext}`;
         const posterPath = type.kind === "video" && body.poster === true ? `${place.id}/${name}-poster.jpg` : null;
+        // Sent while signed in: the wall will show who it is from.
+        const profile = await currentProfile().catch(() => null);
+        const row: Record<string, unknown> = {
+            spot_id: place.id,
+            visitor_id: visitor,
+            kind: type.kind,
+            media_path: mediaPath,
+            poster_path: posterPath,
+            width: whole(body.width, 10000),
+            height: whole(body.height, 10000),
+            duration: duration === null ? null : Math.round(duration * 10) / 10,
+            caption: cleanText(body.caption, MAX_CAPTION),
+        };
         const saved = await db
             .from("nt_spot_posts")
-            .insert({
-                spot_id: place.id,
-                visitor_id: visitor,
-                kind: type.kind,
-                media_path: mediaPath,
-                poster_path: posterPath,
-                width: whole(body.width, 10000),
-                height: whole(body.height, 10000),
-                duration: duration === null ? null : Math.round(duration * 10) / 10,
-                caption: cleanText(body.caption, MAX_CAPTION),
-            })
+            .insert(profile ? { ...row, profile_id: profile.id } : row)
             .select("id")
             .single();
         if (saved.error) throw saved.error;

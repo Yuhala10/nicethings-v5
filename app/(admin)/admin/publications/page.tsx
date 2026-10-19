@@ -18,7 +18,6 @@ type Post = {
     created_at: string;
     place: { id: string; name: string; slug: string | null; city: string | null } | null;
 };
-type Remark = { id: string; name: string | null; body: string; created_at: string; article: { id: string; slug: string; title_fr: string } | null };
 
 // What visitors send to the walls of places. Nothing shows on the site
 // until it has been approved here; what is shown can be taken down.
@@ -27,47 +26,7 @@ export default function PublicationsPage() {
     const toast = useAdminToast();
     const [busy, setBusy] = useState<string | null>(null);
     const { data, loading, error, reload } = useAdminData<{ setup: boolean; waiting: Post[]; shown: Post[] }>("spot-posts");
-    const words = useAdminData<{ setup: boolean; waiting: Remark[]; shown: Remark[] }>("comments");
 
-    const settle = async (remark: Remark, action: "approve" | "remove") => {
-        setBusy(remark.id);
-        try {
-            await adminPost("comments", { id: remark.id, action });
-            toast(action === "approve" ? tr("Publié sous l'article", "Published under the article") : tr("Supprimé", "Deleted"));
-            await words.reload();
-        } catch (caught) {
-            toast((caught as Error).message, true);
-        } finally {
-            setBusy(null);
-        }
-    };
-    const remark = (item: Remark, waiting: boolean) => (
-        <li key={item.id} className="a-card flex flex-col gap-3 p-4">
-            <div className="min-w-0 text-sm">
-                <span className="font-semibold">{item.name ?? tr("Un lecteur", "A reader")}</span>
-                <span className="text-muted"> · {timeAgo(item.created_at)}</span>
-                {item.article && (
-                    <Link href={`/fr/blog/${item.article.slug}#commentaires`} target="_blank" className="mt-0.5 flex items-center gap-1 text-xs text-muted hover:underline">
-                        {item.article.title_fr}
-                        <ExternalLink size={12} />
-                    </Link>
-                )}
-                <p className="mt-2 whitespace-pre-line text-text-2">{item.body}</p>
-            </div>
-            <div className="flex gap-2">
-                {waiting && (
-                    <button type="button" className="a-btn a-btn-primary h-10 flex-1" disabled={busy !== null} onClick={() => settle(item, "approve")}>
-                        <Check size={15} />
-                        {tr("Publier", "Publish")}
-                    </button>
-                )}
-                <button type="button" className="a-btn a-btn-soft h-10" disabled={busy !== null} onClick={() => settle(item, "remove")}>
-                    <Trash2 size={15} />
-                    {waiting ? tr("Refuser", "Refuse") : tr("Supprimer", "Delete")}
-                </button>
-            </div>
-        </li>
-    );
 
     const decide = async (post: Post, action: "approve" | "remove") => {
         setBusy(post.id);
@@ -107,36 +66,10 @@ export default function PublicationsPage() {
             <PageHeader
                 title={tr("Contributions", "Contributions")}
                 subtitle={tr(
-                    "Les photos, vidéos et commentaires envoyés par les visiteurs. Rien n'apparaît sur le site avant ton accord.",
-                    "Photos, videos and comments sent by visitors. Nothing shows on the site before you say yes."
+                    "Les photos et vidéos envoyées par les visiteurs. Rien n'apparaît sur le site avant ton accord. Les avis et commentaires sont dans Membres.",
+                    "Photos and videos sent by visitors. Nothing shows on the site before you say yes. Reviews and comments are under Members."
                 )}
             />
-
-            {/* ---- Comments under articles ---- */}
-            <h2 className="a-serif mb-3 text-2xl">
-                {tr("Commentaires en attente", "Comments waiting")} <span className="text-muted">· {words.data?.waiting.length ?? 0}</span>
-            </h2>
-            {words.data?.setup ? (
-                <p className="a-card mb-10 p-4 text-sm text-muted">
-                    {tr("Les commentaires s'ouvrent une fois le script 006_comments.sql lancé dans Supabase.", "Comments open once the script 006_comments.sql has been run in Supabase.")}
-                </p>
-            ) : (
-                <>
-                    {words.data?.waiting.length ? (
-                        <ul className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{words.data.waiting.map((item) => remark(item, true))}</ul>
-                    ) : (
-                        <p className="a-card mb-6 p-4 text-sm text-muted">{tr("Aucun commentaire en attente.", "No comment waiting.")}</p>
-                    )}
-                    {Boolean(words.data?.shown.length) && (
-                        <details className="mb-10">
-                            <summary className="cursor-pointer text-sm font-semibold">
-                                {tr("Commentaires publiés", "Published comments")} · {words.data?.shown.length}
-                            </summary>
-                            <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{words.data?.shown.map((item) => remark(item, false))}</ul>
-                        </details>
-                    )}
-                </>
-            )}
 
             {/* ---- Photos and videos on the walls of places ---- */}
             <h2 className="a-serif mb-3 text-2xl">{tr("Photos et vidéos", "Photos & videos")}</h2>

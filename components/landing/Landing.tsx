@@ -11,6 +11,7 @@ import EditorialSection from "@/components/editorial/EditorialSection";
 import NowSection from "@/components/host/NowSection";
 import PinCard from "@/components/place/PinCard";
 import { LanguageSwitch, Logo } from "@/components/site/SiteChrome";
+import HelloMe from "@/components/people/HelloMe";
 import { CITIES, type City } from "@/lib/cities";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { formatNumber } from "@/lib/i18n/format";
@@ -120,7 +121,10 @@ export default function Landing({
             {/* Phone masthead (desktop has the site header). */}
             <div className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-[max(env(safe-area-inset-top),1rem)] md:hidden">
                 <Logo compact />
-                <LanguageSwitch />
+                <span className="flex min-w-0 items-center gap-2">
+                    <HelloMe />
+                    <LanguageSwitch />
+                </span>
             </div>
 
             {/* ---------------- The opening film: Cameroon in a minute ---------------- */}

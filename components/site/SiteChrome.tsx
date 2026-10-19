@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, Home, Lock, Map as MapIcon, Plus, Search } from "lucide-react";
+import { Heart, Home, Lock, Map as MapIcon, Plus, Search, UserRound } from "lucide-react";
 import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
+import { useMe } from "@/lib/people/client";
+import AuthSheet from "../people/AuthSheet";
+import { Face } from "../people/Person";
 import Analytics from "./Analytics";
 import LanguagePrompt from "./LanguagePrompt";
 import { useLocale } from "./LocaleProvider";
@@ -71,6 +74,13 @@ export function Logo({ compact = false, light = false }: { compact?: boolean; li
     );
 }
 
+// The way to one's profile: their face once signed in, otherwise a person.
+function MeIcon({ size }: { size: number }) {
+    const { me } = useMe();
+    if (me) return <Face person={me} size={size} />;
+    return <UserRound size={size - 3} strokeWidth={1.9} />;
+}
+
 function SiteHeader() {
     const { locale, t } = useLocale();
     const pathname = usePathname();
@@ -118,6 +128,9 @@ function SiteHeader() {
                         {t.nav.suggest}
                     </Link>
                     <LanguageSwitch />
+                    <Link href={paths.me(locale)} aria-label={t.people.island} className="grid h-10 w-10 place-items-center rounded-full border border-line-strong bg-surface transition hover:border-text-2">
+                        <MeIcon size={30} />
+                    </Link>
                 </div>
             </div>
         </header>
@@ -152,6 +165,7 @@ export function TabBar() {
         { key: "search", href: paths.search(locale, city), label: t.nav.search, icon: Search, active: pathname.includes("/recherche") },
         { key: "map", href: paths.explore(locale, city), label: t.nav.map, icon: MapIcon, active: pathname.includes("/carte") },
         { key: "saved", href: paths.saved(locale), label: t.nav.saved, icon: Heart, active: pathname.startsWith(paths.saved(locale)) },
+        { key: "me", href: paths.me(locale), label: t.people.island, icon: null, active: pathname.startsWith(paths.me(locale)) || pathname.startsWith(`/${locale}/u/`) },
     ];
 
     return (
@@ -172,7 +186,7 @@ export function TabBar() {
                                 aria-current={active ? "page" : undefined}
                                 aria-label={label}
                             >
-                                <Icon size={21} strokeWidth={active ? 2.2 : 1.9} />
+                                {Icon ? <Icon size={21} strokeWidth={active ? 2.2 : 1.9} /> : <MeIcon size={24} />}
                                 <span className="nt-island-label" aria-hidden>
                                     {label}
                                 </span>
@@ -281,6 +295,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
                 </div>
             )}
             {layout !== "navigation" && <TabBar />}
+            <AuthSheet />
         </ToastProvider>
     );
 }

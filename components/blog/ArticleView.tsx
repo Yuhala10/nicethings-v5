@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Languages } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Languages, MessageCircle } from "lucide-react";
 import { expandBlocks, outline, placesIn, plainText } from "@/lib/blog/blocks";
-import { getComments } from "@/lib/blog/comments";
 import { isGuest } from "@/lib/blog/guest";
 import { getPosts, localised, type Post } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
@@ -12,11 +11,12 @@ import { getGuests, refOf } from "@/lib/guests";
 import { SITE_URL, fill, getDictionary, type Locale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { getPlacesBySlugs } from "@/lib/places/server";
+import { getTalk } from "@/lib/people/talk";
+import Talk from "../people/Talk";
 import type { PlaceSummary } from "@/lib/places/types";
 import { postShareImage } from "@/lib/share-image";
 import ArticleBody from "./ArticleBody";
 import ArticleMap from "./ArticleMap";
-import Comments from "./Comments";
 import PostCard from "./PostCard";
 import ReadingProgress from "./ReadingProgress";
 import ShareBar from "./ShareBar";
@@ -48,8 +48,9 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
 
     const all = await getPosts().catch(() => []);
     // Not on the preview of a draft: nobody can comment on what is not out.
-    const day = new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Douala" });
-    const comments = preview ? null : ((await getComments(post.id).catch(() => null))?.map((comment) => ({ id: comment.id, name: comment.name, body: comment.body, date: day.format(new Date(comment.createdAt)) })) ?? null);
+    // Comments signed with a profile (script 011); none while profiles are not open.
+    const comments = preview ? null : await getTalk("article", [post.id]);
+    const shownComments = comments?.filter((comment) => !comment.pending).length ?? 0;
     const related = all
         .filter((other) => other.id !== post.id)
         .map((other) => ({
@@ -267,10 +268,16 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
                 </aside>
             </div>
 
-            {/* What readers think, and a place to say it (once the team has read it). */}
+            {/* What readers think, each with their face, and a place to say it. */}
             {comments && (
                 <section id="commentaires" className="mx-auto mt-16 max-w-3xl scroll-mt-24 px-4 md:px-6">
-                    <Comments postId={post.id} comments={comments} />
+                    <p className="nt-eyebrow flex items-center gap-2">
+                        <MessageCircle size={14} />
+                        {shownComments ? fill(shownComments === 1 ? t.comments.countOne : t.comments.countMany, { count: shownComments }) : t.comments.eyebrow}
+                    </p>
+                    <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{t.comments.title}</h2>
+                    <p className="mt-3 mb-7 max-w-2xl text-[1rem] leading-relaxed text-text-2">{shownComments ? t.comments.lead : t.comments.empty}</p>
+                    <Talk target="article" ids={[post.id]} postTo={post.id} initial={comments} />
                 </section>
             )}
 

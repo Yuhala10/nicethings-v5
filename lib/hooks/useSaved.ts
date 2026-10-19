@@ -38,21 +38,39 @@ function subscribe(callback: () => void) {
     };
 }
 
+function write(next: string[]) {
+    try {
+        window.localStorage.setItem(KEY, JSON.stringify(next.slice(0, 500)));
+    } catch {
+        // Storage full or blocked (private mode): keep the in-memory state.
+    }
+    cache = next;
+    window.dispatchEvent(new Event(EVENT));
+}
+
+export function readSaved() {
+    return read();
+}
+
+// Signed in on a profile: what the profile had saved joins what this
+// phone had (lib/people/client.ts).
+export function mergeSaved(slugs: string[]) {
+    const current = read();
+    const next = [...current, ...slugs.filter((slug) => !current.includes(slug))];
+    if (next.length !== current.length) write(next);
+}
+
 export function useSaved() {
     const saved = useSyncExternalStore(subscribe, snapshot, () => EMPTY);
 
     const toggle = useCallback((slug: string) => {
         const current = read();
-        const next = current.includes(slug) ? current.filter((item) => item !== slug) : [slug, ...current];
-        try {
-            window.localStorage.setItem(KEY, JSON.stringify(next.slice(0, 500)));
-        } catch {
-            // Storage full or blocked (private mode): keep the in-memory state.
-        }
-        cache = next;
-        window.dispatchEvent(new Event(EVENT));
+        const on = !current.includes(slug);
+        write(on ? [slug, ...current] : current.filter((item) => item !== slug));
+        // A profile signed in on this phone keeps the same list.
+        window.dispatchEvent(new CustomEvent("nt:save-toggle", { detail: { slug, on } }));
         if (navigator.vibrate) navigator.vibrate(12);
-        return next.includes(slug);
+        return on;
     }, []);
 
     return { saved, isSaved: (slug: string) => saved.includes(slug), toggle };

@@ -120,6 +120,8 @@ export const paths = {
     pro: (locale: Locale) => `/${locale}/pro`,
     claim: (locale: Locale, slug: string) => `/${locale}/pro/revendiquer/${slug}`,
     manage: (locale: Locale, slug: string) => `/${locale}/pro/lieu/${slug}`,
+    me: (locale: Locale) => `/${locale}/moi`,
+    person: (locale: Locale, handle: string) => `/${locale}/u/${handle}`,
 };
 
 export { CATEGORIES };

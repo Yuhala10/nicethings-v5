@@ -27,8 +27,13 @@ export default function NavProgress() {
 
     useEffect(() => {
         const internalLink = (target: EventTarget | null) => {
-            const anchor = (target as HTMLElement | null)?.closest?.("a");
+            const element = target as HTMLElement | null;
+            const anchor = element?.closest?.("a");
             if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return null;
+            // A button inside a card's link (the heart on a place) does its own
+            // thing and the page stays: no dimming, no bar that never ends.
+            const control = element?.closest?.("button, input, select, textarea, label, [role='button']");
+            if (control && anchor.contains(control)) return null;
             const url = new URL(anchor.href, window.location.href);
             if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return null;
             if (/^\/(admin|api)/.test(url.pathname)) return null;

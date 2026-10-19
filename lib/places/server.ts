@@ -1,4 +1,5 @@
-import { POST_COLUMNS, postUrl, toWallPost } from "../posts";
+import { POST_COLUMNS, POST_PEOPLE_COLUMNS, postUrl, toWallPost } from "../posts";
+import { peopleByIds } from "../people/server";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { DEFAULT_CITY, cityByName } from "../cities";
@@ -210,6 +211,25 @@ export const getStoryPlaces = unstable_cache(loadStoryPlaces, ["places:stories:v
     tags: [PLACES_TAG],
 });
 
+// A place's wall, best-liked first. Once profiles are open (script 011)
+// each post also says who sent it and how many comments it has; before,
+// the same wall without them.
+type WallRow = Parameters<typeof toWallPost>[0] & { profile_id?: string | null };
+
+async function wallOf(db: ReturnType<typeof publicClient>, spotId: string): Promise<{ data: WallRow[] | null; error: { code?: string } | null }> {
+    const query = async (columns: string) => {
+        const { data, error } = await db.from("nt_spot_posts").select(columns).eq("spot_id", spotId).eq("status", "APPROVED").order("likes", { ascending: false }).order("decided_at", { ascending: false }).limit(30);
+        return { data: data as unknown as WallRow[] | null, error };
+    };
+    const full = await query(POST_PEOPLE_COLUMNS);
+    return full.error?.code === "42703" ? await query(POST_COLUMNS) : full;
+}
+
+async function withAuthors(list: WallRow[]) {
+    const people = await peopleByIds(list.map((row) => row.profile_id ?? "")).catch(() => new Map());
+    return list.map((row) => toWallPost(row, (row.profile_id && people.get(row.profile_id)) || null));
+}
+
 async function loadPlace(slug: string): Promise<PlaceDetail | null> {
     const db = publicClient();
     const { data: row, error } = await db
@@ -242,7 +262,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
             .order("created_at", { ascending: false })
             .limit(30),
         db.from("nt_arrivals").select("created_at", { count: "exact" }).eq("spot_id", row.id).order("created_at", { ascending: false }).limit(1),
-        db.from("nt_spot_posts").select(POST_COLUMNS).eq("spot_id", row.id).eq("status", "APPROVED").order("likes", { ascending: false }).order("decided_at", { ascending: false }).limit(30),
+        wallOf(db, row.id as string),
     ]);
 
     for (const result of [photos, menu, reviews]) {
@@ -270,7 +290,7 @@ async function loadPlace(slug: string): Promise<PlaceDetail | null> {
         standing: row.standing === 1 || row.standing === 2 ? row.standing : 0,
         positionExact: row.position_exact !== false,
         // An error here means the wall is not open yet: the page does without.
-        wall: wall.error ? null : (wall.data ?? []).map(toWallPost),
+        wall: wall.error ? null : await withAuthors(wall.data ?? []),
         guide: { story: words("story"), access: words("access"), fees: words("fees"), company: words("company"), bestTime: words("best_time"), bring: words("bring") },
         description: row.description ?? null,
         address: row.address ?? null,

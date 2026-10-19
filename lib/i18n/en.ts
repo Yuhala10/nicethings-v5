@@ -1,4 +1,5 @@
 import type { Dictionary } from "./fr";
+import { peopleEn } from "./people";
 
 export const en: Dictionary = {
     meta: {
@@ -1311,6 +1312,7 @@ export const en: Dictionary = {
         history: "Latest changes",
         notOwner: "You don't manage this place.",
     },
+    people: peopleEn,
     consent: {
         title: "Welcome to NiceThings 👋",
         body: "We only use your location to show what's near you, and your saved places stay on your phone. Nothing is sold.",

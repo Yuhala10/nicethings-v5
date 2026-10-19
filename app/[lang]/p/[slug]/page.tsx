@@ -11,6 +11,8 @@ import PlaceActions from "@/components/place/PlaceActions";
 import PinCard from "@/components/place/PinCard";
 import PlaceMap from "@/components/place/PlaceMap";
 import PostWall from "@/components/place/PostWall";
+import PlaceReviews from "@/components/people/PlaceReviews";
+import { getPlaceReviews } from "@/lib/people/reviews";
 import GuestNod from "@/components/guest/GuestNod";
 import { guestsForPlace } from "@/lib/guests";
 import ReportButton from "@/components/place/ReportButton";
@@ -300,6 +302,8 @@ export default async function PlacePage({ params }: Props) {
     ).filter((row): row is [string, string] => Boolean(row[1]));
     const articles = await getPostsForPlace(place.slug);
     const chosenBy = await guestsForPlace(place.slug);
+    // Reviews with a face (script 011); none shown while profiles are not open.
+    const reviews = await getPlaceReviews(place.id).catch(() => null);
     const hasHours = Boolean(place.hours.opens && place.hours.closes);
     const hasPrice = Boolean(place.priceMin || place.priceMax);
     // A lake or a mountain keeps no hours and has no price per head: nothing
@@ -448,6 +452,15 @@ export default async function PlacePage({ params }: Props) {
                     </Section>
                 )}
 
+                {/* What people who went there say, signed with their face. */}
+                {reviews && (
+                    <section id="avis" className="mt-10 scroll-mt-20 border-t border-line pt-6">
+                        <p className="nt-eyebrow">{t.people.reviews.eyebrow}</p>
+                        <h2 className="nt-serif mt-1.5 mb-5 text-[2.25rem] leading-[1.05]">{t.people.reviews.title}</h2>
+                        <PlaceReviews slug={place.slug} initial={reviews} />
+                    </section>
+                )}
+
                 {/* Practical info: one fact per row. */}
                 <Section title={t.spot.practical}>
                     <div className="-my-4 divide-y divide-line">
@@ -542,24 +555,6 @@ export default async function PlacePage({ params }: Props) {
                                     <span className="shrink-0 font-semibold">{formatPrice(item.price, lang)}</span>
                                 </li>
                             ))}
-                        </ul>
-                    </Section>
-                )}
-
-                {place.reviews.length > 0 && (
-                    <Section title={`${t.reviews.title} · ${place.reviewCount}`}>
-                        <ul className="flex flex-col gap-3">
-                            {place.reviews
-                                .filter((review) => review.comment)
-                                .map((review) => (
-                                    <li key={review.id} className="rounded-[1.1rem] bg-surface-2 p-4 text-[0.875rem]">
-                                        <div className="mb-1 flex justify-between text-xs font-semibold">
-                                            <span>{"★".repeat(review.rating)}</span>
-                                            <span className="text-muted">{formatRelativeDays(review.createdAt, lang)}</span>
-                                        </div>
-                                        <p className="text-text-2">{review.comment}</p>
-                                    </li>
-                                ))}
                         </ul>
                     </Section>
                 )}

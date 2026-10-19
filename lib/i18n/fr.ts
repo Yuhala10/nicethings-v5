@@ -2,6 +2,8 @@
 // tutoiement, local references (quartiers, FCFA, taxi, moto). The English
 // dictionary must match this shape exactly (enforced by its type).
 
+import { peopleFr } from "./people";
+
 export const fr = {
     meta: {
         siteName: "NiceThings",
@@ -1315,6 +1317,7 @@ export const fr = {
         history: "Dernières modifications",
         notOwner: "Tu ne gères pas ce lieu.",
     },
+    people: peopleFr,
     consent: {
         title: "Bienvenue sur NiceThings 👋",
         body: "On utilise ta position uniquement pour te montrer ce qu'il y a près de toi, et on garde tes favoris sur ton téléphone. Rien n'est vendu.",

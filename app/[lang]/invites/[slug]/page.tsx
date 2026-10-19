@@ -4,14 +4,14 @@ import Link from "next/link";
 import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowRight, ArrowUpRight, MapPin, Navigation, Sparkles, Star } from "lucide-react";
-import Comments, { type ShownComment } from "@/components/blog/Comments";
+import Talk from "@/components/people/Talk";
 import Inline from "@/components/blog/Inline";
 import PostCard from "@/components/blog/PostCard";
 import GuestCard, { quoted, sealOf } from "@/components/guest/GuestCard";
 import GuestHeart from "@/components/guest/GuestHeart";
 import GuestShare from "@/components/guest/GuestShare";
 import { hasAdminSession } from "@/lib/admin-auth";
-import { getComments } from "@/lib/blog/comments";
+import { getTalk } from "@/lib/people/talk";
 import type { Post } from "@/lib/blog/server";
 import { cityBySlug } from "@/lib/cities";
 import { themeOf } from "@/lib/guest-theme";
@@ -98,12 +98,8 @@ export default async function GuestPage({ params }: Props) {
     // The guest book: kind words under any of their notebooks, oldest first;
     // a new word goes under the latest one.
     const latest = preview ? null : guest.notebooks[0];
-    const words: ShownComment[] | null = latest
-        ? (await Promise.all(guest.notebooks.map((post) => getComments(post.id).catch(() => null))))
-              .flatMap((list) => list ?? [])
-              .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-              .map((comment) => ({ id: comment.id, name: comment.name, body: comment.body, date: day.format(new Date(comment.createdAt)) }))
-        : null;
+    const book = latest ? await getTalk("article", guest.notebooks.map((post) => post.id)) : null;
+    const signed = book?.filter((comment) => !comment.pending).length ?? 0;
 
     const url = `${SITE_URL}${paths.guest(lang, guest.slug)}`;
     const jsonLd = {
@@ -262,13 +258,12 @@ export default async function GuestPage({ params }: Props) {
             )}
 
             {/* ---------------- Their guest book ---------------- */}
-            {latest && words && (
+            {latest && book && (
                 <section className="mx-auto max-w-3xl px-4 pt-20 md:px-6 md:pt-28">
-                    <Comments
-                        postId={latest.id}
-                        comments={words}
-                        words={{ eyebrow: t.guestPage.wordsEyebrow, title: fill(t.guestPage.wordsTitle, { name: guest.name }), lead: t.guestPage.wordsLead, empty: fill(t.guestPage.wordsEmpty, { name: guest.name }) }}
-                    />
+                    <p className="nt-eyebrow">{signed ? fill(signed === 1 ? t.comments.countOne : t.comments.countMany, { count: signed }) : t.guestPage.wordsEyebrow}</p>
+                    <h2 className="nt-serif mt-2 text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{fill(t.guestPage.wordsTitle, { name: guest.name })}</h2>
+                    <p className="mt-3 mb-7 max-w-2xl text-[1rem] leading-relaxed text-text-2">{signed ? t.guestPage.wordsLead : fill(t.guestPage.wordsEmpty, { name: guest.name })}</p>
+                    <Talk target="article" ids={guest.notebooks.map((post) => post.id)} postTo={latest.id} initial={book} />
                 </section>
             )}
 

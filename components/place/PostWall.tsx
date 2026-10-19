@@ -1,9 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ChevronLeft, ChevronRight, Heart, Play } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Heart, MessageCircle, Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { fill } from "@/lib/i18n";
+import { call, useMe, withMe } from "@/lib/people/client";
+import type { CommentView, Person } from "@/lib/people/types";
 import type { WallPost } from "@/lib/posts";
+import { Face, PersonLine, displayName } from "../people/Person";
+import Sheet from "../people/Sheet";
+import Talk from "../people/Talk";
 import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 import AddPost from "./AddPost";
@@ -85,6 +91,12 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
     const [counts, setCounts] = useState<Record<string, number>>({});
     const [open, setOpen] = useState<number | null>(null);
     const [still, setStill] = useState(false);
+    const { locale } = useLocale();
+    const { me } = useMe();
+    // What the viewer learns about each post it shows: who liked it, its comments.
+    const [social, setSocial] = useState<Record<string, { likers: Person[]; comments: CommentView[] }>>({});
+    const [talking, setTalking] = useState(false);
+    const [talkCounts, setTalkCounts] = useState<Record<string, number>>({});
 
     // What this browser already liked, and whether videos should stay still
     // (data saver, or a visitor who asked for less motion).
@@ -99,7 +111,9 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
         return () => cancelAnimationFrame(frame);
     }, []);
 
-    const toggle = (post: WallPost) => {
+    const toggle = (post: WallPost) => withMe("like", () => give(post));
+
+    const give = (post: WallPost) => {
         const on = !liked.has(post.id);
         const next = new Set(liked);
         if (on) next.add(post.id);
@@ -141,6 +155,31 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
     }, [open, close, step]);
 
     const current = open === null ? null : posts[open];
+    const currentId = current?.id;
+
+    // Opening a post: who liked it and what was said under it.
+    useEffect(() => {
+        if (!currentId) return;
+        let gone = false;
+        call<{ comments: CommentView[]; likers?: Person[]; liked?: boolean }>(`/api/talk?target=wall&id=${currentId}`, "GET").then((answer) => {
+            if (gone || answer.ok === false) return;
+            setSocial((known) => ({ ...known, [currentId]: { likers: answer.likers ?? [], comments: answer.comments } }));
+            if (answer.liked === true) setLiked((set) => (set.has(currentId) ? set : new Set([...set, currentId])));
+        });
+        return () => {
+            gone = true;
+        };
+    }, [currentId, me?.id]);
+
+    const likers = current ? (social[current.id]?.likers ?? []) : [];
+    const likeCount = current ? (counts[current.id] ?? current.likes) : 0;
+    const commentCount = current ? (talkCounts[current.id] ?? social[current.id]?.comments.filter((comment) => !comment.pending).length ?? current.comments) : 0;
+    const named = likers.slice(0, 2).map((person) => `@${person.handle}`).join(", ");
+    const likedBy = likers.length
+        ? likeCount > Math.min(2, likers.length)
+            ? fill(t.people.talk.likedByMore, { names: named, count: likeCount - Math.min(2, likers.length) })
+            : fill(t.people.talk.likedBy, { names: named })
+        : null;
 
     return (
         <div>
@@ -165,6 +204,11 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
                                 <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent px-3 pt-12 pb-3 text-left">
                                     {post.caption && <span className="line-clamp-2 pr-14 text-[0.875rem] leading-snug font-medium text-white">{post.caption}</span>}
                                 </span>
+                                {post.author && (
+                                    <span className="pointer-events-none absolute top-2.5 right-2.5">
+                                        <Face person={post.author} size={28} />
+                                    </span>
+                                )}
                                 {post.kind === "video" && (
                                     <span className="pointer-events-none absolute top-2.5 left-2.5 inline-flex h-7 items-center gap-1 rounded-full bg-black/45 px-2.5 text-[0.75rem] font-semibold text-white backdrop-blur-md">
                                         <Play size={11} fill="currentColor" />
@@ -231,7 +275,24 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
                         </motion.div>
 
                         <div className="flex items-end gap-3 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)]" onClick={(event) => event.stopPropagation()}>
-                            <p className="min-w-0 flex-1 text-[1rem] leading-snug text-white/90">{current.caption}</p>
+                            <div className="min-w-0 flex-1">
+                                {current.author && (
+                                    <div className="mb-2">
+                                        <PersonLine person={current.author} locale={locale} size={34} light />
+                                    </div>
+                                )}
+                                {current.caption && <p className="text-[1rem] leading-snug text-white/90">{current.caption}</p>}
+                                {likedBy && <p className="mt-1.5 truncate text-[0.75rem] font-semibold text-white/70">{likedBy}</p>}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setTalking(true)}
+                                aria-label={t.people.talk.title}
+                                className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-black/45 px-4 text-[0.875rem] font-semibold text-white backdrop-blur-md transition active:scale-90"
+                            >
+                                <MessageCircle size={18} />
+                                {commentCount > 0 && <span className="tabular-nums">{commentCount}</span>}
+                            </button>
                             {posts.length > 1 && (
                                 <span className="hidden gap-2 sm:flex">
                                     <button type="button" onClick={() => step(-1)} aria-label={t.wall.previous} className="grid h-11 w-11 place-items-center rounded-full bg-white/10 backdrop-blur-md transition active:scale-90">
@@ -255,6 +316,26 @@ export default function PostWall({ slug, placeName, posts }: { slug: string; pla
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {current && (
+                <Sheet open={talking} onClose={() => setTalking(false)} closeLabel={t.people.common.close} title={t.people.talk.title} dark>
+                    {current.author && (
+                        <p className="mb-4 text-[0.75rem] font-semibold text-white/60">
+                            {t.people.talk.by} {displayName(current.author)}
+                        </p>
+                    )}
+                    <Talk
+                        key={current.id}
+                        target="wall"
+                        ids={[current.id]}
+                        postTo={current.id}
+                        initial={social[current.id]?.comments}
+                        light
+                        compact
+                        onCount={(count) => setTalkCounts((known) => (known[current.id] === count ? known : { ...known, [current.id]: count }))}
+                    />
+                </Sheet>
+            )}
         </div>
     );
 }

@@ -8,12 +8,12 @@ type Doc = { title: string; updated: string; sections: { heading: string; body: 
 export const PRIVACY: Record<Locale, Doc> = {
     fr: {
         title: "Confidentialité",
-        updated: "Mise à jour : 4 octobre 2026",
+        updated: "Mise à jour : 19 octobre 2026",
         sections: [
             {
                 heading: "En bref",
                 body: [
-                    "NiceThings fonctionne sans compte. On ne vend aucune donnée et il n'y a pas de publicité ciblée.",
+                    "NiceThings s'utilise sans compte ; un profil est facultatif. On ne vend aucune donnée et il n'y a pas de publicité ciblée.",
                 ],
             },
             {
@@ -37,14 +37,24 @@ export const PRIVACY: Record<Locale, Doc> = {
                 ],
             },
             {
+                heading: "Ton profil (facultatif)",
+                body: [
+                    "Si tu crées un profil, on garde ton @nom, le prénom et les mots que tu choisis d'afficher, ta ville et ton quartier, ton avatar ou ta photo, et tes trois lieux préférés. Tout cela est public sur ta page.",
+                    "Ton code PIN et ton code de secours ne sont jamais gardés tels quels : seulement une empreinte chiffrée, impossible à relire. Chaque téléphone connecté reçoit un cookie dont on garde l'empreinte, avec le type d'appareil et la date de dernière visite. Pour bloquer ceux qui essaient des PIN au hasard, chaque essai est noté avec une empreinte chiffrée de ta connexion (pas ton adresse IP), effacée après deux jours.",
+                    "Ta photo est redessinée par nos serveurs en 400 × 400 pixels, ce qui efface les informations cachées dans le fichier, comme l'endroit où elle a été prise.",
+                    "Tes avis, commentaires, j'aime et « validé » sont publiés avec ton @nom et ta tête. Tes favoris sont gardés avec ton profil pour te suivre d'un téléphone à l'autre.",
+                    "Depuis « Moi », tu modifies tout, tu te déconnectes de tous tes téléphones, et tu peux supprimer ton profil : il disparaît avec tes avis, commentaires et j'aime ; les photos des murs restent, sans ton nom.",
+                ],
+            },
+            {
                 heading: "Mesure d'audience",
                 body: [
                     "Pour savoir combien de personnes utilisent NiceThings et lesquelles reviennent, on compte les pages vues : la page, la ville, la langue, le type d'appareil (téléphone ou ordinateur) et le site d'où tu arrives.",
                     "Ton navigateur garde un identifiant tiré au hasard, qui sert seulement à reconnaître un retour. Il ne contient ni ton nom, ni ton numéro, ni ta position, et ton adresse IP n'est pas enregistrée dans ces statistiques. Effacer les données du site le remet à zéro, et le réglage « Ne pas me pister » de ton navigateur arrête ce comptage.",
                     "Quand le guidage t'amène devant un lieu et que tu confirmes qu'il est bien là, on enregistre seulement ce fait : le lieu, le moment et l'identifiant tiré au hasard de ton navigateur. Ta position sert à vérifier que tu es sur place, puis n'est pas gardée. Une seule exception : si tu as dû chercher le lieu, ou si son point sur la carte n'était qu'approximatif, on garde l'endroit où tu l'as trouvé, pour corriger la carte. Cet endroit est noté pour le lieu, sans ton identifiant.",
                     "Si tu actives les alertes météo, on garde ce que ton navigateur nous remet pour pouvoir t'envoyer une notification (une adresse chez le service de notifications de ton téléphone et deux clés), ta ville et ta langue. Ni ton identifiant, ni ta position. Tu les arrêtes d'un geste au même endroit, et cette adresse est alors effacée.",
-                    "Quand tu ajoutes une photo ou une vidéo à un lieu, on garde le fichier, le mot que tu y joins et l'identifiant tiré au hasard de ton navigateur. Elle n'est publiée qu'après vérification par l'équipe, et tu peux nous demander de la retirer. Un cœur sur une publication est enregistré avec ce même identifiant, rien d'autre.",
-                    "Quand tu commentes un article, on garde ton texte, le prénom si tu en donnes un, et ce même identifiant. Le commentaire n'est publié qu'après lecture par l'équipe, et tu peux nous demander de le retirer.",
+                    "Quand tu ajoutes une photo ou une vidéo à un lieu, on garde le fichier, le mot que tu y joins et l'identifiant tiré au hasard de ton navigateur. Elle n'est publiée qu'après vérification par l'équipe, et tu peux nous demander de la retirer. Un cœur sur une publication est enregistré avec ton profil.",
+                    "Les commentaires sous les articles, les photos et les avis se font avec un profil (voir plus haut). Un commentaire qui contient un lien ou un numéro est lu par l'équipe avant d'apparaître.",
                     "Quand tu demandes une invitation, on garde ce que tu écris dans le formulaire (ton nom, ton compte, ta ville, ce que tu aimes) pour te répondre : rien n'en est publié. Un invité choisit lui-même ce qui va sur sa page (sa photo, son compte, sa phrase) et peut demander qu'elle soit corrigée ou retirée. Un coup de cœur garde seulement l'identifiant anonyme de ton navigateur.",
                     "Quand tu crées ou ouvres un vote « On se voit où ? », on garde les lieux proposés, le choix de chacun, le prénom si tu en donnes un, et ce même identifiant. Ceux qui ont le lien du vote voient les choix et les prénoms.",
                 ],
@@ -65,11 +75,11 @@ export const PRIVACY: Record<Locale, Doc> = {
     },
     en: {
         title: "Privacy",
-        updated: "Updated: 4 October 2026",
+        updated: "Updated: 19 October 2026",
         sections: [
             {
                 heading: "In short",
-                body: ["NiceThings works without an account. We don't sell any data and there is no targeted advertising."],
+                body: ["NiceThings works without an account; a profile is optional. We don't sell any data and there is no targeted advertising."],
             },
             {
                 heading: "What stays on your phone",
@@ -92,14 +102,24 @@ export const PRIVACY: Record<Locale, Doc> = {
                 ],
             },
             {
+                heading: "Your profile (optional)",
+                body: [
+                    "If you create a profile, we keep your @name, the first name and words you choose to show, your city and neighbourhood, your avatar or photo, and your three favourite places. All of it is public on your page.",
+                    "Your PIN and rescue code are never kept as they are: only an encrypted fingerprint that cannot be read back. Each signed-in phone gets a cookie whose fingerprint we keep, with the kind of device and the date of the last visit. To stop people trying PINs at random, each try is noted with an encrypted fingerprint of your connection (not your IP address), erased after two days.",
+                    "Your photo is redrawn by our servers at 400 × 400 pixels, which erases what a file can hide, such as where it was taken.",
+                    "Your reviews, comments, likes and “validated” are published with your @name and face. Your saved places are kept with your profile so they follow you from one phone to another.",
+                    "From “Me”, you change everything, sign out of all your phones, and can delete your profile: it disappears with your reviews, comments and likes; photos on walls stay, without your name.",
+                ],
+            },
+            {
                 heading: "Audience measurement",
                 body: [
                     "To know how many people use NiceThings and how many come back, we count page views: the page, the city, the language, the type of device (phone or computer) and the site you arrive from.",
                     "Your browser keeps a random identifier, used only to recognise a return visit. It holds no name, phone number or position, and your IP address is not stored in these statistics. Clearing the site's data resets it, and your browser's “Do Not Track” setting stops this counting.",
                     "When the guidance brings you to a place and you confirm it is really there, we record only that fact: the place, the time and your browser's random identifier. Your position is used to check that you are on the spot, then it is not kept. One exception: if you had to look for the place, or if its point on the map was only approximate, we keep the spot where you found it, to correct the map. That spot is noted for the place, without your identifier.",
                     "If you switch on weather alerts, we keep what your browser hands us so that we can send you a notification (an address at your phone's notification service and two keys), your city and your language. Neither your identifier nor your position. You stop them with one tap in the same place, and that address is then erased.",
-                    "When you add a photo or a video to a place, we keep the file, the words you add and your browser's random identifier. It is published only after the team has checked it, and you can ask us to take it down. A heart on a post is recorded with that same identifier, nothing else.",
-                    "When you comment on an article, we keep your text, the first name if you give one, and that same identifier. The comment is published only after the team has read it, and you can ask us to take it down.",
+                    "When you add a photo or a video to a place, we keep the file, the words you add and your browser's random identifier. It is published only after the team has checked it, and you can ask us to take it down. A heart on a post is recorded with your profile.",
+                    "Comments under articles, photos and reviews are made with a profile (see above). A comment containing a link or a phone number is read by the team before it shows.",
                     "When you ask for an invitation, we keep what you write in the form (your name, your account, your city, what you love) to answer you: none of it is published. A guest chooses what goes on their page (their photo, their account, their sentence) and can ask for it to be corrected or taken down. A heart only keeps your browser's anonymous identifier.",
                     "When you create or open a “Where shall we meet?” vote, we keep the places proposed, each person’s choice, the first name if you give one, and that same identifier. Those who have the link to the vote see the choices and the first names.",
                 ],
@@ -123,7 +143,7 @@ export const PRIVACY: Record<Locale, Doc> = {
 export const TERMS: Record<Locale, Doc> = {
     fr: {
         title: "Conditions d'utilisation",
-        updated: "Mise à jour : 28 septembre 2026",
+        updated: "Mise à jour : 19 octobre 2026",
         sections: [
             {
                 heading: "Le service",
@@ -142,6 +162,8 @@ export const TERMS: Record<Locale, Doc> = {
                 heading: "Tes contributions",
                 body: [
                     "En proposant un lieu ou une correction, tu confirmes que c'est exact à ta connaissance. On peut modifier ou refuser une contribution.",
+                    "Ce que tu publies avec ton profil (avis, commentaires, photos) doit venir de ce que tu as vécu, sans insultes, sans données personnelles d'autrui et sans publicité. Pas de faux avis, ni pour un lieu ni contre lui. L'équipe peut masquer ou supprimer un message, et suspendre un profil qui ne respecte pas ces règles.",
+                    "Ton @nom ne doit pas se faire passer pour quelqu'un d'autre, une marque ou NiceThings.",
                 ],
             },
             {
@@ -155,7 +177,7 @@ export const TERMS: Record<Locale, Doc> = {
     },
     en: {
         title: "Terms of use",
-        updated: "Updated: 28 September 2026",
+        updated: "Updated: 19 October 2026",
         sections: [
             {
                 heading: "The service",
@@ -174,6 +196,8 @@ export const TERMS: Record<Locale, Doc> = {
                 heading: "Your contributions",
                 body: [
                     "By suggesting a place or a correction, you confirm it is accurate to the best of your knowledge. We may edit or decline contributions.",
+                    "What you publish with your profile (reviews, comments, photos) must come from what you lived, with no insults, no one else's personal data and no advertising. No fake reviews, for a place or against it. The team may hide or delete a message, and suspend a profile that breaks these rules.",
+                    "Your @name must not pass itself off as someone else, a brand or NiceThings.",
                 ],
             },
             {

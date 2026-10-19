@@ -4,8 +4,8 @@ import type { Locale } from "./i18n/config";
 // one would explain it to a friend holding their phone. It says only what
 // the site really does: when a feature changes, so must its lines here.
 
-export type HelpIcon = "search" | "map" | "place" | "route" | "heart" | "vote" | "share" | "now" | "culture" | "home" | "add" | "guest" | "owner" | "install" | "free";
-export type HelpLink = "search" | "map" | "saved" | "now" | "culture" | "street" | "homecoming" | "submit" | "guests" | "pro" | "privacy";
+export type HelpIcon = "search" | "map" | "place" | "route" | "heart" | "vote" | "share" | "now" | "culture" | "home" | "add" | "guest" | "owner" | "install" | "free" | "profile" | "review";
+export type HelpLink = "search" | "map" | "saved" | "now" | "culture" | "street" | "homecoming" | "submit" | "guests" | "pro" | "privacy" | "me";
 export type HelpTopic = { id: string; icon: HelpIcon; title: string; lead: string; steps: string[]; link?: { label: string; to: HelpLink } };
 
 export const HELP: Record<Locale, HelpTopic[]> = {
@@ -62,9 +62,34 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             id: "favoris",
             icon: "heart",
             title: "Enregistrer",
-            lead: "Tes coups de cœur, sans créer de compte.",
-            steps: ["Touche le cœur sur un lieu.", "Retrouve-les dans Favoris, le cœur du menu. Ils restent sur ton téléphone."],
+            lead: "Tes coups de cœur, même sans profil.",
+            steps: ["Touche le cœur sur un lieu.", "Retrouve-les dans Favoris, le cœur du menu. Ils restent sur ton téléphone.", "Avec un profil, ils te suivent sur tous tes téléphones."],
             link: { label: "Voir mes favoris", to: "saved" },
+        },
+        {
+            id: "profil",
+            icon: "profile",
+            title: "Ton profil",
+            lead: "Un @nom à toi, une tête à toi.",
+            steps: [
+                "Touche « Moi » dans le menu : choisis ton @nom (personne d'autre ne pourra l'avoir), ta photo ou un avatar, ton quartier et un code PIN de 6 chiffres.",
+                "Garde ton code de secours : c'est lui qui te permet de choisir un nouveau PIN si tu l'oublies.",
+                "Sur n'importe quel téléphone, ton @nom et ton PIN te reconnectent, avec tes favoris. Ta page est à l'adresse nicethings.site/@tonnom.",
+                "Chaque avis, photo publiée ou commentaire fait monter ton niveau : Nouveau, Habitué, Connaisseur, Ambianceur, Légende du kwat. Les 100 premiers membres gardent le badge Pionnier.",
+            ],
+            link: { label: "Créer mon profil", to: "me" },
+        },
+        {
+            id: "avis",
+            icon: "review",
+            title: "Donner ton avis",
+            lead: "Ce que tu as vécu aide les autres à choisir.",
+            steps: [
+                "Sur la fiche d'un lieu, « Donner mon avis » : de « C'est le ndem » à « C'est validé ! ».",
+                "Dis ce qui t'a plu, ce qui peut mieux faire, avec qui tu étais et combien tu as payé : les prix des visiteurs s'affichent sur la fiche.",
+                "Touche « Validé » sous un avis qui t'a aidé, réponds-lui, et aime ou commente les photos et vidéos des murs.",
+                "Un message avec un lien ou un numéro attend que l'équipe le lise ; un message signalé trois fois est masqué en attendant.",
+            ],
         },
         {
             id: "vote",
@@ -125,7 +150,7 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             steps: [
                 "« Ajouter un lieu » : une minute. L'équipe vérifie avant de publier.",
                 "Sur une fiche, ajoute une photo ou une vidéo de ce que tu as vu : elle paraît après vérification.",
-                "Sous un article, laisse un commentaire : il paraît après lecture par l'équipe.",
+                "Sous un article, laisse un commentaire signé de ton profil : il apparaît tout de suite.",
             ],
             link: { label: "Ajouter un lieu", to: "submit" },
         },
@@ -214,9 +239,34 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             id: "favoris",
             icon: "heart",
             title: "Saving",
-            lead: "Your favourites, without creating an account.",
-            steps: ["Tap the heart on a place.", "Find them under Saved, the heart in the menu. They stay on your phone."],
+            lead: "Your favourites, even without a profile.",
+            steps: ["Tap the heart on a place.", "Find them under Saved, the heart in the menu. They stay on your phone.", "With a profile, they follow you to all your phones."],
             link: { label: "See my saved places", to: "saved" },
+        },
+        {
+            id: "profil",
+            icon: "profile",
+            title: "Your profile",
+            lead: "An @name of your own, a face of your own.",
+            steps: [
+                "Tap “Me” in the menu: choose your @name (nobody else can ever have it), your photo or an avatar, your neighbourhood and a 6-digit PIN.",
+                "Keep your rescue code: it lets you choose a new PIN if you forget yours.",
+                "On any phone, your @name and PIN sign you back in, with your saved places. Your page lives at nicethings.site/@yourname.",
+                "Every review, published photo or comment raises your level: Newcomer, Regular, Connoisseur, Life of the party, Neighbourhood legend. The first 100 members keep the Pioneer badge.",
+            ],
+            link: { label: "Create my profile", to: "me" },
+        },
+        {
+            id: "avis",
+            icon: "review",
+            title: "Reviewing a place",
+            lead: "What you lived helps others choose.",
+            steps: [
+                "On a place's page, “Write a review”: from “A flop” to “Validated!”.",
+                "Say what you liked, what could be better, who you were with and how much you paid: visitors' prices show on the page.",
+                "Tap “Validated” under a review that helped you, reply to it, and like or comment on the photos and videos of the walls.",
+                "A message with a link or a phone number waits for the team to read it; a message reported three times is hidden meanwhile.",
+            ],
         },
         {
             id: "vote",
@@ -277,7 +327,7 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             steps: [
                 "“Add a place”: one minute. The team checks before publishing.",
                 "On a place's page, add a photo or a video of what you saw: it appears after checking.",
-                "Under an article, leave a comment: it appears once the team has read it.",
+                "Under an article, leave a comment signed with your profile: it appears at once.",
             ],
             link: { label: "Add a place", to: "submit" },
         },

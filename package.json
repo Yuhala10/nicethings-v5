@@ -10,6 +10,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "@dicebear/avataaars": "9.4.2",
+    "@dicebear/core": "9.4.3",
+    "@dicebear/lorelei": "9.4.2",
+    "@dicebear/micah": "9.4.2",
+    "@dicebear/open-peeps": "9.4.2",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.112.4",
     "framer-motion": "^13.1.1",

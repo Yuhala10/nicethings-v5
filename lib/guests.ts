@@ -198,7 +198,8 @@ export async function guestReach(guest: Guest): Promise<Reach> {
     }
 
     const ids = guest.notebooks.map((post) => post.id);
-    const words = ids.length ? await db.from("nt_post_comments").select("id", { count: "exact", head: true }).in("post_id", ids).eq("status", "APPROVED") : null;
+    // Words in their book, signed with a profile (script 011).
+    const words = ids.length ? await db.from("nt_comments").select("id", { count: "exact", head: true }).eq("target", "article").in("target_id", ids).eq("status", "PUBLISHED") : null;
     return { visitors: viewers.length, opened, hearts: guest.hearts, words: words?.count ?? 0 };
 }
 

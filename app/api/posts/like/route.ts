@@ -1,11 +1,14 @@
 import { NextResponse, userAgent } from "next/server";
 import { looksAutomated } from "@/lib/analytics";
+import { currentProfile } from "@/lib/people/server";
 import { UUID } from "@/lib/posts";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
-// A heart on a photo or a video of a place's wall. One per browser (its
-// random id) and per post; tapping again takes it back. The count kept on
-// the post is recounted each time, so it cannot drift.
+// A heart on a photo or a video of a place's wall. Signed in, it is given
+// in the profile's name (one per person, whatever the phone, and it shows
+// among "who liked"); otherwise one per browser (its random id). Tapping
+// again takes it back. The count kept on the post is recounted each time,
+// so it cannot drift.
 export async function POST(request: Request) {
     let body: Record<string, unknown>;
     try {
@@ -17,7 +20,9 @@ export async function POST(request: Request) {
     if (agent.isBot || looksAutomated(agent.ua)) return NextResponse.json({ ok: false }, { status: 400 });
     const id = typeof body.id === "string" && UUID.test(body.id) ? body.id : null;
     const visitor = typeof body.v === "string" && UUID.test(body.v) ? body.v.toLowerCase() : null;
-    if (!id || !visitor) return NextResponse.json({ ok: false }, { status: 400 });
+    const profile = await currentProfile().catch(() => null);
+    const key = profile?.id ?? visitor;
+    if (!id || !key) return NextResponse.json({ ok: false }, { status: 400 });
 
     const db = getSupabaseAdminClient();
     try {
@@ -27,8 +32,8 @@ export async function POST(request: Request) {
 
         const change =
             body.on === false
-                ? await db.from("nt_post_likes").delete().eq("post_id", id).eq("visitor_id", visitor)
-                : await db.from("nt_post_likes").upsert({ post_id: id, visitor_id: visitor }, { onConflict: "post_id,visitor_id", ignoreDuplicates: true });
+                ? await db.from("nt_post_likes").delete().eq("post_id", id).eq("visitor_id", key)
+                : await db.from("nt_post_likes").upsert({ post_id: id, visitor_id: key, ...(profile && { profile_id: profile.id }) }, { onConflict: "post_id,visitor_id", ignoreDuplicates: true });
         if (change.error) throw change.error;
 
         const counted = await db.from("nt_post_likes").select("post_id", { count: "exact", head: true }).eq("post_id", id);

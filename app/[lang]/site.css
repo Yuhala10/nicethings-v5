@@ -1419,3 +1419,103 @@ html[data-nt-welcome] .nt-welcome-hint > .nt-welcome-rise {
         animation: none;
     }
 }
+
+/* ---------------------------------------------------------------------------
+   Profiles: the ring around a face says rank. Gold for the founder and the
+   neighbourhood legends, the sunset for the team. The ring is the padding
+   of the frame, so the face keeps its size.
+   --------------------------------------------------------------------------- */
+.nt-face {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    border-radius: 9999px;
+}
+
+.nt-face > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    object-fit: cover;
+    background: var(--color-surface-2);
+}
+
+.nt-face[data-ring="gold"] {
+    padding: 2px;
+    background: linear-gradient(120deg, #b4862a 0%, #f6dd86 32%, #c99a35 52%, #fff1b5 72%, #b4862a 100%);
+}
+
+.nt-face[data-ring="sunset"] {
+    padding: 2px;
+    background: var(--nt-sunset);
+}
+
+.nt-face[data-ring] > img {
+    box-shadow: 0 0 0 2px var(--color-surface);
+}
+
+/* The six boxes of a PIN: the real field lies over them, invisible. */
+.nt-pin-box {
+    display: grid;
+    place-items: center;
+    height: 3.25rem;
+    border-radius: 0.9rem;
+    border: 1.5px solid var(--color-line-strong);
+    background: var(--color-surface);
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.nt-pin-box[data-on="true"] {
+    border-color: var(--color-text);
+}
+
+.nt-pin-box[data-filled="true"] {
+    transform: scale(1.03);
+}
+
+/* A wrong PIN shakes its head. */
+.nt-shake {
+    animation: nt-shake 380ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes nt-shake {
+    20%,
+    60% {
+        transform: translateX(-6px);
+    }
+    40%,
+    80% {
+        transform: translateX(6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nt-shake {
+        animation: none;
+    }
+}
+
+/* Five islands on a narrow phone (360–380 px): a little tighter, so the
+   open one and its name still fit on one line. */
+@media (max-width: 400px) {
+    .nt-dock {
+        gap: 0.375rem;
+    }
+
+    .nt-island {
+        min-width: 2.95rem;
+        height: 3.1rem;
+        padding: 0 0.75rem;
+    }
+
+    .nt-island[aria-current="page"] {
+        padding: 0 0.95rem;
+    }
+
+    .nt-island[aria-current="page"] .nt-island-label {
+        margin-left: 0.45rem;
+    }
+}
