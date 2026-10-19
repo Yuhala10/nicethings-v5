@@ -435,7 +435,7 @@ export default function MePage() {
                 @{me.handle} · {fill(words.memberNo, { number: me.memberNo })}
             </p>
 
-            <ShareCard open={sharing} onClose={() => setSharing(false)} handle={me.handle} name={displayName(me)} version={cardVersion({ person: me, stats: me.stats, top: me.topPlaces.map((slug) => ({ slug })) })} mine />
+            <ShareCard open={sharing} onClose={() => setSharing(false)} handle={me.handle} name={displayName(me)} version={cardVersion({ person: me, stats: me.stats, top: me.topPlaces.map((slug) => ({ slug })), bio: me.bio })} mine />
             {panel === "edit" && <EditSheet me={me} open onClose={() => setPanel(null)} />}
             {panel === "top" && <TopSheet me={me} open onClose={() => setPanel(null)} />}
             {(panel === "pin" || panel === "recovery" || panel === "delete") && <SecretSheet panel={panel} onClose={() => setPanel(null)} />}

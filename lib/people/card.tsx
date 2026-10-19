@@ -19,6 +19,11 @@ import type { ProfilePage } from "./pages";
 
 const STORY = { width: 1080, height: 1920 };
 
+const short = (text: string) => {
+    const flat = text.replace(/\s+/g, " ").trim();
+    return flat.length > 110 ? `${flat.slice(0, 109)}…` : flat;
+};
+
 function colours(page: ProfilePage) {
     const gold = page.person.role === "founder" || page.person.level >= 4;
     return gold
@@ -193,6 +198,12 @@ export async function personStoryJpeg(page: ProfilePage, lang: Locale, address: 
                             </div>
                         ))}
                     </div>
+                    {/* No top 3 yet: their own words, or the site's. */}
+                    {top.length === 0 && (
+                        <div style={{ display: "flex", marginTop: 70, maxWidth: 820, fontFamily: SERIF_FONT, fontSize: 52, lineHeight: 1.12, fontStyle: "italic", color: c.accent, textAlign: "center", justifyContent: "center" }}>
+                            {page.bio ? (lang === "fr" ? `« ${short(page.bio)} »` : `“${short(page.bio)}”`) : getDictionary(lang).welcome.lines[2]}
+                        </div>
+                    )}
                     {top.length > 0 && (
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 54 }}>
                             <div style={{ display: "flex", fontSize: 24, fontWeight: 700, letterSpacing: "0.22em", color: c.accent }}>{w.t.card.top.toLocaleUpperCase(lang)}</div>
