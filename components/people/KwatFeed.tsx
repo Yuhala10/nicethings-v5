@@ -11,6 +11,7 @@ import type { KwatItem } from "@/lib/people/types";
 import { useLocale } from "../site/LocaleProvider";
 import { Face, RatingChip } from "./Person";
 import { agoText } from "./PlacePulse";
+import OutingList, { PostOutingButton } from "./OutingList";
 
 // "Ça bouge au kwat": the latest reviews, photos, live news and ways of the
 // visitor's city, each with the face of who gave it; their neighbourhood
@@ -35,19 +36,38 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
     const { locale, t } = useLocale();
     const words = t.people.kwat;
     const ago = agoText(item.at, t.people.pulse);
-    const href = `${paths.place(locale, item.place.slug)}${item.type === "review" ? "#avis" : item.type === "tip" ? "#y-aller" : ""}`;
+    const href = item.type === "outing" ? paths.outing(locale, item.id) : `${paths.place(locale, item.place.slug)}${item.type === "review" ? "#avis" : item.type === "tip" ? "#y-aller" : ""}`;
     const who = item.person ? `@${item.person.handle}` : "";
     const head = (
         <span className="flex min-w-0 items-center gap-2.5">
             {item.person && <Face person={item.person} size={32} />}
             <span className="min-w-0 text-[0.75rem] leading-snug">
-                <span className="font-semibold text-text">{who}</span> <span className="text-muted">{item.type === "review" ? words.review : item.type === "photo" ? words.photo : item.type === "tip" ? words.tip : words.pulse}</span>
+                <span className="font-semibold text-text">{who}</span> <span className="text-muted">{item.type === "review" ? words.review : item.type === "photo" ? words.photo : item.type === "tip" ? words.tip : item.type === "outing" ? words.outing : words.pulse}</span>
                 <span className="block text-muted">{ago}</span>
             </span>
         </span>
     );
     const box = `group flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface transition hover:border-text-2 ${wide ? "" : "w-[16.5rem]"}`;
 
+    if (item.type === "outing") {
+        return (
+            <Link href={paths.outing(locale, item.id)} className={box}>
+                <span className="relative block aspect-[4/5] overflow-hidden bg-surface-2">
+                    { }
+                    <img src={item.cover} alt={item.place.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
+                    {item.count > 1 && <span className="absolute top-3 right-3 rounded-full bg-black/50 px-2 py-0.5 text-[0.75rem] font-semibold text-white">1/{item.count}</span>}
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-10 text-white">
+                        <span className="block truncate text-[1rem] font-semibold">{item.place.name}</span>
+                        {item.mood && <span className="block text-[0.75rem] text-white/80">{t.people.outing.moods[item.mood as keyof typeof t.people.outing.moods]}</span>}
+                    </span>
+                </span>
+                <span className="flex flex-1 flex-col gap-2 p-3.5">
+                    {head}
+                    {item.body && <span className="line-clamp-2 text-[0.875rem] text-text-2">{item.body}</span>}
+                </span>
+            </Link>
+        );
+    }
     if (item.type === "photo") {
         return (
             <Link href={href} className={box}>
@@ -142,6 +162,9 @@ export default function KwatFeed() {
                     <ChevronRight size={15} />
                 </Link>
             </div>
+            <div className="mb-4 px-4 md:px-0">
+                <PostOutingButton label={t.people.outing.publish} className="h-11 px-5 text-[0.875rem]" />
+            </div>
             {items === null ? (
                 <div className="nt-rail">
                     {[0, 1, 2].map((index) => (
@@ -172,8 +195,8 @@ export function KwatPage() {
     const words = t.people.kwat;
     const { me } = useMe();
     const city = useCity();
-    const [near, setNear] = useState(true);
-    const items = useFeed(city, near ? (me?.area ?? null) : null, 40);
+    const [view, setView] = useState<"near" | "city" | "friends">("near");
+    const items = useFeed(city, view === "near" ? (me?.area ?? null) : null, 40);
 
     return (
         <div>
@@ -183,18 +206,26 @@ export function KwatPage() {
             </p>
             <h1 className="nt-serif mt-2 text-[2.75rem] leading-[1.02]">{words.title}</h1>
             <p className="mt-3 max-w-xl text-[1rem] leading-relaxed text-text-2">{words.lead}</p>
-            {me?.area && (
-                <div className="mt-5 flex gap-2">
-                    <button type="button" aria-pressed={near} onClick={() => setNear(true)} className="nt-chip h-9 text-[0.875rem]">
+            <PostOutingButton label={t.people.outing.publish} className="mt-5 h-11 px-5 text-[0.875rem]" />
+            <div className="nt-scroll-x -mx-4 mt-5 gap-2 px-4">
+                {me?.area && (
+                    <button type="button" aria-pressed={view === "near"} onClick={() => setView("near")} className="nt-chip h-9 shrink-0 text-[0.875rem]">
                         {words.mine}
                     </button>
-                    <button type="button" aria-pressed={!near} onClick={() => setNear(false)} className="nt-chip h-9 text-[0.875rem]">
-                        {words.city}
+                )}
+                <button type="button" aria-pressed={view === "city" || (view === "near" && !me?.area)} onClick={() => setView("city")} className="nt-chip h-9 shrink-0 text-[0.875rem]">
+                    {words.city}
+                </button>
+                {me && (
+                    <button type="button" aria-pressed={view === "friends"} onClick={() => setView("friends")} className="nt-chip h-9 shrink-0 text-[0.875rem]">
+                        {t.people.follow.friends}
                     </button>
-                </div>
-            )}
+                )}
+            </div>
             <div className="mt-6">
-                {items === null ? (
+                {view === "friends" ? (
+                    <OutingList source={{ following: true }} empty={<p className="rounded-[1.25rem] border border-dashed border-line-strong p-5 text-[1rem] leading-relaxed text-text-2">{t.people.follow.friendsEmpty}</p>} />
+                ) : items === null ? (
                     <div className="grid gap-3 sm:grid-cols-2">
                         {[0, 1, 2, 3].map((index) => (
                             <div key={index} className="nt-skeleton h-44 rounded-[1.25rem]" />

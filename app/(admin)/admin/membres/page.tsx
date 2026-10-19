@@ -13,7 +13,7 @@ import type { Person } from "@/lib/people/types";
 // a phone number in it) or was reported, and the latest ones.
 
 type Member = Person & { bio: string | null; status: string; photo: boolean; stats: { reviews: number; photos: number; comments: number; cheers: number }; reports: number; createdAt: string; lastSeen: string };
-type Word = { kind: "comment" | "review" | "tip"; id: string; body: string | null; rating: number | null; status: string; reports: number; created_at: string; person: Person | null; where: { label: string; href: string | null } };
+type Word = { media?: string[]; kind: "comment" | "review" | "tip" | "outing"; id: string; body: string | null; rating: number | null; status: string; reports: number; created_at: string; person: Person | null; where: { label: string; href: string | null } };
 
 const LEVELS = [
     ["Nouveau", "Newcomer"],
@@ -67,7 +67,7 @@ export default function MembersPage() {
                 <div className="min-w-0 text-sm">
                     <p className="truncate font-semibold">{item.person ? `@${item.person.handle}` : "—"}</p>
                     <p className="text-xs text-muted">
-                        {item.kind === "review" ? tr("Avis", "Review") : item.kind === "tip" ? tr("Chemin", "Way") : tr("Commentaire", "Comment")} · {timeAgo(item.created_at)}
+                        {item.kind === "review" ? tr("Avis", "Review") : item.kind === "tip" ? tr("Chemin", "Way") : item.kind === "outing" ? tr("Sortie", "Outing") : tr("Commentaire", "Comment")} · {timeAgo(item.created_at)}
                     </p>
                 </div>
                 {item.reports > 0 && (
@@ -85,10 +85,17 @@ export default function MembersPage() {
             ) : (
                 <p className="text-xs text-muted">{item.where.label}</p>
             )}
+            {item.media && item.media.length > 0 && (
+                <div className="grid grid-cols-4 gap-1.5">
+                    {item.media.map((url) => (
+                        <img key={url} src={url} alt="" className="aspect-square w-full rounded-lg object-cover" />
+                    ))}
+                </div>
+            )}
             {item.rating && <p className="text-sm font-semibold">{RATINGS[item.rating - 1]}</p>}
             {item.body && <p className="text-sm whitespace-pre-line text-text-2">{item.body}</p>}
             <p className="text-xs font-semibold text-muted">
-                {item.status === "PENDING" ? tr("En attente (lien ou numéro)", "Waiting (link or number)") : item.status === "HIDDEN" ? tr("Masqué", "Hidden") : tr("En ligne", "Online")}
+                {item.status === "PENDING" ? (item.kind === "outing" ? tr("En attente (nouveau membre)", "Waiting (new member)") : tr("En attente (lien ou numéro)", "Waiting (link or number)")) : item.status === "HIDDEN" ? tr("Masqué", "Hidden") : tr("En ligne", "Online")}
             </p>
             <div className="flex gap-2">
                 {(waiting || item.status !== "PUBLISHED") && item.status !== "PUBLISHED" ? (

@@ -8,6 +8,7 @@ import { call, useMe } from "@/lib/people/client";
 import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
+import FollowButton from "./FollowButton";
 import ShareCard from "./ShareCard";
 
 // Under a profile: share its card, and for its owner, change it; for
@@ -22,6 +23,7 @@ export default function ProfileActions({ id, handle, name, version }: { id: stri
 
     return (
         <>
+            {!mine && <FollowButton handle={handle} light />}
             {mine && (
                 <Link href={paths.me(locale)} className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[0.875rem] font-semibold text-[#15110e]">
                     <Pencil size={15} />

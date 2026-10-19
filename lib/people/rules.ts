@@ -93,12 +93,12 @@ export const COMPANIES = ["solo", "couple", "friends", "family", "work"] as cons
 
 // ---------------------------------------------------------------- levels
 
-export type Stats = { reviews: number; photos: number; comments: number; cheers: number; tips?: number; pulses?: number };
+export type Stats = { reviews: number; photos: number; comments: number; cheers: number; tips?: number; pulses?: number; outings?: number; followers?: number; following?: number };
 
 // What each gesture is worth: a review counts most, then a photo, then the
 // way to a place, then what others gave back (likes, "validé", "utile").
 export function pointsOf(stats: Stats) {
-    return stats.reviews * 10 + stats.photos * 8 + (stats.tips ?? 0) * 5 + stats.comments * 2 + (stats.pulses ?? 0) + stats.cheers;
+    return stats.reviews * 10 + stats.photos * 8 + (stats.outings ?? 0) * 8 + (stats.tips ?? 0) * 5 + stats.comments * 2 + (stats.pulses ?? 0) + stats.cheers;
 }
 
 // ---------------------------------------------------------------- live news and ways
@@ -131,3 +131,17 @@ export function levelOf(points: number) {
 
 // The first hundred to join carry it forever.
 export const PIONEERS = 100;
+
+// ---------------------------------------------------------------- outings ("Ma sortie")
+
+// The mood of an outing (words in `people.outing.moods`).
+export const MOODS = ["fire", "chill", "love", "feast", "view", "match"] as const;
+export const MAX_OUTING_PHOTOS = 4;
+export const MAX_OUTING_BODY = 280;
+export const OUTINGS_PER_DAY = 8;
+
+// The trust ladder: a newcomer's outings wait for the team; from
+// "Habitué" on (and for the team), they go online at once.
+export function postsAtOnce(person: { level: number; role: string }) {
+    return person.level >= 1 || person.role === "team" || person.role === "founder";
+}

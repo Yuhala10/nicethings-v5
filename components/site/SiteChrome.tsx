@@ -10,6 +10,7 @@ import { paths } from "@/lib/places/paths";
 import { useMe } from "@/lib/people/client";
 import AuthSheet from "../people/AuthSheet";
 import LevelUp from "../people/LevelUp";
+import OutingComposer from "../people/OutingComposer";
 import { Face } from "../people/Person";
 import Analytics from "./Analytics";
 import LanguagePrompt from "./LanguagePrompt";
@@ -304,6 +305,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             {layout !== "navigation" && <TabBar />}
             <AuthSheet />
             <LevelUp />
+            <OutingComposer />
         </ToastProvider>
     );
 }

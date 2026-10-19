@@ -32,9 +32,9 @@ export type Me = Person & {
 // One line of Activité.
 export type Notice = {
     id: string;
-    kind: "vote" | "reply" | "comment" | "like" | "tip_vote" | "level";
+    kind: "vote" | "reply" | "comment" | "like" | "tip_vote" | "level" | "follow" | "going" | "outing_like" | "outing_comment" | "approved";
     actor: Person | null;
-    data: { place?: string; name?: string; level?: number; snippet?: string };
+    data: { place?: string; name?: string; level?: number; snippet?: string; outing?: string };
     read: boolean;
     createdAt: string;
 };
@@ -50,7 +50,8 @@ export type KwatItem =
     | { type: "review"; id: string; at: string; person: Person; place: KwatPlace; rating: number; body: string | null }
     | { type: "photo"; id: string; at: string; person: Person | null; place: KwatPlace; url: string; kind: "photo" | "video"; caption: string | null }
     | { type: "pulse"; id: string; at: string; person: Person; place: KwatPlace; pulse: string }
-    | { type: "tip"; id: string; at: string; person: Person; place: KwatPlace; body: string };
+    | { type: "tip"; id: string; at: string; person: Person; place: KwatPlace; body: string }
+    | { type: "outing"; id: string; at: string; person: Person; place: KwatPlace; cover: string; count: number; mood: string | null; body: string | null; likes: number };
 
 export type KwatPlace = { slug: string; name: string; neighborhood: string | null; city: string; cover: string | null };
 
@@ -91,4 +92,26 @@ export type ReviewSummary = {
     facts: { tag: string; count: number }[];
     // What people say they paid per person, when enough of them said.
     price: { median: number; count: number } | null;
+};
+
+// "Ma sortie": an outing at a real place, as everyone sees it.
+export type OutingMedia = { kind: "photo" | "video"; url: string; poster: string | null; width: number | null; height: number | null };
+
+export type OutingView = {
+    id: string;
+    person: Person;
+    place: KwatPlace;
+    mood: string | null;
+    pricePaid: number | null;
+    company: string | null;
+    body: string | null;
+    media: OutingMedia[];
+    likes: number;
+    comments: number;
+    goers: number;
+    status: "DRAFT" | "PENDING" | "PUBLISHED" | "HIDDEN";
+    at: string;
+    mine: boolean;
+    liked: boolean;
+    going: boolean;
 };

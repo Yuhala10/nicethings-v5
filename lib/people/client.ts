@@ -130,6 +130,12 @@ export function withMe(reason: AuthReason, action: () => void) {
     else openAuth(reason, action);
 }
 
+// "Publier ma sortie" (components/people/OutingComposer.tsx), at a given
+// place or one to search.
+export function openOuting(place?: { slug: string; name: string; neighborhood: string | null }) {
+    withMe("generic", () => window.dispatchEvent(new CustomEvent("nt:outing", { detail: { place } })));
+}
+
 // ---------------------------------------------------------------- calls
 
 export type Answer<T> = (T & { ok: true }) | { ok: false; why: string; [key: string]: unknown };

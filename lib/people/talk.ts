@@ -7,7 +7,7 @@ import type { CommentView } from "./types";
 // comments of their notebooks), under a photo or video of a wall, and in
 // answer to a review. One table, three kinds of things to talk about.
 
-export const TARGETS = ["article", "wall", "review"] as const;
+export const TARGETS = ["article", "wall", "review", "outing"] as const;
 export type Target = (typeof TARGETS)[number];
 
 export const talkTag = (target: Target, id: string) => `talk:${target}:${id}`;
@@ -22,7 +22,9 @@ export async function targetExists(target: Target, id: string) {
             ? db.from("nt_posts").select("id").eq("id", id).eq("status", "PUBLISHED")
             : target === "wall"
               ? db.from("nt_spot_posts").select("id").eq("id", id).eq("status", "APPROVED")
-              : db.from("nt_reviews").select("id").eq("id", id).eq("status", "PUBLISHED");
+              : target === "outing"
+                ? db.from("nt_outings").select("id").eq("id", id).eq("status", "PUBLISHED")
+                : db.from("nt_reviews").select("id").eq("id", id).eq("status", "PUBLISHED");
     const { data, error } = await query.maybeSingle();
     if (error) throw error;
     return Boolean(data);
@@ -35,6 +37,7 @@ export async function recount(target: Target, id: string) {
     const db = getSupabaseAdminClient();
     const { count } = await db.from("nt_comments").select("id", { count: "exact", head: true }).eq("target", target).eq("target_id", id).eq("status", "PUBLISHED");
     if (target === "wall") await db.from("nt_spot_posts").update({ comments: count ?? 0 }).eq("id", id);
+    else if (target === "outing") await db.from("nt_outings").update({ comments: count ?? 0 }).eq("id", id);
     else await db.from("nt_reviews").update({ replies: count ?? 0 }).eq("id", id);
 }
 

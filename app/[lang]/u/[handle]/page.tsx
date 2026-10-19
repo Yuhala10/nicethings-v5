@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Heart, MapPin, Play } from "lucide-react";
 import PinCard from "@/components/place/PinCard";
 import { RatingChip, displayName } from "@/components/people/Person";
+import OutingList from "@/components/people/OutingList";
 import ProfileActions from "@/components/people/ProfileActions";
 import ProfileHeader from "@/components/people/ProfileHeader";
 import BackButton from "@/components/site/BackButton";
@@ -86,6 +87,11 @@ export default async function PersonPage({ params }: Props) {
                     </ul>
                 </section>
             )}
+
+            <section className="mt-12">
+                <h2 className="nt-section-title mb-5">{words.outing.theirs}</h2>
+                <OutingList source={{ handle: person.handle }} grid empty={<p className="text-[1rem] text-muted">{words.outing.none}</p>} />
+            </section>
 
             <section className="mt-12">
                 <h2 className="nt-section-title mb-5">

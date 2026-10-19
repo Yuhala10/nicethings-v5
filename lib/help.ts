@@ -92,6 +92,18 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             ],
         },
         {
+            id: "sortie",
+            icon: "share",
+            title: "Ma sortie, et suivre les autres",
+            lead: "Tes sorties, toujours dans un vrai coin.",
+            steps: [
+                "« Publier ma sortie » (dans Moi, sur l'accueil ou sur la fiche d'un lieu) : le lieu, jusqu'à 4 photos ou une vidéo de 45 secondes, l'ambiance, avec qui, ce que tu as payé, un mot.",
+                "Tes premières sorties passent par l'équipe ; dès « Habitué », elles sont en ligne tout de suite.",
+                "Sous une sortie : un cœur, des commentaires, et « J'y vais aussi », qui garde le lieu dans tes favoris et le dit à son auteur.",
+                "« Suivre » sur le profil de quelqu'un : ses sorties apparaissent dans « Mes amis », sur la page « Ça bouge au kwat ».",
+            ],
+        },
+        {
             id: "kwat",
             icon: "now",
             title: "Dis au taxi, en ce moment, ça bouge",
@@ -279,6 +291,18 @@ export const HELP: Record<Locale, HelpTopic[]> = {
                 "Say what you liked, what could be better, who you were with and how much you paid: visitors' prices show on the page.",
                 "Tap “Validated” under a review that helped you, reply to it, and like or comment on the photos and videos of the walls.",
                 "A message with a link or a phone number waits for the team to read it; a message reported three times is hidden meanwhile.",
+            ],
+        },
+        {
+            id: "sortie",
+            icon: "share",
+            title: "My outing, and following others",
+            lead: "Your outings, always at a real place.",
+            steps: [
+                "“Post my outing” (in Me, on the home page or on a place's page): the place, up to 4 photos or a 45-second video, the vibe, who with, what you paid, a few words.",
+                "Your first outings go through the team; from “Regular” on, they're online at once.",
+                "Under an outing: a heart, comments, and “I'm going too”, which keeps the place in your saved places and tells its author.",
+                "“Follow” on someone's profile: their outings show in “My friends”, on the “What's happening around” page.",
             ],
         },
         {

@@ -14,6 +14,7 @@ import PostWall from "@/components/place/PostWall";
 import PlaceReviews from "@/components/people/PlaceReviews";
 import PlacePulse from "@/components/people/PlacePulse";
 import PlaceWay from "@/components/people/PlaceWay";
+import OutingList, { PostOutingButton } from "@/components/people/OutingList";
 import { getPlaceTips } from "@/lib/people/kwat";
 import { getPlaceReviews } from "@/lib/people/reviews";
 import GuestNod from "@/components/guest/GuestNod";
@@ -464,6 +465,15 @@ export default async function PlacePage({ params }: Props) {
                     <Section title={t.wall.title}>
                         <PostWall slug={place.slug} placeName={place.name} posts={place.wall} />
                     </Section>
+                )}
+
+                {/* Members' outings here ("Ma sortie"), and the way to post one. */}
+                {reviews && (
+                    <section className="mt-10 border-t border-line pt-6">
+                        <h2 className="nt-eyebrow mb-4">{t.people.outing.here}</h2>
+                        <OutingList source={{ place: place.slug }} />
+                        <PostOutingButton place={{ slug: place.slug, name: place.name, neighborhood: place.neighborhood }} label={t.people.outing.iWasHere} className="mt-4 w-full sm:w-auto" />
+                    </section>
                 )}
 
                 {/* What people who went there say, signed with their face. */}

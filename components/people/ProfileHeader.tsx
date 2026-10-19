@@ -31,8 +31,8 @@ export default function ProfileHeader({
     const where = [person.area, cityBySlug(person.city)?.name].filter(Boolean).join(", ");
     const figures = [
         [stats.reviews, words.stats.reviews],
-        [stats.photos, words.stats.photos],
-        [stats.cheers, words.stats.cheers],
+        [(stats.outings ?? 0) + stats.photos, words.stats.outings],
+        [stats.followers ?? 0, words.stats.followers],
     ] as const;
 
     return (

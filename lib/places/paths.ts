@@ -123,6 +123,7 @@ export const paths = {
     me: (locale: Locale) => `/${locale}/moi`,
     person: (locale: Locale, handle: string) => `/${locale}/u/${handle}`,
     kwat: (locale: Locale) => `/${locale}/kwat`,
+    outing: (locale: Locale, id: string) => `/${locale}/sortie/${id}`,
 };
 
 export { CATEGORIES };

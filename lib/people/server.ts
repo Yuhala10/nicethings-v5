@@ -230,11 +230,27 @@ export async function statsOf(ids: string[]) {
     if (!ids.length) return stats;
     const db = getSupabaseAdminClient();
     // Ways and live news are counted once script 012 has been run.
-    const columns = (all: boolean) => (all ? "id,reviews,photos,comments,cheers,tips,pulses" : "id,reviews,photos,comments,cheers");
-    let read: { data: unknown[] | null; error: { code?: string } | null } = await db.from("nt_profile_stats").select(columns(true)).in("id", ids);
-    if (read.error?.code === "42703") read = await db.from("nt_profile_stats").select(columns(false)).in("id", ids);
+    // The view grows with the scripts (012: ways and live news, 013:
+    // outings and follows): the richest one that exists is read.
+    const shapes = ["id,reviews,photos,comments,cheers,tips,pulses,outings,followers,following", "id,reviews,photos,comments,cheers,tips,pulses", "id,reviews,photos,comments,cheers"];
+    let read: { data: unknown[] | null; error: { code?: string } | null } = { data: null, error: null };
+    for (const columns of shapes) {
+        read = await db.from("nt_profile_stats").select(columns).in("id", ids);
+        if (read.error?.code !== "42703") break;
+    }
+    const count = (value: unknown) => Number(value ?? 0);
     for (const row of (read.data ?? []) as Record<string, unknown>[]) {
-        stats.set(row.id as string, { reviews: Number(row.reviews), photos: Number(row.photos), comments: Number(row.comments), cheers: Number(row.cheers), tips: Number(row.tips ?? 0), pulses: Number(row.pulses ?? 0) });
+        stats.set(row.id as string, {
+            reviews: count(row.reviews),
+            photos: count(row.photos),
+            comments: count(row.comments),
+            cheers: count(row.cheers),
+            tips: count(row.tips),
+            pulses: count(row.pulses),
+            outings: count(row.outings),
+            followers: count(row.followers),
+            following: count(row.following),
+        });
     }
     return stats;
 }

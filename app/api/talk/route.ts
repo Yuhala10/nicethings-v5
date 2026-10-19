@@ -76,10 +76,13 @@ export async function POST(request: Request) {
         await refresh(target, id);
         // The author of the review or of the photo hears of it.
         if (target !== "article") {
-            const owner = target === "review" ? await db.from("nt_reviews").select("profile_id,spot_id").eq("id", id).maybeSingle() : await db.from("nt_spot_posts").select("profile_id,spot_id").eq("id", id).maybeSingle();
+            const table = target === "review" ? "nt_reviews" : target === "outing" ? "nt_outings" : "nt_spot_posts";
+            const owner = await db.from(table).select("profile_id,spot_id").eq("id", id).maybeSingle();
             if (owner.data?.profile_id) {
                 const spot = await db.from("nt_spots").select("slug,name").eq("id", owner.data.spot_id).maybeSingle();
-                await notify(owner.data.profile_id as string, target === "review" ? "reply" : "comment", { id: profile.id, handle: profile.handle }, { place: spot.data?.slug as string, name: spot.data?.name as string, snippet: text.slice(0, 80), ...(target === "review" ? { review: id } : { post: id }) });
+                const kind = target === "review" ? "reply" : target === "outing" ? "outing_comment" : "comment";
+                const about = target === "review" ? { review: id } : target === "outing" ? { outing: id } : { post: id };
+                await notify(owner.data.profile_id as string, kind, { id: profile.id, handle: profile.handle }, { place: spot.data?.slug as string, name: spot.data?.name as string, snippet: text.slice(0, 80), ...about });
             }
         }
         await checkLevel(profile.id);

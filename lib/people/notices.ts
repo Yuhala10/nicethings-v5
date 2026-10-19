@@ -14,7 +14,7 @@ import type { Notice } from "./types";
 // given again is told once. Everything is quiet before script 012.
 
 type Kind = Notice["kind"];
-type Data = { place?: string; name?: string; level?: number; snippet?: string; post?: string; review?: string; tip?: string };
+type Data = { place?: string; name?: string; level?: number; snippet?: string; post?: string; review?: string; tip?: string; outing?: string };
 
 // The sentence of a notice, for Activité and for the phone.
 export function noticeText(kind: Kind, data: Data, actor: string | null, lang: Locale) {
@@ -22,7 +22,9 @@ export function noticeText(kind: Kind, data: Data, actor: string | null, lang: L
     return fill(words.activity[kind], { actor: actor ? `@${actor}` : "", place: data.name ?? "", level: words.levels[data.level ?? 0] ?? "" });
 }
 
-function noticeUrl(kind: Kind, data: Data, lang: Locale) {
+function noticeUrl(kind: Kind, data: Data, lang: Locale, actor: string | null) {
+    if (data.outing) return paths.outing(lang, data.outing);
+    if (kind === "follow" && actor) return paths.person(lang, actor);
     if (kind === "level" || !data.place) return paths.me(lang);
     return `${paths.place(lang, data.place)}${kind === "tip_vote" ? "#y-aller" : kind === "like" || kind === "comment" ? "" : "#avis"}`;
 }
@@ -37,7 +39,7 @@ async function sendToPhones(profileId: string, kind: Kind, data: Data, actorHand
     await Promise.all(
         phones.data.map(async (phone) => {
             const lang = isLocale(phone.lang) ? phone.lang : "fr";
-            const payload = JSON.stringify({ title: "NiceThings", body: noticeText(kind, data, actorHandle, lang), url: noticeUrl(kind, data, lang), tag: `activity-${kind}`, lang });
+            const payload = JSON.stringify({ title: "NiceThings", body: noticeText(kind, data, actorHandle, lang), url: noticeUrl(kind, data, lang, actorHandle), tag: `activity-${kind}`, lang });
             try {
                 await webpush.sendNotification({ endpoint: phone.endpoint, keys: { p256dh: phone.p256dh, auth: phone.auth } }, payload, { TTL: 86_400 });
                 await db.from("nt_profile_phones").update({ last_sent_at: new Date().toISOString(), failures: 0 }).eq("endpoint", phone.endpoint);
@@ -57,9 +59,10 @@ export async function notify(recipient: string | null | undefined, kind: Kind, a
     if (!recipient || recipient === actor?.id) return;
     try {
         const db = getSupabaseAdminClient();
-        // A like (or a "validé", a "utile") taken back and given again is told once.
-        const about = kind === "like" ? { post: data.post } : kind === "vote" ? { review: data.review } : kind === "tip_vote" ? { tip: data.tip } : null;
-        if (about && actor && Object.values(about)[0]) {
+        // A like (a "validé", a "utile", a follow…) taken back and given again is told once.
+        const about: Record<string, string | undefined> | null =
+            kind === "like" ? { post: data.post } : kind === "vote" ? { review: data.review } : kind === "tip_vote" ? { tip: data.tip } : kind === "outing_like" || kind === "going" ? { outing: data.outing } : kind === "follow" ? {} : null;
+        if (about && actor && (kind === "follow" || Object.values(about)[0])) {
             const told = await db.from("nt_notices").select("id").eq("profile_id", recipient).eq("kind", kind).eq("actor_id", actor.id).contains("data", about).limit(1);
             if (told.data?.length) return;
         }

@@ -101,6 +101,8 @@ function PushSwitch() {
 }
 
 function noticeHref(notice: Notice, locale: "fr" | "en") {
+    if (notice.data.outing) return paths.outing(locale, notice.data.outing);
+    if (notice.kind === "follow" && notice.actor) return paths.person(locale, notice.actor.handle);
     if (notice.kind === "level" || !notice.data.place) return paths.me(locale);
     return `${paths.place(locale, notice.data.place)}${notice.kind === "tip_vote" ? "#y-aller" : notice.kind === "like" || notice.kind === "comment" ? "" : "#avis"}`;
 }

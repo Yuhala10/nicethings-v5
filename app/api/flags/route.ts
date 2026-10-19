@@ -16,7 +16,7 @@ const HIDE_AT = 3;
 export async function POST(request: Request) {
     const body = await readBody(request);
     if (robot(request, body) || foreign(request)) return deny("invalid", 400);
-    const kind = body.kind === "comment" || body.kind === "review" || body.kind === "profile" || body.kind === "tip" ? body.kind : null;
+    const kind = body.kind === "comment" || body.kind === "review" || body.kind === "profile" || body.kind === "tip" || body.kind === "outing" ? body.kind : null;
     const id = typeof body.id === "string" && UUID.test(body.id) ? body.id : null;
     if (!kind || !id) return deny("invalid", 400);
     const profile = await currentProfile().catch(() => null);
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const { count } = await db.from("nt_flags").select("item_id", { count: "exact", head: true }).eq("kind", kind).eq("item_id", id);
 
     if (kind !== "profile") {
-        const table = kind === "comment" ? "nt_comments" : kind === "tip" ? "nt_place_tips" : "nt_reviews";
+        const table = kind === "comment" ? "nt_comments" : kind === "tip" ? "nt_place_tips" : kind === "outing" ? "nt_outings" : "nt_reviews";
         const hide = (count ?? 0) >= HIDE_AT;
         const updated = await db
             .from(table)

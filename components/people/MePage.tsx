@@ -16,6 +16,7 @@ import { useSaved } from "@/lib/hooks/useSaved";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 import Activity from "./Activity";
+import OutingList, { PostOutingButton } from "./OutingList";
 import AvatarPicker, { type FaceChoice } from "./AvatarPicker";
 import { displayName } from "./Person";
 import PinInput from "./PinInput";
@@ -394,7 +395,14 @@ export default function MePage() {
 
             <p className="mt-3 px-1 text-[0.75rem] leading-relaxed text-muted">{words.howPoints}</p>
 
+            <PostOutingButton label={words.outing.publish} className="mt-6 w-full" />
+
             <Activity />
+
+            <section className="mt-8">
+                <h2 className="nt-section-title mb-4">{words.outing.mine}</h2>
+                <OutingList source={{ handle: me.handle }} grid empty={<p className="rounded-[1.25rem] border border-dashed border-line-strong px-4 py-4 text-[0.875rem] text-muted">{words.outing.none}</p>} />
+            </section>
 
             <section className="mt-8">
                 <h2 className="nt-section-title mb-4">{words.me.top}</h2>

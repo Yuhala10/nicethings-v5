@@ -83,11 +83,12 @@ async function loadFeed(city: string | null, area: string | null, limit: number)
         if (!city || place.city === city) places.set(place.id, { slug: place.slug, name: place.name, neighborhood: place.neighborhood, city: place.city, cover: place.cover });
     }
     const day = new Date(Date.now() - 24 * 3_600_000).toISOString();
-    const [reviews, photos, pulses, tips] = await Promise.all([
+    const [reviews, photos, pulses, tips, outings] = await Promise.all([
         db.from("nt_reviews").select("id,spot_id,profile_id,rating,comment,updated_at").eq("status", "PUBLISHED").not("profile_id", "is", null).order("updated_at", { ascending: false }).limit(80),
         db.from("nt_spot_posts").select("id,spot_id,profile_id,kind,media_path,poster_path,caption,decided_at").eq("status", "APPROVED").not("profile_id", "is", null).order("decided_at", { ascending: false }).limit(40),
         db.from("nt_place_pulses").select("id,spot_id,profile_id,kind,created_at").gte("created_at", day).order("created_at", { ascending: false }).limit(80),
         db.from("nt_place_tips").select("id,spot_id,profile_id,body,created_at").eq("status", "PUBLISHED").order("created_at", { ascending: false }).limit(40),
+        db.from("nt_outings").select("id,spot_id,profile_id,mood,body,likes,published_at,nt_outing_media(kind,media_path,poster_path,sort)").eq("status", "PUBLISHED").order("published_at", { ascending: false }).limit(40),
     ]);
     const here = (spot: unknown) => places.get(spot as string);
     const items: (KwatItem & { by: string | null })[] = [];
@@ -112,6 +113,15 @@ async function loadFeed(city: string | null, area: string | null, limit: number)
     for (const row of tips.error ? [] : (tips.data ?? [])) {
         const place = here(row.spot_id);
         if (place) items.push({ type: "tip", id: row.id as string, at: row.created_at as string, person: null as never, by: row.profile_id as string, place, body: row.body as string });
+    }
+
+    for (const row of outings.error ? [] : ((outings.data ?? []) as Record<string, unknown>[])) {
+        const place = here(row.spot_id);
+        const files = ((row.nt_outing_media as { kind: string; media_path: string; poster_path: string | null; sort: number }[] | null) ?? []).sort((a, b) => a.sort - b.sort);
+        const first = files[0];
+        if (!place || !first) continue;
+        const cover = postUrl(first.kind === "video" ? (first.poster_path ?? first.media_path) : first.media_path);
+        items.push({ type: "outing", id: row.id as string, at: row.published_at as string, person: null as never, by: row.profile_id as string, place, cover, count: files.length, mood: (row.mood as string | null) ?? null, body: (row.body as string | null) ?? null, likes: Number(row.likes ?? 0) });
     }
 
     // Newest first; what happens in their own neighbourhood comes forward by six hours.
