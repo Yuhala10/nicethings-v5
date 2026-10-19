@@ -53,7 +53,7 @@ function Join() {
         <div className="relative overflow-hidden rounded-[2rem] bg-[#15110e] px-6 pt-10 pb-8 text-white md:px-10">
             <span className="pointer-events-none absolute -top-32 -right-32 h-80 w-80 rounded-full bg-[#d9572b]/25 blur-3xl" aria-hidden />
             <div className="relative flex -space-x-3">
-                {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "mc.nina44.0.3", "pp.qq19ve.1.0"].map((sample, index) => (
+                {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "lo.p4n8tt.2.3", "mc.nina44.0.3"].map((sample, index) => (
                     <span key={sample} className="nt-face h-14 w-14 ring-[3px] ring-[#15110e]" style={{ zIndex: 5 - index }}>
                         { }
                         <img src={`/api/avatar/${sample}`} alt="" width={56} height={56} />

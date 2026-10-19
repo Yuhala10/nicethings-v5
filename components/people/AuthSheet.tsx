@@ -246,7 +246,7 @@ export default function AuthSheet() {
                 <div className="pb-2">
                     <div className="relative -mx-5 -mt-2 mb-6 overflow-hidden px-5 pt-2 pb-6">
                         <div className="flex -space-x-3">
-                            {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "mc.nina44.0.3", "pp.qq19ve.1.0"].map((sample, index) => (
+                            {["pp.k3j9x2.0.1", "tn.a8d2kq.1.4", "mc.z71mb3.0.2", "lo.p4n8tt.2.3", "mc.nina44.0.3"].map((sample, index) => (
                                 <span key={sample} className="nt-face h-14 w-14 ring-[3px] ring-bg" style={{ zIndex: 5 - index }}>
                                     { }
                                     <img src={`/api/avatar/${sample}`} alt="" width={56} height={56} />
