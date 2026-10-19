@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { notInstalled } from "@/lib/atlas/store";
 import { cityBySlug } from "@/lib/cities";
@@ -5,7 +6,8 @@ import { cleanText } from "@/lib/feedback";
 import { getPlacesBySlugs } from "@/lib/places/server";
 import { parseAvatar } from "@/lib/people/avatars";
 import { refreshPerson } from "@/lib/people/pages";
-import { recount, type Target } from "@/lib/people/talk";
+import { reviewsTag } from "@/lib/people/reviews";
+import { recount, talkTag, type Target } from "@/lib/people/talk";
 import { MAX_BIO, MAX_NAME } from "@/lib/people/rules";
 import { PHOTO_BUCKET, PROFILE_COLUMNS, currentProfile, deny, endSession, meOf, readBody, requireProfile, secretMatches, type ProfileRow } from "@/lib/people/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -71,10 +73,11 @@ export async function DELETE(request: Request) {
 
     // What their likes, words and "validé" were counted on, to count again
     // once they are gone with the profile.
-    const [likes, words, votes] = await Promise.all([
+    const [likes, words, votes, reviews] = await Promise.all([
         db.from("nt_post_likes").select("post_id").eq("profile_id", profile.id),
         db.from("nt_comments").select("target,target_id").eq("profile_id", profile.id),
         db.from("nt_review_votes").select("review_id").eq("profile_id", profile.id),
+        db.from("nt_reviews").select("spot_id").eq("profile_id", profile.id),
     ]);
 
     if (profile.photo_path) await db.storage.from(PHOTO_BUCKET).remove([profile.photo_path]);
@@ -94,6 +97,10 @@ export async function DELETE(request: Request) {
         const { count } = await db.from("nt_review_votes").select("review_id", { count: "exact", head: true }).eq("review_id", review);
         await db.from("nt_reviews").update({ helpful: count ?? 0 }).eq("id", review);
     }
+    // The pages that showed them show them no more.
+    for (const spot of new Set((reviews.data ?? []).map((review) => review.spot_id as string))) revalidateTag(reviewsTag(spot), { expire: 0 });
+    for (const word of talked.values()) revalidateTag(talkTag(word.target as Target, word.target_id as string), { expire: 0 });
+    for (const word of (words.data ?? []).filter((item) => item.target === "article")) revalidateTag(talkTag("article", word.target_id as string), { expire: 0 });
     await endSession().catch(() => {});
     refreshPerson(profile.handle);
     return NextResponse.json({ ok: true });
