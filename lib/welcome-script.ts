@@ -26,7 +26,7 @@ d.setAttribute("data-nt-welcome","1");
 var events=["pointerdown","touchstart","keydown"];
 var open=function(){
 if(d.getAttribute("data-nt-welcome")!=="1")return;
-d.setAttribute("data-nt-welcome","open");
+d.setAttribute("data-nt-welcome","open");d.setAttribute("data-nt-entered",String(Date.now()));
 for(var i=0;i<events.length;i++)removeEventListener(events[i],open,true);
 setTimeout(function(){d.removeAttribute("data-nt-welcome")},720);
 };

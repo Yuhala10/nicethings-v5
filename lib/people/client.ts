@@ -81,6 +81,11 @@ export function useMe() {
     return useSyncExternalStore(subscribe, () => state, () => SERVER);
 }
 
+// The state right now, outside React (the welcome reads it at the tap).
+export function peekMe() {
+    return state;
+}
+
 export function setMe(me: Me | null) {
     update({ me, ready: true });
     if (me) syncSaves(me);
@@ -88,7 +93,11 @@ export function setMe(me: Me | null) {
 
 // ---------------------------------------------------------------- the sheet
 
-export type AuthReason = "review" | "comment" | "like" | "generic";
+// "Plus tard" after the welcome: not asked again for three days.
+export const JOIN_LATER_KEY = "nt_join_later";
+export const JOIN_LATER_MS = 3 * 86_400_000;
+
+export type AuthReason = "review" | "comment" | "like" | "generic" | "welcome";
 let afterAuth: (() => void) | null = null;
 
 // Opens the profile sheet (components/people/AuthSheet.tsx). `then` runs

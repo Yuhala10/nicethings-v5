@@ -7,7 +7,7 @@ import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { defaultAvatar, randomSeed } from "@/lib/people/avatars";
-import { call, dropAfterAuth, runAfterAuth, setMe, type AuthReason } from "@/lib/people/client";
+import { JOIN_LATER_KEY, call, dropAfterAuth, runAfterAuth, setMe, type AuthReason } from "@/lib/people/client";
 import { normalizeHandle, pinProblem } from "@/lib/people/rules";
 import type { Me } from "@/lib/people/types";
 import { visitorId } from "../site/Analytics";
@@ -276,6 +276,20 @@ export default function AuthSheet() {
                     <button type="button" onClick={() => reset("login")} className="nt-btn nt-btn-soft mt-2.5 w-full">
                         {words.join.haveOne}
                     </button>
+                    {reason === "welcome" && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                try {
+                                    localStorage.setItem(JOIN_LATER_KEY, String(Date.now()));
+                                } catch {}
+                                close();
+                            }}
+                            className="nt-tap mx-auto mt-3 block text-[0.875rem] font-semibold text-muted underline-offset-4 hover:underline"
+                        >
+                            {words.join.later}
+                        </button>
+                    )}
                     <p className="mt-4 text-center text-[0.75rem] leading-relaxed text-muted">{words.join.free}</p>
                 </div>
             )}

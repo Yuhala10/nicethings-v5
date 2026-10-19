@@ -18,8 +18,11 @@ export const peopleFr = {
             comment: "Pour commenter, crée ton profil : tout le monde verra qui parle.",
             like: "Pour aimer en ton nom, crée ton profil.",
             generic: "Crée ton profil en 30 secondes.",
+            welcome: "Bienvenue ! Crée ton profil en 30 secondes, ou connecte-toi si tu en as déjà un.",
         },
+        later: "Plus tard, je découvre d'abord",
     },
+    welcomeBack: "Bon retour, {name}",
     steps: ["Ton nom", "Ta tête", "Ton coin", "Ton code"],
     handle: {
         label: "Ton @nom",
@@ -266,8 +269,11 @@ export const peopleEn: PeopleWords = {
             comment: "To comment, create your profile: everyone will see who's talking.",
             like: "To like things in your own name, create your profile.",
             generic: "Create your profile in 30 seconds.",
+            welcome: "Welcome! Create your profile in 30 seconds, or sign in if you already have one.",
         },
+        later: "Later, I'll look around first",
     },
+    welcomeBack: "Welcome back, {name}",
     steps: ["Your name", "Your face", "Your area", "Your PIN"],
     handle: {
         label: "Your @name",
