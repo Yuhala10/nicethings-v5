@@ -100,6 +100,19 @@ function Chips({ ranks, accent, ink, size }: { ranks: string[]; accent: string; 
     );
 }
 
+
+// The tick after the name, drawn for the card (blue; gold for the founder).
+function Tick({ page, size }: { page: ProfilePage; size: number }) {
+    if (!page.person.verified) return null;
+    const gold = page.person.role === "founder";
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" style={{ marginLeft: size * 0.3, flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="11" fill={gold ? "#e2c065" : "#0095f6"} />
+            <path d="M7.6 12.3l3 3 5.8-6.2" fill="none" stroke={gold ? "#3b2a07" : "#ffffff"} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 // ---------------------------------------------------------------- link preview
 
 export async function personShareJpeg(page: ProfilePage, lang: Locale) {
@@ -123,7 +136,10 @@ export async function personShareJpeg(page: ProfilePage, lang: Locale) {
                         <div style={{ display: "flex", marginTop: 12, fontSize: 19, fontWeight: 700, letterSpacing: "0.22em", color: c.accent }}>{`${w.t.card.member} · ${w.number}`.toLocaleUpperCase(lang)}</div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                        <div style={{ display: "flex", fontFamily: SERIF_FONT, fontSize: nameSize, lineHeight: 1.02, letterSpacing: "-0.01em" }}>{w.name}</div>
+                        <div style={{ display: "flex", alignItems: "center", fontFamily: SERIF_FONT, fontSize: nameSize, lineHeight: 1.02, letterSpacing: "-0.01em" }}>
+                            {w.name}
+                            <Tick page={page} size={Math.round(nameSize * 0.55)} />
+                        </div>
                         <div style={{ display: "flex", marginTop: 8, fontSize: 28, color: "rgba(250,247,242,0.7)" }}>{[page.person.name ? w.handle : null, w.where].filter(Boolean).join(" · ")}</div>
                         <div style={{ display: "flex", marginTop: 22 }}>
                             <Chips ranks={w.ranks} accent={c.accent} ink={c.ink} size={22} />
@@ -185,7 +201,10 @@ export async function personStoryJpeg(page: ProfilePage, lang: Locale, address: 
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: FACE + 120, padding: "0 90px", textAlign: "center" }}>
-                    <div style={{ display: "flex", fontFamily: SERIF_FONT, fontSize: nameSize, lineHeight: 1, letterSpacing: "-0.01em" }}>{w.name}</div>
+                    <div style={{ display: "flex", alignItems: "center", fontFamily: SERIF_FONT, fontSize: nameSize, lineHeight: 1, letterSpacing: "-0.01em" }}>
+                        {w.name}
+                        <Tick page={page} size={Math.round(nameSize * 0.5)} />
+                    </div>
                     <div style={{ display: "flex", marginTop: 14, fontSize: 38, color: "rgba(250,247,242,0.72)" }}>{[page.person.name ? w.handle : null, w.where].filter(Boolean).join(" · ")}</div>
                     <div style={{ display: "flex", marginTop: 30, justifyContent: "center" }}>
                         <Chips ranks={w.ranks} accent={c.accent} ink={c.ink} size={30} />

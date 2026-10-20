@@ -1,6 +1,7 @@
-// The blue verified tick: a scalloped badge with a white check, the mark
-// people already know from social networks. Shown next to places the
-// NiceThings team has checked on site (admin "Vérifié" switch).
+// The verified tick: a scalloped badge with a white check, the mark people
+// already know from social networks. Blue next to places the NiceThings
+// team has checked (admin "Vérifié" switch) and next to verified profiles;
+// gold leaf for the founder.
 
 const VERIFIED_BLUE = "#0095f6";
 
@@ -16,7 +17,7 @@ const BADGE_PATH = (() => {
     return `M${points.join("L")}Z`;
 })();
 
-export default function VerifiedTick({ size = 16, className = "", label }: { size?: number; className?: string; label?: string }) {
+export default function VerifiedTick({ size = 16, className = "", label, tone = "blue" }: { size?: number; className?: string; label?: string; tone?: "blue" | "gold" }) {
     return (
         <svg
             width={size}
@@ -28,8 +29,17 @@ export default function VerifiedTick({ size = 16, className = "", label }: { siz
             aria-hidden={label ? undefined : true}
         >
             {label && <title>{label}</title>}
-            <path d={BADGE_PATH} fill={VERIFIED_BLUE} />
-            <path d="M7.6 12.3l3 3 5.8-6.2" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+            {tone === "gold" && (
+                <defs>
+                    <linearGradient id="nt-gold-tick" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stopColor="#f6dd86" />
+                        <stop offset="0.5" stopColor="#c99a35" />
+                        <stop offset="1" stopColor="#f3d77e" />
+                    </linearGradient>
+                </defs>
+            )}
+            <path d={BADGE_PATH} fill={tone === "gold" ? "url(#nt-gold-tick)" : VERIFIED_BLUE} />
+            <path d="M7.6 12.3l3 3 5.8-6.2" fill="none" stroke={tone === "gold" ? "#3b2a07" : "#fff"} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }

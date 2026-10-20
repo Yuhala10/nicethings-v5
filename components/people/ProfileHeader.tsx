@@ -3,7 +3,7 @@ import { cityBySlug } from "@/lib/cities";
 import { fill, getDictionary, type Locale } from "@/lib/i18n";
 import { levelOf, type Stats } from "@/lib/people/rules";
 import type { Person } from "@/lib/people/types";
-import { Face, Ranks, displayName } from "./Person";
+import { Face, Ranks, VerifiedBadge, displayName } from "./Person";
 
 // The top of a profile: the face, the name, the ranks, the neighbourhood,
 // what they gave, and how far the next level is. The founder and the
@@ -43,7 +43,10 @@ export default function ProfileHeader({
             <div className="relative flex items-center gap-5">
                 <Face person={person} size={104} className="shadow-float" />
                 <div className="min-w-0">
-                    <h1 className="nt-serif truncate text-[2.25rem] leading-[1.05] md:text-[2.75rem]">{displayName(person)}</h1>
+                    <h1 className="nt-serif flex min-w-0 items-center gap-2 text-[2.25rem] leading-[1.05] md:text-[2.75rem]">
+                        <span className="min-w-0 truncate">{displayName(person)}</span>
+                        <VerifiedBadge person={person} locale={locale} size={26} />
+                    </h1>
                     <p className="mt-1 truncate text-[0.875rem] font-semibold text-white/65">@{person.handle}</p>
                 </div>
             </div>

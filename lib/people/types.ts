@@ -13,6 +13,9 @@ export type Person = {
     memberNo: number;
     level: number;
     points: number;
+    // The blue tick (gold for the founder), and what they are known as.
+    verified: boolean;
+    verifiedLabel: string | null;
 };
 
 // The profile of the person signed in on this phone, as they see it.
@@ -32,7 +35,7 @@ export type Me = Person & {
 // One line of Activité.
 export type Notice = {
     id: string;
-    kind: "vote" | "reply" | "comment" | "like" | "tip_vote" | "level" | "follow" | "going" | "outing_like" | "outing_comment" | "approved";
+    kind: "vote" | "reply" | "comment" | "like" | "tip_vote" | "level" | "follow" | "going" | "outing_like" | "outing_comment" | "approved" | "verified";
     actor: Person | null;
     data: { place?: string; name?: string; level?: number; snippet?: string; outing?: string };
     read: boolean;

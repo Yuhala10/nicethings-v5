@@ -23,19 +23,37 @@ const LEVELS = [
     ["Légende du kwat", "Neighbourhood legend"],
 ] as const;
 const RATINGS = ["C'est le ndem", "Bof", "Ça peut aller", "C'est propre", "C'est validé !"];
+type Ask = { id: string; profile_id: string; kind: string; link: string | null; note: string | null; created_at: string; person: Person | null };
+// What a verified member is shown as, by the kind of request.
+const KNOWN_AS: Record<string, [string, string]> = {
+    creator: ["Créateur de contenu", "Content creator"],
+    business: ["Établissement", "Business"],
+    public: ["Personnalité", "Public figure"],
+    other: ["", ""],
+};
+
+function Tick() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" className="inline-block shrink-0" aria-hidden>
+            <circle cx="12" cy="12" r="11" fill="#0095f6" />
+            <path d="M7.6 12.3l3 3 5.8-6.2" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
 
 export default function MembersPage() {
     const tr = useTr();
     const toast = useAdminToast();
     const [busy, setBusy] = useState<string | null>(null);
-    const people = useAdminData<{ setup: boolean; total: number; week: number; people: Member[] }>("people");
+    const people = useAdminData<{ setup: boolean; total: number; week: number; people: Member[]; requests?: Ask[] }>("people");
     const words = useAdminData<{ setup: boolean; waiting: Word[]; recent: Word[] }>("comments");
 
-    const act = async (member: Member, action: "suspend" | "restore" | "photo" | "role", role?: string) => {
+    const act = async (member: Pick<Member, "id" | "handle">, action: "suspend" | "restore" | "photo" | "role" | "verify" | "unverify" | "decline", role?: string, label?: string) => {
         if (action === "suspend" && !window.confirm(tr(`Suspendre @${member.handle} ? Il est déconnecté partout.`, `Suspend @${member.handle}? They are signed out everywhere.`))) return;
+        if (action === "unverify" && !window.confirm(tr(`Retirer le badge de @${member.handle} ?`, `Remove @${member.handle}'s badge?`))) return;
         setBusy(member.id);
         try {
-            await adminPatch("people", { id: member.id, action, role });
+            await adminPatch("people", { id: member.id, action, role, label });
             toast(tr("C'est fait", "Done"));
             await people.reload();
         } catch (caught) {
@@ -139,6 +157,58 @@ export default function MembersPage() {
                 </p>
             ) : (
                 <>
+                    {/* ---- Requests for the verified badge ---- */}
+                    {Boolean(people.data?.requests?.length) && (
+                        <>
+                            <h2 className="a-serif mb-3 flex items-center gap-2 text-2xl">
+                                <Tick />
+                                {tr("Demandes de badge vérifié", "Verified badge requests")} <span className="text-muted">· {people.data?.requests?.length}</span>
+                            </h2>
+                            <ul className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                {people.data?.requests?.map((ask) => (
+                                    <li key={ask.id} className="a-card flex flex-col gap-3 p-4">
+                                        <div className="flex items-center gap-3">
+                                            { }
+                                            {ask.person && <img src={ask.person.face} alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover" />}
+                                            <div className="min-w-0">
+                                                <a href={`/fr/u/${ask.person?.handle}`} target="_blank" rel="noreferrer" className="block truncate font-semibold hover:underline">
+                                                    @{ask.person?.handle}
+                                                </a>
+                                                <p className="text-xs text-muted">
+                                                    {tr(...(KNOWN_AS[ask.kind] ?? KNOWN_AS.other)) || tr("Autre", "Other")} · {timeAgo(ask.created_at)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {ask.link && (
+                                            <a href={/^https?:\/\//.test(ask.link) ? ask.link : `https://${ask.link}`} target="_blank" rel="noreferrer nofollow" className="flex items-center gap-1 truncate text-sm font-semibold text-[#0077c8] hover:underline">
+                                                {ask.link}
+                                                <ExternalLink size={12} />
+                                            </a>
+                                        )}
+                                        {ask.note && <p className="text-sm whitespace-pre-line text-text-2">{ask.note}</p>}
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                className="a-btn a-btn-primary h-10 flex-1"
+                                                disabled={busy !== null}
+                                                onClick={() => {
+                                                    const label = window.prompt(tr("Montré comme (ex. Créateur de contenu) :", "Shown as (e.g. Content creator):"), tr(...(KNOWN_AS[ask.kind] ?? KNOWN_AS.other)));
+                                                    if (label !== null) act({ id: ask.profile_id, handle: ask.person?.handle ?? "" }, "verify", undefined, label);
+                                                }}
+                                            >
+                                                <Check size={15} />
+                                                {tr("Vérifier", "Verify")}
+                                            </button>
+                                            <button type="button" className="a-btn a-btn-soft h-10" disabled={busy !== null} onClick={() => act({ id: ask.profile_id, handle: ask.person?.handle ?? "" }, "decline")}>
+                                                {tr("Refuser", "Decline")}
+                                            </button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+
                     {/* ---- What waits, or was reported ---- */}
                     <h2 className="a-serif mb-3 text-2xl">
                         {tr("À regarder", "To look at")} <span className="text-muted">· {words.data?.waiting.length ?? 0}</span>
@@ -177,8 +247,11 @@ export default function MembersPage() {
                                         { }
                                         <img src={member.face} alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded-full object-cover" />
                                         <div className="min-w-0 flex-1">
-                                            <a href={`/fr/u/${member.handle}`} target="_blank" rel="noreferrer" className="block truncate font-semibold hover:underline">
-                                                {member.name ? `${member.name} · ` : ""}@{member.handle}
+                                            <a href={`/fr/u/${member.handle}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 truncate font-semibold hover:underline">
+                                                <span className="truncate">
+                                                    {member.name ? `${member.name} · ` : ""}@{member.handle}
+                                                </span>
+                                                {member.verified && <Tick />}
                                             </a>
                                             <p className="truncate text-xs text-muted">
                                                 n°{member.memberNo} · {tr(...(LEVELS[member.level] ?? LEVELS[0]) as [string, string])} · {member.points} pts
@@ -213,6 +286,20 @@ export default function MembersPage() {
                                         {member.photo && (
                                             <button type="button" className="a-btn a-btn-soft h-10" disabled={busy !== null} onClick={() => act(member, "photo")} title={tr("Retirer la photo", "Take the photo down")}>
                                                 <ImageOff size={15} />
+                                            </button>
+                                        )}
+                                        {member.role === "member" && (
+                                            <button
+                                                type="button"
+                                                className="a-btn a-btn-soft h-10"
+                                                disabled={busy !== null}
+                                                onClick={() => {
+                                                    if (member.verified) return act(member, "unverify");
+                                                    const label = window.prompt(tr("Montré comme (ex. Créateur de contenu, Établissement) :", "Shown as (e.g. Content creator, Business):"), "");
+                                                    if (label !== null) act(member, "verify", undefined, label);
+                                                }}
+                                            >
+                                                {member.verified ? tr("Retirer le badge", "Remove badge") : <><Tick /> {tr("Vérifier", "Verify")}</>}
                                             </button>
                                         )}
                                         <button type="button" className="a-btn a-btn-soft h-10" disabled={busy !== null} onClick={() => act(member, member.status === "SUSPENDED" ? "restore" : "suspend")}>

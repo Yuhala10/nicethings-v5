@@ -211,6 +211,7 @@ const NO_STATS: Stats = { reviews: 0, photos: 0, comments: 0, cheers: 0 };
 
 export function toPerson(row: ProfileRow, stats: Stats = NO_STATS): Person {
     const { level, points } = levelOf(pointsOf(stats));
+    const role = row.role === "team" || row.role === "founder" ? row.role : "member";
     return {
         id: row.id,
         handle: row.handle,
@@ -218,10 +219,13 @@ export function toPerson(row: ProfileRow, stats: Stats = NO_STATS): Person {
         face: faceOf(row),
         area: row.area,
         city: row.city,
-        role: row.role === "team" || row.role === "founder" ? row.role : "member",
+        role,
         memberNo: Number(row.member_no),
         level,
         points,
+        // The founder and the team are verified by their role.
+        verified: role !== "member" || stats.verified === true,
+        verifiedLabel: stats.verifiedLabel ?? null,
     };
 }
 
@@ -232,7 +236,7 @@ export async function statsOf(ids: string[]) {
     // Ways and live news are counted once script 012 has been run.
     // The view grows with the scripts (012: ways and live news, 013:
     // outings and follows): the richest one that exists is read.
-    const shapes = ["id,reviews,photos,comments,cheers,tips,pulses,outings,followers,following", "id,reviews,photos,comments,cheers,tips,pulses", "id,reviews,photos,comments,cheers"];
+    const shapes = ["id,reviews,photos,comments,cheers,tips,pulses,outings,followers,following,verified,verified_label", "id,reviews,photos,comments,cheers,tips,pulses", "id,reviews,photos,comments,cheers"];
     let read: { data: unknown[] | null; error: { code?: string } | null } = { data: null, error: null };
     for (const columns of shapes) {
         read = await db.from("nt_profile_stats").select(columns).in("id", ids);
@@ -250,6 +254,8 @@ export async function statsOf(ids: string[]) {
             outings: count(row.outings),
             followers: count(row.followers),
             following: count(row.following),
+            verified: row.verified === true,
+            verifiedLabel: (row.verified_label as string | null | undefined) ?? null,
         });
     }
     return stats;

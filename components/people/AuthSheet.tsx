@@ -15,7 +15,7 @@ import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 import AvatarPicker, { type FaceChoice } from "./AvatarPicker";
 import HandleField, { type HandleState } from "./HandleField";
-import { Face, Ranks, displayName } from "./Person";
+import { Face, Ranks, VerifiedBadge, displayName } from "./Person";
 import PinInput from "./PinInput";
 import Sheet from "./Sheet";
 
@@ -397,7 +397,10 @@ export default function AuthSheet() {
             {screen === "welcome" && me && (
                 <div className="pb-2 text-center">
                     <Face person={me} size={104} className="mx-auto shadow-card" />
-                    <h2 className="nt-serif mt-5 text-[2.25rem] leading-[1.05]">{fill(words.welcome.title, { name: displayName(me) })}</h2>
+                    <h2 className="nt-serif mt-5 flex items-center justify-center gap-2 text-[2.25rem] leading-[1.05]">
+                        {fill(words.welcome.title, { name: displayName(me) })}
+                        <VerifiedBadge person={me} locale={locale} size={24} />
+                    </h2>
                     <p className="mt-1 text-[0.875rem] text-muted">
                         @{me.handle} · {fill(words.memberNo, { number: me.memberNo })}
                     </p>

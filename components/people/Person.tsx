@@ -4,6 +4,7 @@ import { fill, getDictionary, type Locale } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { PIONEERS } from "@/lib/people/rules";
 import type { Person } from "@/lib/people/types";
+import VerifiedTick from "../place/VerifiedTick";
 
 // A person on NiceThings, wherever they show: their face, their name, their
 // rank. Works on the server and in the browser (no hooks).
@@ -47,10 +48,16 @@ export function LevelBadge({ level, locale, className = "" }: { level: number; l
 
 // The founder and the team say so; the first hundred members carry
 // "Pionnier" for good.
-export function Ranks({ person, locale, withLevel = true }: { person: Pick<Person, "role" | "level" | "memberNo">; locale: Locale; withLevel?: boolean }) {
+export function Ranks({ person, locale, withLevel = true }: { person: Pick<Person, "role" | "level" | "memberNo"> & Partial<Pick<Person, "verified" | "verifiedLabel">>; locale: Locale; withLevel?: boolean }) {
     const t = getDictionary(locale).people;
     return (
         <>
+            {person.verified && person.role === "member" && (
+                <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-[#0095f6]/12 px-2.5 text-[0.75rem] font-semibold whitespace-nowrap text-[#0077c8] dark:text-[#7cc6ff]">
+                    <VerifiedTick size={13} />
+                    {person.verifiedLabel || t.verify.badge}
+                </span>
+            )}
             {person.role === "founder" && (
                 <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-[#15110e] px-2.5 text-[0.75rem] font-semibold whitespace-nowrap">
                     <Crown size={11} className="text-[#e2c065]" />
@@ -73,6 +80,15 @@ export function Ranks({ person, locale, withLevel = true }: { person: Pick<Perso
     );
 }
 
+// The verified tick after a name: blue, gold for the founder. Its title
+// says what they are known as.
+export function VerifiedBadge({ person, locale, size = 16, className = "" }: { person: Pick<Person, "verified" | "verifiedLabel" | "role">; locale: Locale; size?: number; className?: string }) {
+    if (!person.verified) return null;
+    const words = getDictionary(locale).people.verify;
+    const label = person.role === "founder" ? words.founder : person.role === "team" ? words.team : person.verifiedLabel ? `${words.badge} · ${person.verifiedLabel}` : words.badge;
+    return <VerifiedTick size={size} tone={person.role === "founder" ? "gold" : "blue"} label={label} className={className} />;
+}
+
 export function displayName(person: Pick<Person, "name" | "handle">) {
     return person.name?.trim() || `@${person.handle}`;
 }
@@ -91,6 +107,7 @@ export function PersonLine({ person, locale, meta, size = 40, light = false }: {
                     <Link href={href} className={`min-w-0 truncate text-[0.875rem] font-semibold hover:underline ${light ? "text-white" : "text-text"}`}>
                         {displayName(person)}
                     </Link>
+                    <VerifiedBadge person={person} locale={locale} size={15} className="-ml-1" />
                     <span className={`shrink-0 text-[0.75rem] font-semibold ${person.role === "founder" || person.level >= 4 ? "nt-foil" : light ? "text-white/70" : "text-muted"}`}>{rank}</span>
                 </span>
                 <span className={`block truncate text-[0.75rem] ${light ? "text-white/60" : "text-muted"}`}>

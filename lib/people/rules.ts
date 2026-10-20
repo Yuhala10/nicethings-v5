@@ -93,7 +93,7 @@ export const COMPANIES = ["solo", "couple", "friends", "family", "work"] as cons
 
 // ---------------------------------------------------------------- levels
 
-export type Stats = { reviews: number; photos: number; comments: number; cheers: number; tips?: number; pulses?: number; outings?: number; followers?: number; following?: number };
+export type Stats = { reviews: number; photos: number; comments: number; cheers: number; tips?: number; pulses?: number; outings?: number; followers?: number; following?: number; verified?: boolean; verifiedLabel?: string | null };
 
 // What each gesture is worth: a review counts most, then a photo, then the
 // way to a place, then what others gave back (likes, "validé", "utile").

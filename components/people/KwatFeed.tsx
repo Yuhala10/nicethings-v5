@@ -9,7 +9,7 @@ import { cityBySlug, DEFAULT_CITY } from "@/lib/cities";
 import { useMe, withMe } from "@/lib/people/client";
 import type { KwatItem } from "@/lib/people/types";
 import { useLocale } from "../site/LocaleProvider";
-import { Face, RatingChip } from "./Person";
+import { Face, RatingChip, VerifiedBadge } from "./Person";
 import { agoText } from "./PlacePulse";
 import OutingList, { PostOutingButton } from "./OutingList";
 
@@ -42,7 +42,9 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
         <span className="flex min-w-0 items-center gap-2.5">
             {item.person && <Face person={item.person} size={32} />}
             <span className="min-w-0 text-[0.75rem] leading-snug">
-                <span className="font-semibold text-text">{who}</span> <span className="text-muted">{item.type === "review" ? words.review : item.type === "photo" ? words.photo : item.type === "tip" ? words.tip : item.type === "outing" ? words.outing : words.pulse}</span>
+                <span className="font-semibold text-text">{who}</span>
+                {item.person && <VerifiedBadge person={item.person} locale={locale} size={13} className="mx-0.5 -mt-0.5 align-middle" />}{" "}
+                <span className="text-muted">{item.type === "review" ? words.review : item.type === "photo" ? words.photo : item.type === "tip" ? words.tip : item.type === "outing" ? words.outing : words.pulse}</span>
                 <span className="block text-muted">{ago}</span>
             </span>
         </span>

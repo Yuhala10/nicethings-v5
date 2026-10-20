@@ -1,5 +1,5 @@
 -- ============================================================================
--- NiceThings — 013: "Ma sortie" and "Suivre"
+-- NiceThings — 013: "Ma sortie", "Suivre" and verified profiles
 -- ============================================================================
 -- Run once in the Supabase SQL editor (after 012). Safe to run again.
 --
@@ -7,6 +7,8 @@
 -- or one short video, the mood, what they paid, who they were with, a line.
 -- New members' outings wait for the team; from "Habitué" on they go online
 -- at once. Members follow each other, and see their friends' outings.
+-- A profile can be verified, like on Instagram: by the team, on request or
+-- not; the founder and the team are verified by their role.
 -- Read and written by the site's server only (RLS on, no policy). The files
 -- go to the "spot-posts" bucket, under "outings/".
 -- ============================================================================
@@ -72,11 +74,32 @@ create table if not exists nt_follows (
 
 create index if not exists nt_follows_followed_idx on nt_follows (followed_id, created_at desc);
 
+-- Verified profiles: who the team verified, when, and what they are known
+-- as ("Créateur de contenu", "Établissement"…). The founder and the team
+-- are verified by their role, whatever this says.
+alter table nt_profiles add column if not exists verified boolean not null default false;
+alter table nt_profiles add column if not exists verified_at timestamptz;
+alter table nt_profiles add column if not exists verified_label text check (verified_label is null or char_length(verified_label) <= 40);
+
+-- "Demander la vérification": who they are, a link that proves it, a word.
+create table if not exists nt_verify_requests (
+    id uuid primary key default gen_random_uuid(),
+    profile_id uuid not null references nt_profiles (id) on delete cascade,
+    kind text not null check (kind in ('creator', 'business', 'public', 'other')),
+    link text check (link is null or char_length(link) <= 200),
+    note text check (note is null or char_length(note) <= 300),
+    status text not null default 'PENDING' check (status in ('PENDING', 'APPROVED', 'DECLINED')),
+    created_at timestamptz not null default now(),
+    decided_at timestamptz
+);
+
+create unique index if not exists nt_verify_requests_open_key on nt_verify_requests (profile_id) where status = 'PENDING';
+
 -- Comments under an outing; Activité for follows, likes, "j'y vais", approvals.
 alter table nt_comments drop constraint if exists nt_comments_target_check;
 alter table nt_comments add constraint nt_comments_target_check check (target in ('article', 'wall', 'review', 'outing'));
 alter table nt_notices drop constraint if exists nt_notices_kind_check;
-alter table nt_notices add constraint nt_notices_kind_check check (kind in ('vote', 'reply', 'comment', 'like', 'tip_vote', 'level', 'follow', 'going', 'outing_like', 'outing_comment', 'approved'));
+alter table nt_notices add constraint nt_notices_kind_check check (kind in ('vote', 'reply', 'comment', 'like', 'tip_vote', 'level', 'follow', 'going', 'outing_like', 'outing_comment', 'approved', 'verified'));
 alter table nt_flags drop constraint if exists nt_flags_kind_check;
 alter table nt_flags add constraint nt_flags_kind_check check (kind in ('comment', 'review', 'profile', 'tip', 'outing'));
 
@@ -98,7 +121,9 @@ select
     (select count(*) from nt_place_pulses u where u.profile_id = p.id)::int as pulses,
     (select count(*) from nt_outings o where o.profile_id = p.id and o.status = 'PUBLISHED')::int as outings,
     (select count(*) from nt_follows f where f.followed_id = p.id)::int as followers,
-    (select count(*) from nt_follows f where f.follower_id = p.id)::int as following
+    (select count(*) from nt_follows f where f.follower_id = p.id)::int as following,
+    (p.verified or p.role in ('team', 'founder')) as verified,
+    p.verified_label
 from nt_profiles p;
 
 alter table nt_outings enable row level security;
@@ -106,3 +131,4 @@ alter table nt_outing_media enable row level security;
 alter table nt_outing_likes enable row level security;
 alter table nt_outing_goers enable row level security;
 alter table nt_follows enable row level security;
+alter table nt_verify_requests enable row level security;

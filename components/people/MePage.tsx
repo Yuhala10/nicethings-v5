@@ -22,6 +22,7 @@ import { displayName } from "./Person";
 import PinInput from "./PinInput";
 import ProfileHeader from "./ProfileHeader";
 import ShareCard from "./ShareCard";
+import VerifyRequest from "./VerifyRequest";
 import Sheet from "./Sheet";
 
 // "Moi": the profile of the person signed in on this phone, and everything
@@ -428,6 +429,7 @@ export default function MePage() {
             <section className="mt-8 overflow-hidden rounded-[1.25rem] border border-line bg-surface divide-y divide-line">
                 <Row icon={UserRound} label={words.me.view} href={paths.person(locale, me.handle)} />
                 <Row icon={Heart} label={`${words.me.saved} · ${saved.length}`} href={paths.saved(locale)} />
+                <VerifyRequest />
             </section>
 
             <h2 className="nt-eyebrow mt-10 mb-3 px-1">{words.me.security}</h2>
