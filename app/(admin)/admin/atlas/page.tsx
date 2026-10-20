@@ -144,10 +144,10 @@ function issueText(issue: Issue, tr: Tr): { title: string; detail: string | null
         "outside-city": () => [`“${place}” is filed under ${e.city} but sits ${e.km} km from its centre`, e.actual ? `Its position is in ${e.actual}.` : "Its position is outside every covered city."],
         "verified-stale": () => [`“${place}” has the blue tick but has not been re-checked for ${e.days} days`, null],
         "price-odd": () => [`Prices to review for “${place}”: ${e.min ?? "?"} – ${e.max ?? "?"} FCFA`, null],
-        "aged-source": () => [`${e.city}: ${e.count} listings rest on a map entry unchanged for more than ${e.years} years`, "These are the places to check first: the likeliest to have closed or moved."],
+        "aged-source": () => [`${e.count} listings to check first: their map entry has not moved for more than ${e.years} years`, `${(e.cities ?? []).map((item) => `${item.city} (${item.count})`).join(", ")}. The likeliest to have closed or moved.`],
         "phone-unreadable": () => [`${e.city}: ${e.count} unreadable phone number(s) (the Call button does not show)`, null],
         "hours-half": () => [`${e.city}: ${e.count} listing(s) with an opening time but no closing time, or the reverse`, null],
-        "no-neighbourhood": () => [`${e.city}: ${e.count} published place(s) without a neighbourhood`, null],
+        "no-neighbourhood": () => [`${e.count} published place(s) without a neighbourhood that the open maps cannot place`, `${(e.cities ?? []).map((item) => `${item.city} (${item.count})`).join(", ")}. To fill in on the ground: they cannot be found by neighbourhood yet.`],
         "cities-without-areas": () => [
             `${e.count} cities have almost no neighbourhood filled in`,
             `${(e.cities ?? []).map((item) => `${item.city} (${item.count})`).join(", ")}. People cannot search or browse by neighbourhood there.`,
@@ -160,6 +160,7 @@ function issueText(issue: Issue, tr: Tr): { title: string; detail: string | null
         "health-translated": () => [`Page machine-translated by the browser (${e.browser}, ${e.system})`, seenOn],
         "health-script-error": () => [`Script error on ${e.browser} (${e.system})`, [e.message, seenOn].filter(Boolean).join(" · ")],
         "health-no-js": () => [`Visit without JavaScript (${e.browser}, ${e.system})`, seenOn],
+        "health-old-browser": () => ["Browsers too old for the site: they are shown the “update your browser” notice", [`Last seen: ${e.browser} (${e.system})`, seenOn].filter(Boolean).join(" · ")],
         "page-down": () => [`The page ${e.path} is not answering properly`, e.status ? `Server answered: ${e.status}.` : "No answer within 12 seconds."],
     };
     const [title, detail] = english[issue.evidence.code]?.() ?? [issue.title, issue.detail];

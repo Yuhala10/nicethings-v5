@@ -42,7 +42,14 @@ export type FilmSound = { start: (seconds: number) => void; stop: () => void };
 export function createFilmSound(): FilmSound | null {
     const Context = typeof window === "undefined" ? null : (window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext);
     if (!Context) return null;
-    const ctx = new Context();
+    // iPhones can refuse an audio device (a call in progress, silent mode,
+    // too many players open): the film then simply plays without sound.
+    let ctx: AudioContext;
+    try {
+        ctx = new Context();
+    } catch {
+        return null;
+    }
     const out = ctx.createDynamicsCompressor();
     const master = ctx.createGain();
     master.gain.value = 0.55;
@@ -152,7 +159,7 @@ export function createFilmSound(): FilmSound | null {
     return {
         // Plays from `seconds` into the film (the film's own clock).
         start(seconds) {
-            void ctx.resume();
+            ctx.resume().catch(() => {});
             window.clearInterval(timer);
             origin = ctx.currentTime - seconds;
             next = Math.ceil((seconds * 2) / BEAT);
@@ -161,7 +168,7 @@ export function createFilmSound(): FilmSound | null {
         },
         stop() {
             window.clearInterval(timer);
-            void ctx.suspend();
+            ctx.suspend().catch(() => {});
         },
     };
 }

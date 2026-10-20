@@ -6,6 +6,7 @@ import { categoryStyle, knownFacts } from "@/lib/places/display";
 import { CATEGORY_PLURALS, paths } from "@/lib/places/paths";
 import type { PlaceSummary } from "@/lib/places/types";
 import type { Category } from "@/lib/tags";
+import { jsonLdScript } from "@/lib/json-ld";
 
 // Shared layout for the SEO guides: /douala, /douala/akwa, /douala/bars,
 // /douala/akwa/bars. Everything here is server-rendered and crawlable.
@@ -182,7 +183,7 @@ export default function GuideView({
         <div>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([itemList, breadcrumbList]).replace(/</g, "\\u003c") }}
+                dangerouslySetInnerHTML={{ __html: jsonLdScript([itemList, breadcrumbList]) }}
             />
             <GuideHero
                 crumbs={crumbs}

@@ -36,6 +36,7 @@ import { getAllPlaces, getPlace } from "@/lib/places/server";
 import { placeShareImage } from "@/lib/share-image";
 import type { PlaceDetail } from "@/lib/places/types";
 import { AMENITIES, CATEGORIES, GOOD_FOR, VIBES, tagLabel } from "@/lib/tags";
+import { jsonLdScript } from "@/lib/json-ld";
 
 export const revalidate = 300;
 
@@ -323,7 +324,7 @@ export default async function PlacePage({ params }: Props) {
         <article className="pb-4">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(place, lang, phone, cityName)).replace(/</g, "\\u003c") }}
+                dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd(place, lang, phone, cityName)) }}
             />
             <StickyPlaceBar slug={place.slug} name={place.name} />
 

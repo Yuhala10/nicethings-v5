@@ -113,7 +113,9 @@ function outsideCity(published: AtlasPlace[]): Found[] {
     const found: Found[] = [];
     for (const place of published) {
         const city = cityByName(place.city);
-        if (!city || place.latitude === null || place.longitude === null) continue;
+        // Falls, lakes and mountains are day trips: they are filed under the
+        // nearest city on purpose, out in the country.
+        if (!city || place.category === "Nature" || place.latitude === null || place.longitude === null) continue;
         const actual = cityAt(place.latitude, place.longitude);
         if (actual?.slug === city.slug) continue;
         const km = Math.round(distanceMeters({ lat: place.latitude, lng: place.longitude }, { lat: city.lat, lng: city.lng }) / 100) / 10;
@@ -180,65 +182,61 @@ function perCity(published: AtlasPlace[], code: string, severity: Found["severit
     return found;
 }
 
-// Places without a neighbourhood. Where a city has neighbourhoods, the
-// places missing one are listed for that city; cities that have none at all
-// are one finding together (the importer only knows Yaoundé's and a few
-// others' neighbourhoods).
+// Places without a neighbourhood once Atlas has filled what the open maps
+// and the neighbours can tell (lib/atlas/run.ts). What is left is a gap in
+// the sources, not a fault: one line for the whole country, a to-do list
+// for the field, city by city.
 function neighbourhoods(published: AtlasPlace[]): Found[] {
-    const found: Found[] = [];
-    const bare: { city: string; count: number }[] = [];
+    const cities: { city: string; count: number }[] = [];
+    const missing: AtlasPlace[] = [];
     for (const [city, places] of byCity(published)) {
-        const missing = places.filter((place) => !place.neighborhood);
-        if (!missing.length) continue;
-        if (missing.length > places.length * 0.7) {
-            bare.push({ city, count: places.length });
-            continue;
-        }
-        found.push({
-            fingerprint: `no-neighbourhood:${city}`,
+        const bare = places.filter((place) => !place.neighborhood);
+        if (!bare.length) continue;
+        cities.push({ city, count: bare.length });
+        missing.push(...bare);
+    }
+    if (!missing.length) return [];
+    cities.sort((a, b) => b.count - a.count);
+    return [
+        {
+            fingerprint: "no-neighbourhood",
             area: "catalogue",
             severity: "minor",
-            title: `${city} : ${missing.length} lieu(x) publié(s) sans quartier`,
-            detail: null,
-            evidence: { code: "no-neighbourhood", city, count: missing.length, total: places.length, examples: missing.slice(0, EXAMPLES).map(ref) },
-        });
-    }
-    if (bare.length) {
-        bare.sort((a, b) => b.count - a.count);
-        found.push({
-            fingerprint: "cities-without-areas",
-            area: "catalogue",
-            severity: "normal",
-            title: `${bare.length} villes n'ont presque aucun quartier renseigné`,
-            detail: `${bare.map((item) => `${item.city} (${item.count})`).join(", ")}. On ne peut pas y chercher ni explorer par quartier.`,
-            evidence: { code: "cities-without-areas", count: bare.length, cities: bare },
-        });
-    }
-    return found;
+            title: `${missing.length} lieu(x) publié(s) sans quartier, que les cartes ouvertes ne savent pas situer`,
+            detail: `${cities.map((item) => `${item.city} (${item.count})`).join(", ")}. À compléter sur place : on ne peut pas encore les trouver par quartier.`,
+            evidence: { code: "no-neighbourhood", count: missing.length, cities, examples: missing.slice(0, EXAMPLES).map(ref) },
+        },
+    ];
 }
 
 // Map entries nobody has touched for years: the listings most likely to
 // describe a place that has closed or moved. `edited` comes from the map
-// check (lib/atlas/osm.ts).
+// check (lib/atlas/osm.ts). Not a fault either: the order in which to go
+// and check places, as one line.
 function agedSources(published: AtlasPlace[], edited: Map<string, string>, now: number): Found[] {
     const OLD_YEARS = 7;
     const cutoff = new Date(now - OLD_YEARS * 365.25 * 86_400_000).toISOString();
-    const found: Found[] = [];
+    const cities: { city: string; count: number }[] = [];
+    const old: AtlasPlace[] = [];
     for (const [city, places] of byCity(published)) {
-        const old = places
-            .filter((place) => !place.verified && (edited.get(place.id) ?? "9") < cutoff)
-            .sort((a, b) => (edited.get(a.id) ?? "").localeCompare(edited.get(b.id) ?? ""));
-        if (old.length < 5) continue;
-        found.push({
-            fingerprint: `aged-source:${city}`,
-            area: "catalogue",
-            severity: "normal",
-            title: `${city} : ${old.length} fiches reposent sur une entrée de carte inchangée depuis plus de ${OLD_YEARS} ans`,
-            detail: "Ce sont les lieux à faire vérifier en premier : les plus susceptibles d'avoir fermé ou déménagé.",
-            evidence: { code: "aged-source", city, count: old.length, total: places.length, years: OLD_YEARS, examples: old.slice(0, EXAMPLES).map((place) => ({ ...ref(place), since: edited.get(place.id)?.slice(0, 4) })) },
-        });
+        const aged = places.filter((place) => !place.verified && (edited.get(place.id) ?? "9") < cutoff);
+        if (aged.length < 5) continue;
+        cities.push({ city, count: aged.length });
+        old.push(...aged);
     }
-    return found;
+    if (!old.length) return [];
+    cities.sort((a, b) => b.count - a.count);
+    old.sort((a, b) => (edited.get(a.id) ?? "").localeCompare(edited.get(b.id) ?? ""));
+    return [
+        {
+            fingerprint: "aged-source",
+            area: "catalogue",
+            severity: "minor",
+            title: `${old.length} fiches à faire vérifier en priorité : leur entrée sur la carte n'a pas bougé depuis plus de ${OLD_YEARS} ans`,
+            detail: `${cities.map((item) => `${item.city} (${item.count})`).join(", ")}. Les plus susceptibles d'avoir fermé ou déménagé.`,
+            evidence: { code: "aged-source", count: old.length, years: OLD_YEARS, cities, examples: old.slice(0, EXAMPLES).map((place) => ({ ...ref(place), since: edited.get(place.id)?.slice(0, 4) })) },
+        },
+    ];
 }
 
 // ---- Articles --------------------------------------------------------------
@@ -285,7 +283,19 @@ function articles(posts: PostRow[], publishedSlugs: Set<string>): Found[] {
 
 // ---- Search ----------------------------------------------------------------
 
-async function emptySearches(db: SupabaseClient, now: number): Promise<Found[]> {
+// Letters and digits only, no accents: "PK 9" and "pk9" are the same words.
+const fold = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+async function emptySearches(db: SupabaseClient, now: number, published: AtlasPlace[]): Promise<Found[]> {
+    // A search that found nothing then may find something now: the place
+    // was added since, or it is in another city (the search page now shows
+    // those too). Only what still matches no place's name or neighbourhood
+    // is missing.
+    const known = published.map((place) => `${fold(place.name)} ${fold(place.neighborhood ?? "")}`);
+    const findsNow = (query: string) => {
+        const words = fold(query);
+        return words.length >= 3 && known.some((text) => text.includes(words));
+    };
     const since = searchLogSince(new Date(now - 30 * 86_400_000).toISOString());
     const rows = await selectAll<{ query: string | null; filters: { city?: string } | null }>((from, to) =>
         db.from("nt_searches").select("query,filters").eq("result_count", 0).gte("created_at", since).range(from, to)
@@ -300,7 +310,7 @@ async function emptySearches(db: SupabaseClient, now: number): Promise<Found[]> 
         groups.set(query, group);
     }
     return [...groups.entries()]
-        .filter(([, group]) => group.times >= 2)
+        .filter(([query, group]) => group.times >= 2 && !findsNow(query))
         .sort((a, b) => b[1].times - a[1].times)
         .slice(0, 12)
         .map(([query, group]) => ({
@@ -348,7 +358,7 @@ export async function qualityChecks(db: SupabaseClient, places: AtlasPlace[], ed
 
     const [posts, searches, down] = await Promise.all([
         selectAll<PostRow>((from, to) => db.from("nt_posts").select("id,slug,status,title_fr,title_en,excerpt_fr,body_fr,cover_url,places").range(from, to)).catch(() => []),
-        emptySearches(db, now).catch(() => []),
+        emptySearches(db, now, published).catch(() => []),
         pages(),
     ]);
 

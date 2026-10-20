@@ -9,6 +9,7 @@ import { getPosts, localised } from "@/lib/blog/server";
 import { TOPICS, isTopic, topicLabel } from "@/lib/blog/topics";
 import { paths } from "@/lib/places/paths";
 import { SITE_URL, fill, getDictionary, isLocale } from "@/lib/i18n";
+import { jsonLdScript } from "@/lib/json-ld";
 
 export const revalidate = 300;
 
@@ -55,7 +56,7 @@ export default async function BlogPage({ params }: Props) {
 
     return (
         <div className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1.5rem)] md:px-6 md:pt-12">
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
             <header className="mb-8 flex items-end justify-between gap-4 md:mb-10">
                 <div>

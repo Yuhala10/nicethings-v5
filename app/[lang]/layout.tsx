@@ -8,6 +8,7 @@ import Welcome from "@/components/site/Welcome";
 import { FOUNDER, FOUNDER_ID, ORGANIZATION_ID } from "@/lib/founder";
 import { HEALTH_SCRIPT } from "@/lib/health-script";
 import { LOCALES, SITE_URL, getDictionary, isLocale } from "@/lib/i18n";
+import { jsonLdScript } from "@/lib/json-ld";
 import { paths } from "@/lib/places/paths";
 import { siteShareImage } from "@/lib/share-image";
 import { TRANSLATE_GUARD } from "@/lib/translate-guard";
@@ -123,7 +124,7 @@ export default async function SiteLayout({ children, params }: Props) {
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
-                        __html: JSON.stringify([
+                        __html: jsonLdScript([
                             websiteJsonLd,
                             {
                                 "@context": "https://schema.org",

@@ -48,6 +48,7 @@ export const fr = {
         resultsFor: "Résultats pour",
         noResultsTitle: "Rien ne correspond tout à fait.",
         noResults: "Retire un filtre, élargis le budget ou essaie un quartier voisin.",
+        elsewhere: "Ailleurs au Cameroun",
         clear: "Effacer",
         examplesTitle: "Essaie par exemple",
         examples: [

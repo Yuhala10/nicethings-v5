@@ -9,13 +9,17 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 // without JavaScript (see lib/health-script.ts). Each kind of trouble
 // on each kind of browser is one line in Atlas's problem list, counted every
 // time it is seen again. No visitor id, no address: only which browser and
-// which page.
+// which page. A browser too old for the site is not a fault: it is counted
+// on one line, filed away.
 
 const CODES = {
     "styles-missing": { severity: "serious", title: (browser: string) => `Page affichée sans sa mise en forme sur ${browser}` },
     translated: { severity: "normal", title: (browser: string) => `Page traduite automatiquement par le navigateur (${browser})` },
     "script-error": { severity: "normal", title: (browser: string) => `Erreur de script sur ${browser}` },
     "no-js": { severity: "minor", title: (browser: string) => `Visite sans JavaScript (${browser})` },
+    // Not a fault to fix: the page told the visitor to update their browser.
+    // One line for all of them, filed away, counting how often it happens.
+    "old-browser": { severity: "minor", title: () => "Navigateurs trop anciens pour le site : l'avis « mets à jour ton navigateur » leur est montré" },
 } as const;
 type Code = keyof typeof CODES;
 
@@ -27,6 +31,9 @@ const short = (value: unknown, max: number) => (typeof value === "string" ? valu
 async function record(request: Request, code: Code, report: { path?: unknown; ref?: unknown; detail?: unknown }) {
     const agent = userAgent(request);
     if (agent.isBot || looksAutomated(agent.ua)) return;
+    // An iPhone app drawing a link preview opens the page in a bare WebKit
+    // view with JavaScript off: that is not someone visiting.
+    if (code === "no-js" && agent.browser.name === "WebKit") return;
 
     const browser = [agent.browser.name ?? "navigateur inconnu", agent.browser.major].filter(Boolean).join(" ");
     const system = [agent.os.name, agent.os.version].filter(Boolean).join(" ") || "système inconnu";
@@ -34,7 +41,7 @@ async function record(request: Request, code: Code, report: { path?: unknown; re
     // A script error is a different problem for each message; the rest is
     // one problem per browser.
     const about = code === "script-error" ? `:${detail.slice(0, 80)}` : "";
-    const fingerprint = `health:${code}:${agent.browser.name ?? "?"}:${agent.browser.major ?? "?"}:${agent.os.name ?? "?"}${about}`.slice(0, 300);
+    const fingerprint = code === "old-browser" ? "health:old-browser" : `health:${code}:${agent.browser.name ?? "?"}:${agent.browser.major ?? "?"}:${agent.os.name ?? "?"}${about}`.slice(0, 300);
     const evidence = { code: `health-${code}`, browser, system, device: short(agent.device.model, 60) || null, path: short(report.path, 200), ref: short(report.ref, 80) || null, message: detail || null };
 
     const db = getSupabaseAdminClient();
@@ -47,7 +54,7 @@ async function record(request: Request, code: Code, report: { path?: unknown; re
     if (existing.data) {
         await db
             .from("nt_atlas_issues")
-            .update({ times_seen: existing.data.times_seen + 1, last_seen_at: now, evidence, ...(existing.data.status === "fixed" && { status: "open", resolved_at: null }) })
+            .update({ times_seen: existing.data.times_seen + 1, last_seen_at: now, evidence, ...(existing.data.status === "fixed" && code !== "old-browser" && { status: "open", resolved_at: null }) })
             .eq("id", existing.data.id);
         return;
     }
@@ -57,9 +64,10 @@ async function record(request: Request, code: Code, report: { path?: unknown; re
         fingerprint,
         area: "health",
         severity: CODES[code].severity,
-        title: `${CODES[code].title(browser)} (${system})`,
+        title: code === "old-browser" ? CODES[code].title() : `${CODES[code].title(browser)} (${system})`,
         detail: [evidence.path && `Page : ${evidence.path}`, evidence.ref && `en venant de ${evidence.ref}`, detail].filter(Boolean).join(" · ") || null,
         evidence,
+        ...(code === "old-browser" && { status: "dismissed", resolved_at: now }),
     });
 }
 

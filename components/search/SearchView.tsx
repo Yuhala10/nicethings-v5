@@ -19,6 +19,7 @@ import { useOrigin } from "@/lib/hooks/useOrigin";
 import { MIN_OPEN_FOR_CHIP, MIN_PRICED_FOR_BUDGETS, intentFromParam, useDiscovery } from "@/lib/hooks/useDiscovery";
 import type { Rail as RailData } from "@/lib/concierge/discover";
 import AreaPicker from "../explore/AreaPicker";
+import Elsewhere from "./Elsewhere";
 import LocationNotice from "../explore/LocationNotice";
 import CityPicker, { rememberCity } from "../explore/CityPicker";
 import PlaceRow from "../explore/PlaceRow";
@@ -466,6 +467,7 @@ export default function SearchView({
                                         {fill(t.searchPage.guideLink, { city: city.name })}
                                     </Link>
                                 </div>
+                                <Elsewhere text={d.text} city={city} />
                             </div>
                         ) : (
                             <ul className="grid gap-1 px-2 md:grid-cols-2 md:gap-x-4">

@@ -13,6 +13,7 @@ import { areasOf } from "@/lib/places/areas";
 import { paths } from "@/lib/places/paths";
 import { getAllPlaces } from "@/lib/places/server";
 import { founderShareImage } from "@/lib/share-image";
+import { jsonLdScript } from "@/lib/json-ld";
 
 export const revalidate = 300;
 
@@ -84,7 +85,7 @@ export default async function AboutPage({ params }: Props) {
 
     return (
         <div className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1rem)] md:px-6 md:pt-14">
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
             {/* Phone masthead (desktop has the site header). */}
             <div className="mb-5 flex items-center justify-between md:hidden">

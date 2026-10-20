@@ -20,6 +20,7 @@ import ArticleMap from "./ArticleMap";
 import PostCard from "./PostCard";
 import ReadingProgress from "./ReadingProgress";
 import ShareBar from "./ShareBar";
+import { jsonLdScript } from "@/lib/json-ld";
 
 function formatDate(iso: string, locale: Locale) {
     return new Date(iso).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Douala" });
@@ -103,7 +104,7 @@ export default async function ArticleView({ post, lang, preview = false }: { pos
 
     return (
         <article id="article" lang={translated ? lang : "fr"}>
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
             <ReadingProgress target="article" />
             {preview && (
                 <form action="/api/admin/preview-exit" method="post" className="fixed inset-x-0 bottom-24 z-[70] flex justify-center px-4 md:bottom-6">

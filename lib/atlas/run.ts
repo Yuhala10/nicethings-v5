@@ -64,6 +64,8 @@ function weight(place: AtlasPlace) {
 // A place takes a neighbourhood from the map only when it sits this close to
 // it, in metres: further away, the nearest name known may be the wrong one.
 const AREA_REACH = 700;
+// Or when the places around it that have one agree, within this many metres.
+const NEIGHBOUR_REACH = 500;
 
 const FIELD_NAMES: Record<string, string> = { phone: "téléphone", whatsapp: "WhatsApp", website: "site web", instagram: "Instagram", cuisine: "cuisine", opening_time: "horaires" };
 
@@ -207,6 +209,30 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
             city.set(best.name, [...(city.get(best.name) ?? []), place]);
             areas.set(place.city, city);
         }
+        // Still none: a place takes the neighbourhood its nearest neighbours
+        // agree on (two of the three closest that have one, the closest
+        // within NEIGHBOUR_REACH). Only names given before this pass count,
+        // so one guess never leads to another.
+        const given = new Map<string, string>();
+        for (const groups of areas.values()) for (const [name, group] of groups) for (const place of group) given.set(place.id, name);
+        const labelled = published.filter((place) => place.latitude != null && place.longitude != null && (place.neighborhood || given.has(place.id)));
+        for (const place of published) {
+            if (place.neighborhood || given.has(place.id) || place.status !== "APPROVED" || place.latitude == null || place.longitude == null || takenBack.has(place.id)) continue;
+            const near = labelled
+                .filter((other) => other.city === place.city)
+                .map((other) => ({ name: other.neighborhood || given.get(other.id)!, meters: distanceMeters({ lat: place.latitude!, lng: place.longitude! }, { lat: other.latitude!, lng: other.longitude! }) }))
+                .filter((other) => other.meters <= NEIGHBOUR_REACH)
+                .sort((a, b) => a.meters - b.meters)
+                .slice(0, 3);
+            if (near.length < 2 || near[0].meters > NEIGHBOUR_REACH * 0.8) continue;
+            const votes = new Map<string, number>();
+            for (const other of near) votes.set(other.name, (votes.get(other.name) ?? 0) + 1);
+            const [name, count] = [...votes.entries()].sort((a, b) => b[1] - a[1])[0];
+            if (count < 2) continue;
+            const city = areas.get(place.city) ?? new Map<string, AtlasPlace[]>();
+            city.set(name, [...(city.get(name) ?? []), place]);
+            areas.set(place.city, city);
+        }
         let arranged = 0;
         for (const [city, groups] of areas) {
             const saved: Record<string, string[]> = {};
@@ -228,7 +254,7 @@ export async function runAtlas(db: SupabaseClient, { kind, force = false }: { ki
                 kind: "city.areas",
                 spot_id: null,
                 title: `${city} : ${count} lieu(x) rangé(s) dans ${groups.size} quartier(s) d'après la carte ouverte`,
-                detail: `${largest}${groups.size > 6 ? "…" : ""}. Chaque lieu prend le quartier le plus proche connu de la carte, à moins de ${AREA_REACH} m.`,
+                detail: `${largest}${groups.size > 6 ? "…" : ""}. Chaque lieu prend le quartier le plus proche connu des cartes ouvertes, à moins de ${AREA_REACH} m, ou celui sur lequel ses voisins s'accordent (à moins de ${NEIGHBOUR_REACH} m).`,
                 evidence: [],
                 before: null,
                 after: { city, count, groups: saved },

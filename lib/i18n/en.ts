@@ -45,6 +45,7 @@ export const en: Dictionary = {
         resultsFor: "Results for",
         noResultsTitle: "Nothing quite matches.",
         noResults: "Remove a filter, widen the budget or try a nearby neighbourhood.",
+        elsewhere: "Elsewhere in Cameroon",
         clear: "Clear",
         examplesTitle: "Try for example",
         examples: [

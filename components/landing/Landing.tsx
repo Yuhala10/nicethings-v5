@@ -25,6 +25,7 @@ import type { PostSummary } from "@/lib/blog/server";
 import type { Guest } from "@/lib/guests";
 import Constellation from "./Constellation";
 import HeroSearch from "./HeroSearch";
+import { jsonLdScript } from "@/lib/json-ld";
 
 type Demo = { phrase: string; chips: string[] };
 
@@ -117,7 +118,7 @@ export default function Landing({
 
     return (
         <div className="bg-bg">
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
             {/* Phone masthead (desktop has the site header). */}
             <div className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-[max(env(safe-area-inset-top),1rem)] md:hidden">

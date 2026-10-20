@@ -177,7 +177,7 @@ export const TERMS: Record<Locale, Doc> = {
             {
                 heading: "Données cartographiques",
                 body: [
-                    "Données © contributeurs OpenStreetMap (licence ODbL), Overture Maps Foundation (licence CDLA Permissive 2.0) et Foursquare Open Source Places (licence Apache 2.0).",
+                    "Données © contributeurs OpenStreetMap (licence ODbL), Overture Maps Foundation (licence CDLA Permissive 2.0) Foursquare Open Source Places (licence Apache 2.0), Wikidata (CC0) et, pour des noms de quartiers, GeoNames (geonames.org, licence CC BY 4.0).",
                     "Voix du guidage : enregistrée avec Piper. Voix française « siwis » (jeu de données SIWIS, université d'Édimbourg, licence CC BY 4.0) ; voix anglaise « cori » (enregistrements LibriVox, domaine public).",
                 ],
             },
@@ -211,7 +211,7 @@ export const TERMS: Record<Locale, Doc> = {
             {
                 heading: "Map data",
                 body: [
-                    "Data © OpenStreetMap contributors (ODbL licence), Overture Maps Foundation (CDLA Permissive 2.0) and Foursquare Open Source Places (Apache 2.0).",
+                    "Data © OpenStreetMap contributors (ODbL licence), Overture Maps Foundation (CDLA Permissive 2.0) Foursquare Open Source Places (Apache 2.0), Wikidata (CC0) and, for some neighbourhood names, GeoNames (geonames.org, CC BY 4.0).",
                     "Guidance voice: recorded with Piper. French voice “siwis” (SIWIS dataset, University of Edinburgh, CC BY 4.0 licence); English voice “cori” (LibriVox recordings, public domain).",
                 ],
             },

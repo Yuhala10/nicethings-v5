@@ -22,6 +22,7 @@ import { paths } from "@/lib/places/paths";
 import { getPlacesBySlugs } from "@/lib/places/server";
 import type { PlaceSummary } from "@/lib/places/types";
 import { guestShareImage } from "@/lib/share-image";
+import { jsonLdScript } from "@/lib/json-ld";
 
 // A guest's page: "Yaoundé, vu par …". Made only of what the guest sent
 // with their invitation (their photo, their account, their sentence, their
@@ -112,7 +113,7 @@ export default async function GuestPage({ params }: Props) {
 
     return (
         <div className="pb-24">
-            {!preview && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
+            {!preview && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />}
 
             {/* ---------------- Their cover: who they are ---------------- */}
             <header className="mx-auto max-w-6xl px-4 pt-[max(env(safe-area-inset-top),1rem)] md:px-6 md:pt-10">
