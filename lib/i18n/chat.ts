@@ -39,6 +39,8 @@ export const chatFr = {
     attach: { open: "Joindre", photo: "Photo", place: "Un lieu", plan: "On y va ?", voice: "Vocal" },
     voice: {
         record: "Enregistrer un vocal",
+        slide: "Glisse pour annuler",
+        hint: "Maintiens le micro pour parler et lâche pour envoyer. Glisse vers la gauche pour annuler, vers le haut pour parler sans les mains.",
         recording: "Enregistrement…",
         cancel: "Annuler",
         send: "Envoyer le vocal",
@@ -173,6 +175,8 @@ export const chatEn: Widen<typeof chatFr> = {
     attach: { open: "Attach", photo: "Photo", place: "A place", plan: "Shall we go?", voice: "Voice" },
     voice: {
         record: "Record a voice note",
+        slide: "Slide to cancel",
+        hint: "Hold the mic to talk and let go to send. Slide left to cancel, up to talk hands-free.",
         recording: "Recording…",
         cancel: "Cancel",
         send: "Send voice note",

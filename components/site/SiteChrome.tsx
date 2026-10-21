@@ -9,6 +9,7 @@ import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
 import { useMe } from "@/lib/people/client";
 import { useInbox } from "@/lib/people/inbox";
+import MessageBanner from "../chat/MessageBanner";
 import AuthSheet from "../people/AuthSheet";
 import LevelUp from "../people/LevelUp";
 import OutingComposer from "../people/OutingComposer";
@@ -328,6 +329,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             )}
             {layout !== "navigation" && <TabBar />}
             <AuthSheet />
+            <MessageBanner />
             <LevelUp />
             <OutingComposer />
         </ToastProvider>

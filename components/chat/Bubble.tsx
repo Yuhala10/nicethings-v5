@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, Check, CheckCheck, Clock, MapPin, Pause, Play } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { AlertCircle, Check, CheckCheck, Clock, MapPin } from "lucide-react";
+import { useRef } from "react";
 import { fill, type Locale } from "@/lib/i18n";
 import type { PeopleWords } from "@/lib/i18n/people";
 import { paths } from "@/lib/places/paths";
 import type { ChatMessage } from "@/lib/people/types";
-import { clock, previewOf, timeOf } from "./format";
+import { previewOf, timeOf } from "./format";
+import Voice from "./Voice";
 
 // One message, as on WhatsApp: green on the right for one's own, white on
 // the left for the other's, the time and the ticks in the corner.
@@ -44,55 +45,6 @@ function Text({ body }: { body: string }) {
     );
 }
 
-function Voice({ url, duration, words, mine }: { url: string; duration: number | null; words: Words; mine: boolean }) {
-    const audio = useRef<HTMLAudioElement>(null);
-    const [playing, setPlaying] = useState(false);
-    const [at, setAt] = useState(0);
-    const [broken, setBroken] = useState(false);
-    const length = duration ?? 0;
-    useEffect(() => {
-        const element = audio.current;
-        if (!element) return;
-        const tick = () => setAt(element.currentTime);
-        const end = () => {
-            setPlaying(false);
-            setAt(0);
-        };
-        element.addEventListener("timeupdate", tick);
-        element.addEventListener("ended", end);
-        return () => {
-            element.removeEventListener("timeupdate", tick);
-            element.removeEventListener("ended", end);
-        };
-    }, []);
-    if (broken) return <p className="text-[0.875rem] italic opacity-70">{words.voice.cantPlay}</p>;
-    return (
-        <div className="flex w-56 items-center gap-3 py-1">
-            <button
-                type="button"
-                aria-label={playing ? words.voice.pause : words.voice.play}
-                onClick={() => {
-                    const element = audio.current;
-                    if (!element) return;
-                    if (playing) element.pause();
-                    else element.play().catch(() => setBroken(true));
-                    setPlaying(!playing);
-                }}
-                className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${mine ? "bg-[#1faa59] text-white" : "bg-[#15110e] text-white dark:bg-white dark:text-[#15110e]"}`}
-            >
-                {playing ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="translate-x-px" />}
-            </button>
-            <span className="min-w-0 flex-1">
-                <span className="block h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
-                    <span className="block h-full rounded-full bg-current opacity-70" style={{ width: `${length ? Math.min(100, (at / length) * 100) : 0}%` }} />
-                </span>
-                <span className="mt-1 block text-[0.75rem] opacity-70">{clock(playing || at ? at : length)}</span>
-            </span>
-            <audio ref={audio} src={url} preload="none" onError={() => setBroken(true)} />
-        </div>
-    );
-}
-
 export default function Bubble({
     message,
     name,
@@ -104,6 +56,7 @@ export default function Bubble({
     onPhoto,
     onAnswer,
     onRetry,
+    onListened,
 }: {
     message: Shown;
     name: string;
@@ -115,6 +68,7 @@ export default function Bubble({
     onPhoto: (url: string) => void;
     onAnswer: (message: Shown, answer: "yes" | "no") => void;
     onRetry: (message: Shown) => void;
+    onListened: (message: Shown) => void;
 }) {
     const mine = message.mine;
     const press = useRef(0);
@@ -175,7 +129,12 @@ export default function Bubble({
                 )}
                 {message.kind === "photo" && !message.media && <span className="block h-40 w-56 animate-pulse rounded-[0.8rem] bg-black/10" />}
 
-                {message.kind === "voice" && (message.media ? <Voice url={message.media.url} duration={message.media.duration} words={words} mine={mine} /> : <span className="block w-56 py-3 text-[0.875rem] opacity-70">🎤 {words.sending}</span>)}
+                {message.kind === "voice" &&
+                    (message.media ? (
+                        <Voice id={message.id} url={message.media.url} duration={message.media.duration} waveform={message.media.waveform} mine={mine} listened={Boolean(message.listened)} words={words} onListened={() => onListened(message)} />
+                    ) : (
+                        <span className="block w-56 py-3 text-[0.875rem] opacity-70">🎤 {words.sending}</span>
+                    ))}
 
                 {(message.kind === "place" || message.kind === "plan") && message.place && (
                     <Link href={paths.place(locale, message.place.slug)} className="-mx-1.5 mb-1.5 block w-64 max-w-full overflow-hidden rounded-[0.8rem] bg-black/5 dark:bg-white/5">

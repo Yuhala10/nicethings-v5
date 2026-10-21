@@ -52,6 +52,22 @@ export const baseType = (type: unknown) => (typeof type === "string" ? type.spli
 export const CHAT_COLUMNS =
     "id,a_id,b_id,started_by,accepted,created_at,last_at,last_message_id,a_read_at,b_read_at,a_cleared_at,b_cleared_at,a_archived,b_archived,a_muted,b_muted,a_pinned,b_pinned,a_day,b_day,flame,flame_day,flame_best";
 export const MESSAGE_COLUMNS = "id,chat_id,sender_id,kind,body,media_path,media_width,media_height,duration,spot_id,plan_at,plan_answers,reply_to,reactions,status,created_at,updated_at";
+
+// With script 015, a voice note's waveform and when it was listened to.
+let voiceColumns: Promise<boolean> | null = null;
+export function hasVoiceColumns() {
+    voiceColumns ??= Promise.resolve(getSupabaseAdminClient().from("nt_messages").select("waveform,listened_at").limit(1)).then((read) => !read.error);
+    return voiceColumns;
+}
+export async function messageColumns() {
+    return (await hasVoiceColumns()) ? `${MESSAGE_COLUMNS},waveform,listened_at` : MESSAGE_COLUMNS;
+}
+// At most 64 bars, each 0 to 31.
+export function cleanWaveform(value: unknown) {
+    if (!Array.isArray(value)) return null;
+    const bars = value.slice(0, 64).map((bar) => Math.max(0, Math.min(31, Math.round(Number(bar) || 0))));
+    return bars.length >= 8 ? bars : null;
+}
 export const PRESENCE_COLUMNS = "id,handle,status,messages_from,hide_last_seen,hide_read,active_at,last_seen_at";
 
 export type ChatRow = {
@@ -98,6 +114,8 @@ export type MessageRow = {
     status: "DRAFT" | "SENT" | "DELETED";
     created_at: string;
     updated_at: string;
+    waveform?: number[] | null;
+    listened_at?: string | null;
 };
 
 export type PresenceRow = {
@@ -232,7 +250,7 @@ export async function messageViews(rows: MessageRow[], me: string): Promise<Chat
     if (!rows.length) return [];
     const db = getSupabaseAdminClient();
     const missing = [...new Set(rows.map((row) => row.reply_to).filter((id): id is string => Boolean(id) && !rows.some((row) => row.id === id)))];
-    const replied = missing.length ? (((await db.from("nt_messages").select(MESSAGE_COLUMNS).in("id", missing)).data ?? []) as MessageRow[]) : [];
+    const replied = missing.length ? (((await db.from("nt_messages").select(await messageColumns()).in("id", missing)).data ?? []) as unknown as MessageRow[]) : [];
     const all = new Map([...rows, ...replied].map((row) => [row.id, row]));
 
     // Photos and voice notes: links that work for an hour, for these two only.
@@ -254,7 +272,11 @@ export async function messageViews(rows: MessageRow[], me: string): Promise<Chat
             mine: row.sender_id === me,
             kind: row.kind,
             body: deleted ? null : row.body,
-            media: !deleted && row.media_path && links.has(row.media_path) ? { url: links.get(row.media_path)!, width: row.media_width, height: row.media_height, duration: row.duration === null ? null : Number(row.duration) } : null,
+            media:
+                !deleted && row.media_path && links.has(row.media_path)
+                    ? { url: links.get(row.media_path)!, width: row.media_width, height: row.media_height, duration: row.duration === null ? null : Number(row.duration), waveform: row.waveform ?? null }
+                    : null,
+            listened: Boolean(row.listened_at),
             place: !deleted && row.spot_id ? (places.get(row.spot_id) ?? null) : null,
             plan: !deleted && row.kind === "plan" && row.plan_at ? { at: row.plan_at, mine: answers[me] ?? null, theirs } : null,
             reply: reply ? { id: reply.id, mine: reply.sender_id === me, kind: reply.kind, body: reply.status === "DELETED" ? null : reply.body, deleted: reply.status === "DELETED" } : null,

@@ -9,7 +9,7 @@ import { fill } from "@/lib/i18n";
 import { put } from "@/lib/media-upload";
 import { paths } from "@/lib/places/paths";
 import { call, openAuth, useMe } from "@/lib/people/client";
-import { refreshInbox } from "@/lib/people/inbox";
+import { markSeen, refreshInbox } from "@/lib/people/inbox";
 import { listen, type Listening } from "@/lib/people/realtime";
 import type { ChatMessage, ChatThread } from "@/lib/people/types";
 import { Face, VerifiedBadge, displayName } from "../people/Person";
@@ -98,9 +98,14 @@ export default function ChatView({ handle }: { handle: string }) {
             since.current = first.reduce<string | null>((max, message) => (!max || message.changedAt > max ? message.changedAt : max), null);
             setMore(older);
             setState("ready");
+            if (rest.chat && visible()) markSeen(rest.chat.id);
             refreshInbox();
+            // The phone keeps the conversation, to open it at once next time.
+            try {
+                if (me) localStorage.setItem(`nt_chat:${me.id}:${handle}`, JSON.stringify({ meta: rest, messages: first.slice(-40), more: older }));
+            } catch {}
         } catch {}
-    }, [ask]);
+    }, [ask, me, handle]);
 
     const catchUp = useCallback(async () => {
         if (!since.current) return load();
@@ -111,7 +116,10 @@ export default function ChatView({ handle }: { handle: string }) {
             void _more;
             setMeta(rest);
             merge(changed, true);
-            if (changed.some((message) => !message.mine)) refreshInbox();
+            if (changed.some((message) => !message.mine)) {
+                if (rest.chat && visible()) markSeen(rest.chat.id);
+                refreshInbox();
+            }
         } catch {}
     }, [ask, load, merge]);
 
@@ -121,6 +129,16 @@ export default function ChatView({ handle }: { handle: string }) {
             router.replace(paths.messages(locale));
             return;
         }
+        // What the phone kept, at once; then what is new.
+        try {
+            const kept = JSON.parse(localStorage.getItem(`nt_chat:${me.id}:${handle}`) ?? "null") as { meta: Meta; messages: ChatMessage[]; more: boolean } | null;
+            if (kept?.meta) {
+                setMeta(kept.meta);
+                setMessages(kept.messages);
+                setMore(kept.more);
+                setState("ready");
+            }
+        } catch {}
         load();
     }, [me, handle, load, router, locale]);
 
@@ -253,8 +271,8 @@ export default function ChatView({ handle }: { handle: string }) {
         await send(local, { kind: "photo", media: { type: file.type, size: file.size, width, height } }, file);
     };
 
-    const sendVoice = (voice: Blob, seconds: number) =>
-        send(addLocal({ kind: "voice", media: { url: URL.createObjectURL(voice), width: null, height: null, duration: seconds } }), { kind: "voice", media: { type: voice.type, size: voice.size, duration: seconds } }, voice);
+    const sendVoice = (voice: Blob, seconds: number, waveform: number[]) =>
+        send(addLocal({ kind: "voice", media: { url: URL.createObjectURL(voice), width: null, height: null, duration: seconds, waveform } }), { kind: "voice", media: { type: voice.type, size: voice.size, duration: seconds, waveform } }, voice);
 
     const typing = () => {
         if (!me || Date.now() - typedAt.current < 2500) return;
@@ -363,7 +381,7 @@ export default function ChatView({ handle }: { handle: string }) {
                     )}
                     {meta?.chat?.flame && meta.chat.flame.ending && <p className="mx-auto my-2 rounded-full bg-[#fff1e6] px-4 py-2 text-center text-[0.8rem] font-semibold text-[#e8590c] dark:bg-[#e8590c]/15">{words.flame.ending}</p>}
                     {messages.map((message, index) => (
-                        <div key={message.id} className="flex flex-col">
+                        <div key={message.id} data-message className="flex flex-col">
                             {(index === 0 || !isSameDay(messages[index - 1].at, message.at)) && (
                                 <span className="mx-auto my-2 rounded-lg bg-bg/85 px-3 py-1 text-[0.75rem] font-semibold text-text-2 capitalize shadow-sm">{dayLabel(message.at, locale, words)}</span>
                             )}
@@ -378,6 +396,11 @@ export default function ChatView({ handle }: { handle: string }) {
                                 onPhoto={setPhoto}
                                 onAnswer={(item, answer) => change(item, { action: "answer", answer })}
                                 onRetry={(item) => retries.current.get(item.id)?.()}
+                                onListened={(item) => {
+                                    // Quietly: before script 015 there is nothing to note.
+                                    if (item.pending) return;
+                                    call<{ message: ChatMessage }>("/api/chats/messages", "PATCH", { id: item.id, action: "listened" }).then((answer) => answer.ok === true && merge([answer.message], false));
+                                }}
                             />
                         </div>
                     ))}

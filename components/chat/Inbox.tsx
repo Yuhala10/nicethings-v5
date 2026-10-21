@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { BellOff, MessageCircle, Pin, Search, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
-import { onInboxSignal, refreshInbox } from "@/lib/people/inbox";
+import { refreshInbox, useInbox } from "@/lib/people/inbox";
 import { openAuth, useMe } from "@/lib/people/client";
-import type { ChatSummary } from "@/lib/people/types";
 import PeopleSearch from "../people/PeopleSearch";
 import { Face, VerifiedBadge, displayName } from "../people/Person";
 import { useLocale } from "../site/LocaleProvider";
@@ -18,31 +17,19 @@ import { inboxTime, previewOf } from "./format";
 // its own when a message comes (lib/people/inbox.ts).
 
 type Tab = "chats" | "requests" | "archived";
-type Lists = { chats: ChatSummary[]; requests: ChatSummary[]; archived: ChatSummary[] };
 
 export default function Inbox() {
     const { locale, t } = useLocale();
     const words = t.people.chat;
     const { me, ready } = useMe();
-    const [lists, setLists] = useState<Lists | null>(null);
-    const [closed, setClosed] = useState(false);
+    // Shown at once from the phone's copy, brought up to date behind.
+    const { lists, closed } = useInbox(me?.id ?? null);
     const [tab, setTab] = useState<Tab>("chats");
     const [query, setQuery] = useState("");
 
-    const load = useCallback(async () => {
-        try {
-            const answer = (await (await fetch("/api/chats", { cache: "no-store" })).json()) as Partial<Lists> & { ok?: boolean; why?: string };
-            if (answer.ok === false) return setClosed(answer.why === "closed");
-            setLists({ chats: answer.chats ?? [], requests: answer.requests ?? [], archived: answer.archived ?? [] });
-        } catch {}
-    }, []);
-
     useEffect(() => {
-        if (!me) return;
-        load();
-        refreshInbox();
-        return onInboxSignal(load);
-    }, [me, load]);
+        if (me) refreshInbox(true);
+    }, [me]);
 
     if (ready && !me) {
         return (

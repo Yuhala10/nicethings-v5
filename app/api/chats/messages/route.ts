@@ -11,7 +11,9 @@ import {
     MAX_VOICE_BYTES,
     MAX_VOICE_SECONDS,
     MESSAGES_PER_MINUTE,
-    MESSAGE_COLUMNS,
+    cleanWaveform,
+    hasVoiceColumns,
+    messageColumns,
     NEW_CHATS_PER_DAY,
     REACTIONS,
     TAKE_BACK_MS,
@@ -106,6 +108,8 @@ export async function POST(request: Request) {
             row.media_width = Number.isFinite(Number(media.width)) ? Math.round(Number(media.width)) || null : null;
             row.media_height = Number.isFinite(Number(media.height)) ? Math.round(Number(media.height)) || null : null;
             row.duration = kind === "voice" ? Math.round(duration * 10) / 10 : null;
+            // The shape of the voice, drawn while recording (script 015).
+            if (kind === "voice" && (await hasVoiceColumns())) row.waveform = cleanWaveform(media.waveform);
             row.status = "DRAFT";
         }
 
@@ -125,9 +129,9 @@ export async function POST(request: Request) {
             if (replied.data) row.reply_to = body.reply;
         }
 
-        const inserted = await db.from("nt_messages").insert({ ...row, chat_id: chat.id }).select(MESSAGE_COLUMNS).single();
+        const inserted = await db.from("nt_messages").insert({ ...row, chat_id: chat.id }).select(await messageColumns()).single();
         if (inserted.error) throw inserted.error;
-        const message = inserted.data as MessageRow;
+        const message = inserted.data as unknown as MessageRow;
         let upload: { path: string; token: string } | null = null;
         if (type) {
             const path = `${chat.id}/${message.id}.${type.ext}`;
@@ -153,6 +157,7 @@ export async function POST(request: Request) {
 //   "react", emoji | null → one reaction per person (null takes it back)
 //   "answer", "yes"|"no"  → the answer to an "on y va ?"
 //   "delete"              → taken back for everyone (own messages, within a day)
+//   "listened"            → the other person played the voice note (script 015)
 export async function PATCH(request: Request) {
     const { profile, denied } = await requireProfile(request);
     if (denied) return denied;
@@ -162,8 +167,9 @@ export async function PATCH(request: Request) {
     if (!id) return deny("invalid", 400);
     const db = getSupabaseAdminClient();
     try {
-        const found = await db.from("nt_messages").select(MESSAGE_COLUMNS).eq("id", id).maybeSingle();
-        const message = found.data as MessageRow | null;
+        const columns = await messageColumns();
+        const found = await db.from("nt_messages").select(columns).eq("id", id).maybeSingle();
+        const message = found.data as unknown as MessageRow | null;
         if (!message) return deny("invalid", 404);
         const chat = (await db.from("nt_chats").select(CHAT_COLUMNS).eq("id", message.chat_id).single()).data as ChatRow;
         if (chat.a_id !== me && chat.b_id !== me) return deny("invalid", 404);
@@ -173,11 +179,11 @@ export async function PATCH(request: Request) {
 
         if (body.action === "sent") {
             if (message.sender_id !== me || message.status !== "DRAFT") return deny("invalid", 409);
-            const saved = await db.from("nt_messages").update({ status: "SENT", created_at: now, updated_at: now }).eq("id", id).select(MESSAGE_COLUMNS).single();
+            const saved = await db.from("nt_messages").update({ status: "SENT", created_at: now, updated_at: now }).eq("id", id).select(columns).single();
             if (saved.error) throw saved.error;
             const presence = await presenceRows([otherId]);
-            await afterSend(chat, saved.data as MessageRow, profile, presence.get(otherId)!);
-            const [view] = await messageViews([saved.data as MessageRow], me);
+            await afterSend(chat, saved.data as unknown as MessageRow, profile, presence.get(otherId)!);
+            const [view] = await messageViews([saved.data as unknown as MessageRow], me);
             return NextResponse.json({ ok: true, message: view });
         }
         if (message.status !== "SENT") return deny("invalid", 409);
@@ -191,6 +197,13 @@ export async function PATCH(request: Request) {
             const answer = body.answer === "yes" || body.answer === "no" ? body.answer : null;
             if (!answer) return deny("invalid", 400);
             change = { plan_answers: { ...(message.plan_answers ?? {}), [me]: answer } };
+        } else if (body.action === "listened") {
+            if (message.kind !== "voice" || message.sender_id === me || !(await hasVoiceColumns())) return deny("invalid", 409);
+            if (message.listened_at) {
+                const [view] = await messageViews([message], me);
+                return NextResponse.json({ ok: true, message: view });
+            }
+            change = { listened_at: now };
         } else if (body.action === "delete") {
             if (message.sender_id !== me) return deny("own", 403);
             if (Date.now() - Date.parse(message.created_at) > TAKE_BACK_MS) return deny("late", 409);
@@ -199,10 +212,10 @@ export async function PATCH(request: Request) {
         } else {
             return deny("invalid", 400);
         }
-        const saved = await db.from("nt_messages").update({ ...change, updated_at: now }).eq("id", id).select(MESSAGE_COLUMNS).single();
+        const saved = await db.from("nt_messages").update({ ...change, updated_at: now }).eq("id", id).select(columns).single();
         if (saved.error) throw saved.error;
         signal([chatTopic(chat.id), inboxTopic(otherId)]);
-        const [view] = await messageViews([saved.data as MessageRow], me);
+        const [view] = await messageViews([saved.data as unknown as MessageRow], me);
         return NextResponse.json({ ok: true, message: view });
     } catch (error) {
         if (chatsClosed(error)) return deny("closed", 503);

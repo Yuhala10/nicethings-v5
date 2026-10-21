@@ -115,7 +115,9 @@ export type ChatMessage = {
     mine: boolean;
     kind: ChatKind;
     body: string | null;
-    media: { url: string; width: number | null; height: number | null; duration: number | null } | null;
+    media: { url: string; width: number | null; height: number | null; duration: number | null; waveform?: number[] | null } | null;
+    // A voice note the other person has listened to (script 015).
+    listened?: boolean;
     place: KwatPlace | null;
     // "On y va ?": when, and each one's answer.
     plan: { at: string; mine: "yes" | "no" | null; theirs: "yes" | "no" | null } | null;

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
     chatsClosed,
     CHAT_COLUMNS,
-    MESSAGE_COLUMNS,
+    messageColumns,
     chatTopic,
     field,
     flameOf,
@@ -66,19 +66,19 @@ export async function GET(request: Request) {
         let rows: MessageRow[] = [];
         let more = false;
         if (chat) {
-            let ask = db.from("nt_messages").select(MESSAGE_COLUMNS).eq("chat_id", chat.id).or(`status.neq.DRAFT,sender_id.eq.${me}`);
+            let ask = db.from("nt_messages").select(await messageColumns()).eq("chat_id", chat.id).or(`status.neq.DRAFT,sender_id.eq.${me}`);
             if (cleared) ask = ask.gt("created_at", cleared);
             const since = query.get("since");
             const before = query.get("before");
             if (since && !Number.isNaN(Date.parse(since))) {
                 const changed = await ask.gt("updated_at", since).order("created_at", { ascending: true }).limit(200);
                 if (changed.error) throw changed.error;
-                rows = (changed.data ?? []) as MessageRow[];
+                rows = (changed.data ?? []) as unknown as MessageRow[];
             } else {
                 if (before && !Number.isNaN(Date.parse(before))) ask = ask.lt("created_at", before);
                 const page = await ask.order("created_at", { ascending: false }).limit(PAGE + 1);
                 if (page.error) throw page.error;
-                const list = (page.data ?? []) as MessageRow[];
+                const list = (page.data ?? []) as unknown as MessageRow[];
                 more = list.length > PAGE;
                 rows = list.slice(0, PAGE).reverse();
             }
