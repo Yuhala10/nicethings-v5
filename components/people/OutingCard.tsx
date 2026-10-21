@@ -18,7 +18,7 @@ import OutingDownload from "./OutingDownload";
 import OutingEdit from "./OutingEdit";
 import OutingStage from "./OutingStage";
 import { PersonLine } from "./Person";
-import { agoText } from "./PlacePulse";
+import { Ago } from "./PlacePulse";
 import Sheet from "./Sheet";
 import Talk from "./Talk";
 
@@ -85,7 +85,7 @@ export default function OutingCard({ outing: given, onRemoved }: { outing: Outin
         <article className="overflow-hidden rounded-[1.5rem] border border-line bg-surface">
             <header className="flex items-center gap-3 p-3.5">
                 <div className="min-w-0 flex-1">
-                    <PersonLine person={outing.person} locale={locale} meta={agoText(outing.at, t.people.pulse)} size={38} />
+                    <PersonLine person={outing.person} locale={locale} meta={<Ago iso={outing.at} words={t.people.pulse} />} size={38} />
                 </div>
                 {!outing.mine && <FollowButton handle={outing.person.handle} small />}
             </header>

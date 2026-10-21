@@ -107,6 +107,8 @@ export default function OutingStage({ outing, shown, onShown, onDoubleTap }: { o
                                 src={item.url}
                                 alt={index === 0 ? `${outing.place.name}, ${outing.person.handle}` : ""}
                                 loading="lazy"
+                                // The first one first, the others after it.
+                                fetchPriority={index === 0 ? "high" : "low"}
                                 decoding="async"
                                 draggable={false}
                                 className={`h-full w-full object-cover select-none ${playing && index === shown ? (index % 2 ? "nt-kenburns-b" : "nt-kenburns") : ""}`}

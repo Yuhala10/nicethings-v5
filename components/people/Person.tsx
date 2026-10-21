@@ -94,7 +94,8 @@ export function displayName(person: Pick<Person, "name" | "handle">) {
 }
 
 // Under a review or a comment: face, name, rank, then "@name · area · when".
-export function PersonLine({ person, locale, meta, size = 40, light = false }: { person: Person; locale: Locale; meta?: string | null; size?: number; light?: boolean }) {
+export function PersonLine({ person, locale, meta, size = 40, light = false }: { person: Person; locale: Locale; meta?: React.ReactNode; size?: number; light?: boolean }) {
+    const known = [person.name ? `@${person.handle}` : null, person.area].filter(Boolean).join(" · ");
     const href = paths.person(locale, person.handle);
     const rank = person.role === "founder" ? getDictionary(locale).people.roles.founder : person.role === "team" ? getDictionary(locale).people.roles.team : getDictionary(locale).people.levels[person.level];
     return (
@@ -111,7 +112,10 @@ export function PersonLine({ person, locale, meta, size = 40, light = false }: {
                     <span className={`shrink-0 text-[0.75rem] font-semibold ${person.role === "founder" || person.level >= 4 ? "nt-foil" : light ? "text-white/70" : "text-muted"}`}>{rank}</span>
                 </span>
                 <span className={`block truncate text-[0.75rem] ${light ? "text-white/60" : "text-muted"}`}>
-                    {[person.name ? `@${person.handle}` : null, person.area, meta].filter(Boolean).join(" · ")}
+                    {known}
+                    {known && meta ? " · " : null}
+                    {/* When it was, said again by the phone (see Ago). */}
+                    {typeof meta === "string" ? <span suppressHydrationWarning>{meta}</span> : meta}
                 </span>
             </span>
         </div>

@@ -10,7 +10,7 @@ import { useMe, withMe } from "@/lib/people/client";
 import type { KwatItem } from "@/lib/people/types";
 import { useLocale } from "../site/LocaleProvider";
 import { Face, RatingChip, VerifiedBadge } from "./Person";
-import { agoText } from "./PlacePulse";
+import { Ago } from "./PlacePulse";
 import OutingList, { PostOutingButton } from "./OutingList";
 
 // "Ça bouge au kwat": the latest reviews, photos, live news and ways of the
@@ -35,7 +35,6 @@ function useCity() {
 function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
     const { locale, t } = useLocale();
     const words = t.people.kwat;
-    const ago = agoText(item.at, t.people.pulse);
     const href = item.type === "outing" ? paths.outing(locale, item.id) : `${paths.place(locale, item.place.slug)}${item.type === "review" ? "#avis" : item.type === "tip" ? "#y-aller" : ""}`;
     const who = item.person ? `@${item.person.handle}` : "";
     const head = (
@@ -45,7 +44,9 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
                 <span className="font-semibold text-text">{who}</span>
                 {item.person && <VerifiedBadge person={item.person} locale={locale} size={13} className="mx-0.5 -mt-0.5 align-middle" />}{" "}
                 <span className="text-muted">{item.type === "review" ? words.review : item.type === "photo" ? words.photo : item.type === "tip" ? words.tip : item.type === "outing" ? words.outing : words.pulse}</span>
-                <span className="block text-muted">{ago}</span>
+                <span className="block text-muted">
+                    <Ago iso={item.at} words={t.people.pulse} />
+                </span>
             </span>
         </span>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { fill } from "@/lib/i18n";
 import { call, withMe } from "@/lib/people/client";
 import { PULSES } from "@/lib/people/rules";
@@ -14,11 +14,27 @@ import { Face } from "./Person";
 // member who is there, one tap to tell everyone. Read fresh on each visit:
 // the page around it is cached, the news must not be.
 
-export function agoText(iso: string, words: { now: string; minutes: string; hours: string }) {
-    const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+type AgoWords = { now: string; minutes: string; hours: string };
+
+export function agoText(iso: string, words: AgoWords, now = Date.now()) {
+    const minutes = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60_000));
     if (minutes < 2) return words.now;
     if (minutes < 60) return fill(words.minutes, { n: minutes });
     return fill(words.hours, { n: Math.round(minutes / 60) });
+}
+
+// "il y a 2 h", the same on the server and on the phone. The page may have
+// been made a while ago (it is kept), so the phone's first drawing keeps
+// the server's words (no clash), then says its own and keeps them fresh.
+const everyHalfMinute = (tick: () => void) => {
+    const timer = window.setInterval(tick, 30_000);
+    return () => window.clearInterval(timer);
+};
+const thisMinute = () => Math.floor(Date.now() / 60_000);
+
+export function Ago({ iso, words }: { iso: string; words: AgoWords }) {
+    const minute = useSyncExternalStore(everyHalfMinute, thisMinute, () => null);
+    return <span suppressHydrationWarning>{agoText(iso, words, minute === null ? undefined : minute * 60_000)}</span>;
 }
 
 const TONES: Record<string, string> = {
@@ -78,7 +94,10 @@ export default function PlacePulse({ slug }: { slug: string }) {
                             </span>
                             <span className="min-w-0 flex-1 text-[0.875rem]">
                                 <span className={`font-bold ${TONES[pulse.kind] ?? ""}`}>{words.kinds[pulse.kind as keyof typeof words.kinds]}</span>
-                                <span className="text-muted"> · {agoText(pulse.last, words)}</span>
+                                <span className="text-muted">
+                                    {" · "}
+                                    <Ago iso={pulse.last} words={words} />
+                                </span>
                             </span>
                             <span className="flex shrink-0 items-center -space-x-2">
                                 {pulse.people.map((person) => (
