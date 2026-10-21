@@ -19,6 +19,7 @@ import { useOrigin } from "@/lib/hooks/useOrigin";
 import { MIN_OPEN_FOR_CHIP, MIN_PRICED_FOR_BUDGETS, intentFromParam, useDiscovery } from "@/lib/hooks/useDiscovery";
 import type { Rail as RailData } from "@/lib/concierge/discover";
 import AreaPicker from "../explore/AreaPicker";
+import PeopleSearch from "../people/PeopleSearch";
 import Elsewhere from "./Elsewhere";
 import LocationNotice from "../explore/LocationNotice";
 import CityPicker, { rememberCity } from "../explore/CityPicker";
@@ -454,6 +455,10 @@ export default function SearchView({
                                     <option value="rating">{t.filters.sortRating}</option>
                                 </select>
                             </div>
+                        </div>
+                        {/* Members whose name matches what was typed (an @name goes straight to them). */}
+                        <div className="mx-4 mt-3 empty:hidden">
+                            <PeopleSearch text={d.text} title={t.people.chat.people} />
                         </div>
                         {d.ranked.length === 0 ? (
                             <div className="mx-4 mt-4 rounded-[1.6rem] border border-dashed border-line-strong px-6 py-14 text-center">

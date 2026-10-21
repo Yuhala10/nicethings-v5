@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowUpRight, Copy, Download, MessageSquareQuote, Send } from "lucide-react";
-import { sharePlace } from "@/lib/share";
+import { sharePlace, useShareCard } from "@/lib/share";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
@@ -12,6 +12,7 @@ import { useToast } from "../site/Toast";
 export default function GuestKit({ title, path, url, preview, story, caption, slug }: { title: string; path: string; url: string; preview: string; story: string; caption: string; slug: string }) {
     const { t } = useLocale();
     const toast = useToast();
+    const card = useShareCard(preview);
     const copy = async (text: string, done: string) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -28,7 +29,7 @@ export default function GuestKit({ title, path, url, preview, story, caption, sl
                     <ArrowUpRight size={17} />
                     {t.guestKit.seePage}
                 </Link>
-                <button type="button" onClick={() => void sharePlace(title, url, "", preview).then((done) => done === "copied" && toast(t.guestKit.copied))} className={`${button} border border-white/25 text-white hover:bg-white/10`}>
+                <button type="button" {...card} onClick={() => void sharePlace(title, url, "", preview).then((done) => done === "copied" && toast(t.guestKit.copied))} className={`${button} border border-white/25 text-white hover:bg-white/10`}>
                     <Send size={16} />
                     {t.guestKit.sharePage}
                 </button>

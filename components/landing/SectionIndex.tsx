@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 // The index of a long page, which follows the reader: it stays under the
 // top of the screen, lights up the part being read and keeps that name in
 // view; a tap on a name goes there. The page organises itself around
-// whoever is scrolling it. Each name is its own floating pill: there is no
-// bar behind them, the page shows between.
+// whoever is scrolling it. The names sit on a frosted band, so the page
+// passing under them never shows through the words.
 export default function SectionIndex({ items, label }: { items: { id: string; label: string }[]; label: string }) {
     const [active, setActive] = useState<string | null>(null);
     const bar = useRef<HTMLDivElement>(null);
@@ -40,8 +40,8 @@ export default function SectionIndex({ items, label }: { items: { id: string; la
     }, [active]);
 
     return (
-        <nav aria-label={label} className="pointer-events-none sticky top-0 z-30 mt-10 md:top-16 md:mt-16">
-            <div ref={bar} className="pointer-events-auto mx-auto flex max-w-6xl gap-2 overflow-x-auto px-3 pt-[max(env(safe-area-inset-top),0.6rem)] pb-3 [scrollbar-width:none] md:px-5 [&::-webkit-scrollbar]:hidden">
+        <nav aria-label={label} className="nt-glass sticky top-0 z-30 mt-10 border-b border-line md:top-16 md:mt-16">
+            <div ref={bar} className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-3 pt-[max(env(safe-area-inset-top),0.6rem)] pb-2.5 [scrollbar-width:none] md:px-5 [&::-webkit-scrollbar]:hidden">
                 {items.map((item) => (
                     <a
                         key={item.id}

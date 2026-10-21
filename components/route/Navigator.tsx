@@ -625,7 +625,7 @@ export default function Navigator({
                                     type="button"
                                     onClick={async () => {
                                         const url = `${window.location.origin}${paths.place(locale, place.slug)}`;
-                                        const result = await sharePlace(place.name, url, fill(t.spot.shareText, { name: place.name }));
+                                        const result = await sharePlace(place.name, url, fill(t.spot.shareText, { name: place.name }), `/api/share/place/${place.slug}?l=${locale}`);
                                         if (result === "copied") toast(t.common.copied);
                                     }}
                                     className="nt-btn nt-btn-soft px-2 text-sm"

@@ -138,10 +138,10 @@ export default async function PersonPage({ params }: Props) {
                     <h2 className="nt-section-title mb-5">
                         {words.profile.photos} · {page.photos.length}
                     </h2>
-                    <ul className="grid grid-cols-3 gap-1.5 md:gap-2">
+                    <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
                         {page.photos.map((photo) => (
-                            <li key={photo.id}>
-                                <Link href={paths.place(lang, photo.place.slug)} className="group relative block aspect-square overflow-hidden rounded-[0.9rem] bg-surface-2">
+                            <li key={photo.id} className="rounded-[1.35rem] border border-line bg-surface p-1.5 shadow-[var(--nt-shadow)]">
+                                <Link href={paths.place(lang, photo.place.slug)} className="group relative block aspect-[4/5] overflow-hidden rounded-[1rem] bg-surface-2">
                                     { }
                                     <img src={photo.poster ?? photo.url} alt={photo.caption ?? photo.place.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
                                     <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pt-6 pb-1.5 text-[0.75rem] font-semibold text-white">

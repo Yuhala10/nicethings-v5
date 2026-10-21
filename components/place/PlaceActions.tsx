@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Heart, MessageCircle, Navigation, Phone, Share2, type LucideIcon } from "lucide-react";
 import { paths } from "@/lib/places/paths";
 import { useSaved } from "@/lib/hooks/useSaved";
-import { sharePlace } from "@/lib/share";
+import { sharePlace, useShareCard } from "@/lib/share";
 import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
@@ -51,6 +51,7 @@ export default function PlaceActions({
 }) {
     const { locale, t } = useLocale();
     const toast = useToast();
+    const card = useShareCard(preview);
     const { isSaved, toggle } = useSaved();
     const saved = isSaved(slug);
     const item = "group min-w-0 flex-1";
@@ -79,6 +80,7 @@ export default function PlaceActions({
             <button
                 type="button"
                 className={item}
+                {...card}
                 onClick={async () => {
                     // The short address alone: the conversation shows the card, and one tidy line under it.
                     const result = await sharePlace(name, `${window.location.origin}${link}`, "", preview);

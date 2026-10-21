@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Images, Play } from "lucide-react";
+import { Camera, Heart, Images, MessageCircle, Play } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { formatRelativeDays } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
 import { call, openOuting } from "@/lib/people/client";
 import type { OutingView } from "@/lib/people/types";
@@ -43,24 +44,45 @@ export function useOutings(source: Source) {
 }
 
 export default function OutingList({ source, empty, grid = false }: { source: Source; empty?: React.ReactNode; grid?: boolean }) {
-    const { locale } = useLocale();
+    const { locale, t } = useLocale();
     const { outings, setOutings } = useOutings(source);
     if (outings === null) return <div className="nt-skeleton h-40 rounded-[1.5rem]" />;
     if (!outings.length) return <>{empty ?? null}</>;
     if (grid) {
+        // Each outing in its frame, like a photo printed and pinned: the
+        // picture, the place and the mood on it, then what it got.
         return (
-            <ul className="grid grid-cols-3 gap-1.5 md:gap-2">
+            <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
                 {outings.map((outing) => (
                     <li key={outing.id}>
-                        <Link href={paths.outing(locale, outing.id)} className="group relative block aspect-[4/5] overflow-hidden rounded-[0.9rem] bg-surface-2">
-                            { }
-                            <img src={outing.media[0].kind === "video" ? (outing.media[0].poster ?? "") : outing.media[0].url} alt={outing.place.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
-                            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pt-8 pb-1.5 text-[0.75rem] font-semibold text-white">
-                                <span className="block truncate">{outing.place.name}</span>
+                        <Link href={paths.outing(locale, outing.id)} className="group block rounded-[1.35rem] border border-line bg-surface p-1.5 shadow-[var(--nt-shadow)] transition hover:-translate-y-0.5 hover:shadow-[var(--nt-shadow-lg)] active:scale-[0.98]">
+                            <span className="relative block aspect-[4/5] overflow-hidden rounded-[1rem] bg-surface-2">
+                                { }
+                                <img src={outing.media[0].kind === "video" ? (outing.media[0].poster ?? "") : outing.media[0].url} alt={outing.place.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
+                                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-2.5 pt-10 pb-2 text-white">
+                                    <span className="block truncate text-[0.875rem] font-semibold">{outing.place.name}</span>
+                                    {outing.mood && <span className="block truncate text-[0.75rem] text-white/85">{t.people.outing.moods[outing.mood as keyof typeof t.people.outing.moods]}</span>}
+                                </span>
+                                {outing.media.length > 1 && (
+                                    <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[0.7rem] font-semibold text-white">
+                                        <Images size={12} />
+                                        {outing.media.length}
+                                    </span>
+                                )}
+                                {outing.media[0].kind === "video" && <Play size={16} fill="currentColor" className="absolute top-2.5 right-2.5 text-white drop-shadow" />}
+                                {outing.status === "PENDING" && <span className="absolute top-2 left-2 rounded-full bg-[#f2c230] px-2 py-0.5 text-[0.7rem] font-bold text-[#15110e]">{t.people.outing.pending}</span>}
                             </span>
-                            {outing.media.length > 1 && <Images size={14} className="absolute top-2 right-2 text-white drop-shadow" />}
-                            {outing.media[0].kind === "video" && <Play size={14} fill="currentColor" className="absolute top-2 right-2 text-white drop-shadow" />}
-                            {outing.status === "PENDING" && <span className="absolute top-2 left-2 h-2.5 w-2.5 rounded-full bg-[#f2c230]" />}
+                            <span className="flex items-center gap-3 px-1.5 pt-2 pb-1 text-[0.75rem] text-muted">
+                                <span className="inline-flex items-center gap-1">
+                                    <Heart size={13} className={outing.liked ? "fill-brand-500 text-brand-500" : ""} />
+                                    {outing.likes}
+                                </span>
+                                <span className="inline-flex items-center gap-1">
+                                    <MessageCircle size={13} />
+                                    {outing.comments}
+                                </span>
+                                <span className="ml-auto truncate">{formatRelativeDays(outing.at, locale)}</span>
+                            </span>
                         </Link>
                     </li>
                 ))}

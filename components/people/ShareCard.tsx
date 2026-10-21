@@ -4,6 +4,7 @@ import { Copy, Download, ImageUp, Link2, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { SITE_URL, fill } from "@/lib/i18n";
 import { cardUrl } from "@/lib/people/card-version";
+import { sharePlace, useShareCard } from "@/lib/share";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 import Sheet from "./Sheet";
@@ -21,6 +22,8 @@ export default function ShareCard({ open, onClose, handle, name, version, mine }
     const url = `${SITE_URL.replace(/^https:\/\/www\./, "https://")}/@${handle}`;
     const story = cardUrl(handle, locale, version, true);
     const message = fill(mine ? words.message : words.theirMessage, { url, name });
+    const preview = cardUrl(handle, locale, version);
+    const card = useShareCard(open ? preview : null);
 
     const copy = async () => {
         try {
@@ -51,13 +54,10 @@ export default function ShareCard({ open, onClose, handle, name, version, mine }
         }
     };
 
+    // The link, with the card's picture so the conversation shows it at once.
     const shareLink = async () => {
-        try {
-            if (navigator.share) return await navigator.share({ title: name, text: message, url });
-        } catch {
-            return;
-        }
-        copy();
+        const result = await sharePlace(name, url, message.replace(url, "").trim(), preview);
+        if (result === "copied") toast(t.common.copied);
     };
 
     const row = "flex min-h-14 w-full items-center gap-3.5 rounded-[1.1rem] px-4 text-left text-[1rem] font-semibold transition active:scale-[0.98]";
@@ -85,7 +85,7 @@ export default function ShareCard({ open, onClose, handle, name, version, mine }
                     {typeof navigator !== "undefined" && "canShare" in navigator ? <ImageUp size={20} /> : <Download size={20} />}
                     {busy ? words.preparing : mine ? words.story : words.download}
                 </button>
-                <button type="button" onClick={shareLink} className={`${row} bg-surface-2`}>
+                <button type="button" {...card} onClick={shareLink} className={`${row} bg-surface-2`}>
                     <Link2 size={20} />
                     {words.link}
                 </button>

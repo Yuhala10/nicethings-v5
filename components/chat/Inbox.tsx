@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { BellOff, MessageCircle, Pin } from "lucide-react";
+import { BellOff, MessageCircle, Pin, Search, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { onInboxSignal, refreshInbox } from "@/lib/people/inbox";
 import { openAuth, useMe } from "@/lib/people/client";
 import type { ChatSummary } from "@/lib/people/types";
+import PeopleSearch from "../people/PeopleSearch";
 import { Face, VerifiedBadge, displayName } from "../people/Person";
 import { useLocale } from "../site/LocaleProvider";
 import { inboxTime, previewOf } from "./format";
@@ -26,6 +27,7 @@ export default function Inbox() {
     const [lists, setLists] = useState<Lists | null>(null);
     const [closed, setClosed] = useState(false);
     const [tab, setTab] = useState<Tab>("chats");
+    const [query, setQuery] = useState("");
 
     const load = useCallback(async () => {
         try {
@@ -56,7 +58,9 @@ export default function Inbox() {
     }
     if (closed) return <p className="mt-8 text-text-2">{words.errors.closed}</p>;
 
-    const shown = lists ? lists[tab] : [];
+    // The search box filters the conversations, and finds members to write to.
+    const needle = query.replace(/^@/, "").trim().toLowerCase();
+    const shown = (lists ? lists[tab] : []).filter((chat) => !needle || chat.person.handle.includes(needle) || (chat.person.name ?? "").toLowerCase().includes(needle));
     const tabs: { key: Tab; label: string; count: number }[] = [
         { key: "chats", label: words.title, count: lists?.chats.filter((chat) => chat.unread > 0).length ?? 0 },
         { key: "requests", label: words.requests, count: lists?.requests.length ?? 0 },
@@ -65,6 +69,20 @@ export default function Inbox() {
 
     return (
         <div>
+            <label className="mt-5 flex h-12 items-center gap-2 rounded-full border border-line-strong bg-surface px-4">
+                <Search size={18} className="shrink-0 text-muted" />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={words.search} aria-label={words.search} className="min-w-0 flex-1 bg-transparent text-[1rem] outline-none" />
+                {query && (
+                    <button type="button" onClick={() => setQuery("")} aria-label={t.people.common.close} className="grid h-8 w-8 place-items-center rounded-full">
+                        <X size={16} />
+                    </button>
+                )}
+            </label>
+            {needle.length >= 2 && (
+                <div className="mt-4">
+                    <PeopleSearch text={needle} to="chat" title={words.people} exclude={me?.handle} />
+                </div>
+            )}
             <div className="nt-rail -mx-4 mt-5 flex gap-2 px-4">
                 {tabs
                     .filter((item) => item.key === "chats" || item.count > 0 || tab === item.key)
@@ -95,7 +113,7 @@ export default function Inbox() {
                         </li>
                     ))}
                 </ul>
-            ) : shown.length === 0 ? (
+            ) : shown.length === 0 && needle ? null : shown.length === 0 ? (
                 <div className="mt-8 rounded-[1.6rem] border border-dashed border-line-strong p-6 text-center">
                     <p className="text-text-2">{words.empty}</p>
                     <Link href={paths.kwat(locale)} className="nt-btn nt-btn-outline mt-4">

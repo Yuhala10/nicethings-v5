@@ -49,7 +49,9 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
             </span>
         </span>
     );
-    const box = `group flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface transition hover:border-text-2 ${wide ? "" : "w-[16.5rem]"}`;
+    // A card takes the width of its place in the strip (or the grid): a fixed
+    // width spilled over the next card on phones.
+    const box = "group flex w-full flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface transition hover:border-text-2";
 
     if (item.type === "outing") {
         return (
@@ -86,7 +88,15 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
         );
     }
     return (
-        <Link href={href} className={`${box} gap-2.5 p-3.5`}>
+        <Link href={href} className={box}>
+            {/* The place's photo, so a review or a way is not a bare white card. */}
+            {item.place.cover && (
+                <span className="relative block aspect-[16/9] overflow-hidden bg-surface-2">
+                    { }
+                    <img src={item.place.cover} alt={item.place.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
+                </span>
+            )}
+            <span className="flex flex-1 flex-col gap-2.5 p-3.5">
             {head}
             {item.type === "review" && (
                 <>
@@ -105,9 +115,10 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
                 </span>
             )}
             {item.type === "tip" && <span className="nt-serif line-clamp-3 text-[1.125rem] leading-snug">🚕 « {item.body} »</span>}
-            <span className="mt-auto truncate text-[0.875rem] font-semibold">
+            <span className="truncate text-[0.875rem] font-semibold">
                 {fill(words.at, { place: item.place.name })}
                 {item.place.neighborhood && <span className="font-normal text-muted"> · {item.place.neighborhood}</span>}
+            </span>
             </span>
         </Link>
     );
@@ -170,7 +181,7 @@ export default function KwatFeed() {
             {items === null ? (
                 <div className="nt-rail">
                     {[0, 1, 2].map((index) => (
-                        <div key={index} className="nt-skeleton h-44 w-[16.5rem] rounded-[1.25rem]" />
+                        <div key={index} className="nt-skeleton h-44 rounded-[1.25rem]" />
                     ))}
                 </div>
             ) : items.length === 0 ? (
@@ -178,7 +189,9 @@ export default function KwatFeed() {
                     <Empty />
                 </div>
             ) : (
-                <ul className="nt-rail">
+                // Each card its own height: a short review is not stretched to
+                // the height of a tall photo.
+                <ul className="nt-rail items-start">
                     {items.map((item) => (
                         <li key={`${item.type}-${item.id}`}>
                             <Item item={item} />
@@ -236,7 +249,7 @@ export function KwatPage() {
                 ) : items.length === 0 ? (
                     <Empty />
                 ) : (
-                    <ul className="grid gap-3 sm:grid-cols-2">
+                    <ul className="grid items-start gap-3 sm:grid-cols-2">
                         {items.map((item) => (
                             <li key={`${item.type}-${item.id}`}>
                                 <Item item={item} wide />

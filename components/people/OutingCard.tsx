@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
 import { useSaved } from "@/lib/hooks/useSaved";
 import { call, withMe } from "@/lib/people/client";
+import { sharePlace } from "@/lib/share";
 import type { OutingView } from "@/lib/people/types";
 import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
@@ -56,12 +57,10 @@ export default function OutingCard({ outing, onRemoved }: { outing: OutingView; 
             if (answer.ok === true) setGoers(answer.count);
         });
 
+    // The outing's own photo goes with the link.
     const share = async () => {
-        try {
-            if (navigator.share) return await navigator.share({ title: outing.place.name, url });
-            await navigator.clipboard.writeText(url);
-            toast(t.common.copied);
-        } catch {}
+        const result = await sharePlace(outing.place.name, url, "", outing.media[0]?.poster ?? outing.media[0]?.url);
+        if (result === "copied") toast(t.common.copied);
     };
 
     const remove = async () => {

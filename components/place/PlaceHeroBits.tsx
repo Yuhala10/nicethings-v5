@@ -7,7 +7,7 @@ import { Heart, Navigation, Share2 } from "lucide-react";
 import { fill } from "@/lib/i18n";
 import { paths } from "@/lib/places/paths";
 import { useSaved } from "@/lib/hooks/useSaved";
-import { sharePlace } from "@/lib/share";
+import { sharePlace, useShareCard } from "@/lib/share";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
@@ -18,6 +18,7 @@ export function HeroActions({ slug, name, preview, link, tone = "plain" }: { slu
     const toast = useToast();
     const { isSaved, toggle } = useSaved();
     const saved = isSaved(slug);
+    const card = useShareCard(preview);
     const glass =
         tone === "glass"
             ? "grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/25 text-white backdrop-blur-md transition active:scale-90"
@@ -29,6 +30,7 @@ export function HeroActions({ slug, name, preview, link, tone = "plain" }: { slu
                 type="button"
                 className={glass}
                 aria-label={t.spot.share}
+                {...card}
                 onClick={async () => {
                     const result = await sharePlace(name, `${window.location.origin}${link}`, "", preview);
                     if (result === "copied") toast(t.common.copied);

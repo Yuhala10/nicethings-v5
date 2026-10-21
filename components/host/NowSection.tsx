@@ -126,7 +126,7 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
     const send = async () => {
         if (!pick) return;
         const lines = [t.host.planIntro, `1. ${pick.place.name}`, ...after.map((item, index) => `${index + 2}. ${item.place.name}`)];
-        const result = await sharePlace(pick.place.name, `${window.location.origin}${paths.place(locale, pick.place.slug)}`, lines.join("\n"));
+        const result = await sharePlace(pick.place.name, `${window.location.origin}${paths.place(locale, pick.place.slug)}`, lines.join("\n"), `/api/share/place/${pick.place.slug}?l=${locale}`);
         if (result === "copied") toast(t.common.copied);
     };
 

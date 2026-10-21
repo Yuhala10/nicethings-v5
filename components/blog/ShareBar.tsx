@@ -2,7 +2,7 @@
 
 import { Link2, MessageCircle, Share2 } from "lucide-react";
 import { fill } from "@/lib/i18n";
-import { sharePlace } from "@/lib/share";
+import { sharePlace, useShareCard } from "@/lib/share";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 
@@ -11,6 +11,7 @@ import { useToast } from "../site/Toast";
 export default function ShareBar({ title, path, preview }: { title: string; path: string; preview: string }) {
     const { t } = useLocale();
     const toast = useToast();
+    const card = useShareCard(preview);
     const text = fill(t.blog.shareText, { title });
     const url = () => `${window.location.origin}${path}`;
     const warm = () => fetch(preview, { priority: "low" }).catch(() => {});
@@ -30,6 +31,7 @@ export default function ShareBar({ title, path, preview }: { title: string; path
             </button>
             <button
                 type="button"
+                {...card}
                 onClick={async () => {
                     const result = await sharePlace(title, url(), text, preview);
                     if (result === "copied") toast(t.blog.copied);
