@@ -15,6 +15,7 @@ type Row = {
     profile_id: string;
     spot_id: string;
     mood: string | null;
+    sound?: string | null;
     price_paid: number | null;
     company: string | null;
     body: string | null;
@@ -34,9 +35,16 @@ export async function placesById() {
     return places;
 }
 
+// With script 015, an outing's soundtrack.
+let soundColumn: Promise<boolean> | null = null;
+export function hasOutingSound() {
+    soundColumn ??= Promise.resolve(getSupabaseAdminClient().from("nt_outings").select("sound").limit(1)).then((read) => !read.error);
+    return soundColumn;
+}
+
 export async function loadOutings({ ids, spotId, profileId, profiles, limit = 30, viewer = null, withPending = false }: Where): Promise<OutingView[]> {
     const db = getSupabaseAdminClient();
-    let query = db.from("nt_outings").select(OUTING_COLUMNS);
+    let query = db.from("nt_outings").select((await hasOutingSound()) ? `${OUTING_COLUMNS},sound` : OUTING_COLUMNS);
     if (ids) query = query.in("id", ids);
     if (spotId) query = query.eq("spot_id", spotId);
     if (profileId) query = query.eq("profile_id", profileId);
@@ -45,7 +53,7 @@ export async function loadOutings({ ids, spotId, profileId, profiles, limit = 30
     query = withPending ? query.in("status", ["PUBLISHED", "PENDING"]) : query.eq("status", "PUBLISHED");
     const { data, error } = await query.order("published_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(limit);
     if (error) throw error;
-    const rows = ((data ?? []) as Row[]).filter((row) => row.status === "PUBLISHED" || row.profile_id === viewer || ids);
+    const rows = ((data ?? []) as unknown as Row[]).filter((row) => row.status === "PUBLISHED" || row.profile_id === viewer || ids);
     if (!rows.length) return [];
 
     const outingIds = rows.map((row) => row.id);
@@ -72,6 +80,7 @@ export async function loadOutings({ ids, spotId, profileId, profiles, limit = 30
             person: people.get(row.profile_id)!,
             place: places.get(row.spot_id)!,
             mood: row.mood,
+            sound: row.sound ?? null,
             pricePaid: row.price_paid,
             company: row.company,
             body: row.body,

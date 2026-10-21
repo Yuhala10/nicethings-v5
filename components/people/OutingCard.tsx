@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Flag, Heart, MapPin, MessageCircle, Share2, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Flag, Heart, MapPin, MessageCircle, Pencil, Share2, Trash2 } from "lucide-react";
+import { useCallback, useState } from "react";
 import { SITE_URL, fill } from "@/lib/i18n";
 import { formatPrice } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
@@ -14,16 +14,23 @@ import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 import FollowButton from "./FollowButton";
+import OutingDownload from "./OutingDownload";
+import OutingEdit from "./OutingEdit";
+import OutingStage from "./OutingStage";
 import { PersonLine } from "./Person";
 import { agoText } from "./PlacePulse";
 import Sheet from "./Sheet";
 import Talk from "./Talk";
 
-// One outing: who went, their photos (swiped sideways) or video, the place
-// as a card that opens it, the vibe, the price, the words. A heart, the
-// comments, and "J'y vais aussi", which keeps the place for later.
+// One outing: who went, their photos (swiped sideways, with their music) or
+// video, the place as a card that opens it, the vibe, the price, the words.
+// A heart, the comments, the download marked NiceThings, and "J'y vais
+// aussi", which keeps the place for later. Its author can change the words.
 
-export default function OutingCard({ outing, onRemoved }: { outing: OutingView; onRemoved?: (id: string) => void }) {
+export default function OutingCard({ outing: given, onRemoved }: { outing: OutingView; onRemoved?: (id: string) => void }) {
+    const [outing, setOuting] = useState(given);
+    const [editing, setEditing] = useState(false);
+    const stopEditing = useCallback(() => setEditing(false), []);
     const { locale, t } = useLocale();
     const words = t.people.outing;
     const toast = useToast();
@@ -69,6 +76,9 @@ export default function OutingCard({ outing, onRemoved }: { outing: OutingView; 
         onRemoved?.(outing.id);
     };
 
+    const mood = outing.mood ? words.moods[outing.mood as keyof typeof words.moods] : null;
+    const story = { handle: outing.person.handle, place: outing.place.name, detail: [outing.place.neighborhood, mood].filter(Boolean).join(" · ") };
+
     const facts = [outing.mood ? words.moods[outing.mood as keyof typeof words.moods] : null, outing.pricePaid ? fill(words.paidLabel, { price: formatPrice(outing.pricePaid, locale) }) : null, outing.company ? t.people.companies[outing.company as keyof typeof t.people.companies] : null].filter(Boolean);
 
     return (
@@ -80,34 +90,14 @@ export default function OutingCard({ outing, onRemoved }: { outing: OutingView; 
                 {!outing.mine && <FollowButton handle={outing.person.handle} small />}
             </header>
 
-            {/* The photos, one after the other, or the video. */}
-            <div className="relative">
-                <div
-                    className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                    onScroll={(event) => {
-                        const box = event.currentTarget;
-                        setShown(Math.round(box.scrollLeft / Math.max(1, box.clientWidth)));
-                    }}
-                >
-                    {outing.media.map((item, index) => (
-                        <div key={item.url} className="relative aspect-[4/5] w-full shrink-0 snap-center bg-surface-2">
-                            {item.kind === "video" ? (
-                                <video src={item.url} poster={item.poster ?? undefined} controls playsInline preload="none" className="h-full w-full object-cover" />
-                            ) : (
-                                        <img src={item.url} alt={index === 0 ? `${outing.place.name}, ${outing.person.handle}` : ""} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                            )}
-                        </div>
-                    ))}
-                </div>
-                {outing.media.length > 1 && (
-                    <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
-                        {outing.media.map((item, index) => (
-                            <span key={item.url} className={`h-1.5 rounded-full transition-all ${index === shown ? "w-4 bg-white" : "w-1.5 bg-white/60"}`} />
-                        ))}
-                    </div>
-                )}
-                {outing.status === "PENDING" && <span className="absolute top-3 left-3 rounded-full bg-[#b7791f] px-3 py-1 text-[0.75rem] font-bold text-white">{words.pending}</span>}
-            </div>
+            <OutingStage
+                outing={outing}
+                shown={shown}
+                onShown={setShown}
+                onDoubleTap={() => {
+                    if (!liked) react("like");
+                }}
+            />
 
             <div className="p-3.5">
                 {/* The place, as a card that opens it. */}
@@ -139,11 +129,18 @@ export default function OutingCard({ outing, onRemoved }: { outing: OutingView; 
                     <button type="button" onClick={share} className="nt-tap inline-flex h-10 items-center rounded-full px-2.5" aria-label={words.share}>
                         <Share2 size={19} />
                     </button>
+                    {(outing.status === "PUBLISHED" || outing.mine) && <OutingDownload outing={outing} shown={shown} story={story} link={url} />}
                     <span className="ml-auto flex items-center gap-2">
                         {outing.mine ? (
-                            <button type="button" onClick={remove} className="nt-tap text-muted" aria-label={words.delete}>
-                                <Trash2 size={16} />
-                            </button>
+                            <>
+                                <button type="button" onClick={() => setEditing(true)} className="nt-tap inline-flex h-9 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-[0.75rem] font-bold" aria-label={t.people.post.editTitle}>
+                                    <Pencil size={13} />
+                                    {t.people.post.edit}
+                                </button>
+                                <button type="button" onClick={remove} className="nt-tap grid h-9 w-9 place-items-center text-muted" aria-label={words.delete}>
+                                    <Trash2 size={16} />
+                                </button>
+                            </>
                         ) : (
                             <button
                                 type="button"
@@ -168,6 +165,7 @@ export default function OutingCard({ outing, onRemoved }: { outing: OutingView; 
                 {goers > 0 && <p className="mt-1 px-2.5 text-[0.75rem] font-semibold text-muted">{fill(words.goers, { count: goers })}</p>}
             </div>
 
+            {editing && <OutingEdit outing={outing} onClose={stopEditing} onSaved={setOuting} />}
             <Sheet open={talking} onClose={() => setTalking(false)} closeLabel={t.people.common.close} title={t.people.talk.title}>
                 <Talk target="outing" ids={[outing.id]} postTo={outing.id} compact onCount={setComments} />
             </Sheet>

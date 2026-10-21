@@ -12,6 +12,7 @@ import { MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, POST_TYPES } from "@/lib/posts";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 import Sheet from "./Sheet";
+import SoundPicker from "./SoundPicker";
 
 // "Publier ma sortie", from anywhere (lib/people/client.ts, openOuting):
 // where (a real place, searched by name), up to four photos or one short
@@ -32,6 +33,7 @@ export default function OutingComposer() {
     const [found, setFound] = useState<PlaceChoice[]>([]);
     const [media, setMedia] = useState<Picked[]>([]);
     const [mood, setMood] = useState<string | null>(null);
+    const [sound, setSound] = useState<string | null>(null);
     const [company, setCompany] = useState<string | null>(null);
     const [price, setPrice] = useState("");
     const [body, setBody] = useState("");
@@ -48,6 +50,7 @@ export default function OutingComposer() {
             setFound([]);
             setMedia([]);
             setMood(null);
+            setSound(null);
             setCompany(null);
             setPrice("");
             setBody("");
@@ -120,6 +123,7 @@ export default function OutingComposer() {
         const answer = await call<{ id: string; uploads: { media: { path: string; token: string }; poster: { path: string; token: string } | null }[] }>("/api/outings", "POST", {
             place: place.slug,
             mood,
+            sound,
             company,
             pricePaid: Number(price.replace(/\D/g, "")) || null,
             body,
@@ -229,6 +233,8 @@ export default function OutingComposer() {
                     </button>
                 ))}
             </div>
+            <p className="mt-5 mb-1 text-[0.875rem] font-semibold">🎵 {t.people.post.music}</p>
+            <SoundPicker value={sound} onChange={setSound} video={media.some((item) => item.kind === "video")} />
             <p className="mt-5 mb-2 text-[0.875rem] font-semibold">{words.with}</p>
             <div className="flex flex-wrap gap-2">
                 {COMPANIES.map((key) => (

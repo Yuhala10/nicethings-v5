@@ -175,6 +175,8 @@ export type OutingView = {
     person: Person;
     place: KwatPlace;
     mood: string | null;
+    // One of NiceThings' soundtracks (lib/soundtracks.ts), for photos.
+    sound: string | null;
     pricePaid: number | null;
     company: string | null;
     body: string | null;

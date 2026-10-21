@@ -5,7 +5,8 @@ import { notInstalled } from "@/lib/atlas/store";
 import { getPlace } from "@/lib/places/server";
 import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, POST_BUCKET, POST_TYPES, UUID } from "@/lib/posts";
 import { checkLevel } from "@/lib/people/notices";
-import { followingOf, loadOutings } from "@/lib/people/outings";
+import { followingOf, hasOutingSound, loadOutings } from "@/lib/people/outings";
+import { isSound } from "@/lib/soundtracks";
 import { refreshPerson } from "@/lib/people/pages";
 import { COMPANIES, MAX_OUTING_BODY, MAX_OUTING_PHOTOS, MAX_PRICE, MOODS, OUTINGS_PER_DAY, needsReading, normalizeHandle, postsAtOnce } from "@/lib/people/rules";
 import { currentProfile, deny, readBody, requireProfile, toPerson, statsOf } from "@/lib/people/server";
@@ -93,6 +94,8 @@ export async function POST(request: Request) {
                 price_paid: Number.isFinite(price) && price > 0 && price <= MAX_PRICE ? price : null,
                 company: (COMPANIES as readonly string[]).includes(body.company as string) ? body.company : null,
                 body: text || null,
+                // A soundtrack goes with photos (a video keeps its own sound).
+                ...(isSound(body.sound) && !videos.length && (await hasOutingSound()) && { sound: body.sound }),
             })
             .select("id")
             .single();
@@ -130,6 +133,8 @@ export async function POST(request: Request) {
 }
 
 // The files are there: online now, or waiting for the team.
+// { id, action: "edit", body, mood, sound, company, pricePaid }: its author
+// changes what was said about it (the photos and the place stay).
 export async function PATCH(request: Request) {
     const { profile, denied } = await requireProfile(request);
     if (denied) return denied;
@@ -137,6 +142,30 @@ export async function PATCH(request: Request) {
     const id = typeof body.id === "string" && UUID.test(body.id) ? body.id : null;
     if (!id) return deny("invalid", 400);
     const db = getSupabaseAdminClient();
+    if (body.action === "edit") {
+        const found = await db.from("nt_outings").select("id,status,body").eq("id", id).eq("profile_id", profile.id).maybeSingle();
+        if (found.error) return deny("failed", 502);
+        if (!found.data || found.data.status === "DRAFT" || found.data.status === "HIDDEN") return deny("invalid", 404);
+        const text = typeof body.body === "string" ? body.body.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, MAX_OUTING_BODY) : ((found.data.body as string | null) ?? "");
+        const price = Math.round(Number(body.pricePaid));
+        const hasVideo = await db.from("nt_outing_media").select("outing_id", { count: "exact", head: true }).eq("outing_id", id).eq("kind", "video");
+        // New words with a link or a number go past the team first.
+        const reread = needsReading(text) && text !== found.data.body && !(profile.role === "team" || profile.role === "founder");
+        const change: Record<string, unknown> = {
+            body: text || null,
+            mood: (MOODS as readonly string[]).includes(body.mood as string) ? body.mood : null,
+            company: (COMPANIES as readonly string[]).includes(body.company as string) ? body.company : null,
+            price_paid: Number.isFinite(price) && price > 0 && price <= MAX_PRICE ? price : null,
+            ...(reread && { status: "PENDING" }),
+            ...((await hasOutingSound()) && { sound: isSound(body.sound) && !hasVideo.count ? body.sound : null }),
+        };
+        const saved = await db.from("nt_outings").update(change).eq("id", id);
+        if (saved.error) return deny("failed", 502);
+        revalidateTag("kwat", NOW);
+        refreshPerson(profile.handle);
+        const [outing] = await loadOutings({ ids: [id], viewer: profile.id, withPending: true });
+        return NextResponse.json({ ok: true, outing, status: reread ? "PENDING" : found.data.status });
+    }
     const found = await db.from("nt_outings").select("id,body,status").eq("id", id).eq("profile_id", profile.id).maybeSingle();
     if (found.error) return deny("failed", 502);
     if (!found.data || found.data.status !== "DRAFT") return deny("invalid", 404);

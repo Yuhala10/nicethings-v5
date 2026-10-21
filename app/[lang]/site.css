@@ -1543,3 +1543,86 @@ html[data-nt-welcome] .nt-welcome-hint > .nt-welcome-rise {
         display: none;
     }
 }
+
+/* ---- An outing with music (components/people/OutingStage.tsx) -------------
+   While its music plays, the photo on screen slowly comes closer, drifting
+   one way or the other (Ken Burns); the disc turns, the bars dance and the
+   name of the sound rolls by. Two taps on a photo: a heart. */
+.nt-kenburns {
+    animation: nt-kenburns 7s ease-out both;
+}
+.nt-kenburns-b {
+    animation: nt-kenburns-b 7s ease-out both;
+}
+@keyframes nt-kenburns {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.12) translate(-2%, -1.5%);
+    }
+}
+@keyframes nt-kenburns-b {
+    from {
+        transform: scale(1.02);
+    }
+    to {
+        transform: scale(1.13) translate(2%, 1%);
+    }
+}
+.nt-disc {
+    animation: nt-disc 4.5s linear infinite;
+}
+@keyframes nt-disc {
+    to {
+        transform: rotate(360deg);
+    }
+}
+.nt-eq {
+    height: 100%;
+    transform-origin: bottom;
+    animation: nt-eq 0.9s ease-in-out infinite;
+}
+@keyframes nt-eq {
+    0%,
+    100% {
+        transform: scaleY(0.3);
+    }
+    50% {
+        transform: scaleY(1);
+    }
+}
+.nt-marquee {
+    display: inline-block;
+    padding-left: 100%;
+    animation: nt-marquee 9s linear infinite;
+}
+@keyframes nt-marquee {
+    to {
+        transform: translateX(-100%);
+    }
+}
+.nt-heart-burst {
+    animation: nt-heart-burst 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes nt-heart-burst {
+    0% {
+        opacity: 0;
+        transform: scale(0.2) rotate(-12deg);
+    }
+    25% {
+        opacity: 1;
+        transform: scale(1.15) rotate(0deg);
+    }
+    45% {
+        transform: scale(0.95);
+    }
+    75% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.05) translateY(-40px);
+    }
+}

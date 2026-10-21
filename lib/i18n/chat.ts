@@ -135,6 +135,37 @@ export const seriesFr = {
     best: "Ta meilleure : {count} semaine(s)",
 } as const;
 
+// Outings: their music, editing them, downloading them ("t.people.post").
+export const postFr = {
+    music: "La musique",
+    musicHint: "Pour tes photos : une ambiance faite par NiceThings, sans chanson empruntée.",
+    noMusic: "Sans musique",
+    sounds: { makossa: "Makossa", bikutsi: "Bikutsi", afro: "Afro", chill: "Chill", soiree: "Soirée" },
+    videoSound: "Ta vidéo garde son propre son.",
+    play: "Mettre le son",
+    mute: "Couper le son",
+    edit: "Modifier",
+    editTitle: "Modifier ma sortie",
+    saved: "C'est enregistré ✓",
+    download: "Télécharger",
+    preparing: "Préparation… {percent} %",
+    downloaded: "C'est prêt ✓",
+    downloadFailed: "Ce téléphone ne peut pas préparer la vidéo. Réessaie avec Chrome.",
+    endLine: "Trouvé sur NiceThings",
+    ticker: "{sound} · son NiceThings",
+    rereading: "Tes nouveaux mots passent d'abord par l'équipe (il y a un lien ou un numéro).",
+    downloadTitle: "Télécharger la sortie",
+    photo: "La photo",
+    photoLead: "Encadrée, avec le lieu et la marque NiceThings.",
+    video: "La vidéo",
+    videoLead: "Avec la marque NiceThings, comme sur TikTok.",
+    slideshow: "En vidéo, avec la musique",
+    slideshowLead: "Les photos qui défilent, la musique, la marque NiceThings.",
+    keepOpen: "Garde cette page ouverte : la vidéo se fabrique sur ton téléphone.",
+    save: "Enregistrer",
+    send: "Envoyer",
+} as const;
+
 type Widen<T> = T extends string ? string : T extends readonly string[] ? readonly string[] : { [K in keyof T]: Widen<T[K]> };
 
 export const chatEn: Widen<typeof chatFr> = {
@@ -258,6 +289,36 @@ export const chatEn: Widen<typeof chatFr> = {
     push: { requestTitle: "New message request", request: "{name} wants to message you on NiceThings" },
     errors: { many: "Easy: wait a little before sending more.", heavy: "File too heavy.", long: "Voice note too long (3 minutes at most).", closed: "Messages open very soon." },
     unread: "{count} unread",
+};
+
+export const postEn: Widen<typeof postFr> = {
+    music: "Music",
+    musicHint: "For your photos: a vibe made by NiceThings, no borrowed song.",
+    noMusic: "No music",
+    sounds: { makossa: "Makossa", bikutsi: "Bikutsi", afro: "Afro", chill: "Chill", soiree: "Party" },
+    videoSound: "Your video keeps its own sound.",
+    play: "Sound on",
+    mute: "Sound off",
+    edit: "Edit",
+    editTitle: "Edit my outing",
+    saved: "Saved ✓",
+    download: "Download",
+    preparing: "Preparing… {percent}%",
+    downloaded: "Ready ✓",
+    downloadFailed: "This phone can't prepare the video. Try again with Chrome.",
+    endLine: "Found on NiceThings",
+    ticker: "{sound} · NiceThings sound",
+    rereading: "Your new words go past the team first (there is a link or a number).",
+    downloadTitle: "Download the outing",
+    photo: "The photo",
+    photoLead: "Framed, with the place and the NiceThings mark.",
+    video: "The video",
+    videoLead: "With the NiceThings mark, like on TikTok.",
+    slideshow: "As a video, with the music",
+    slideshowLead: "The photos rolling, the music, the NiceThings mark.",
+    keepOpen: "Keep this page open: the video is made on your phone.",
+    save: "Save",
+    send: "Send",
 };
 
 export const seriesEn: Widen<typeof seriesFr> = {

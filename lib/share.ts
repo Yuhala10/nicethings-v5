@@ -37,7 +37,7 @@ export function prepareCard(image: string | null | undefined) {
 
 // An iPhone or an iPad: the share sheet must open in answer to the tap
 // itself, so it cannot wait for a picture still on its way.
-const apple = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Macintosh") && "ontouchend" in document);
+export const apple = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Macintosh") && "ontouchend" in document);
 const wait = (ms: number) => new Promise<null>((resolve) => window.setTimeout(() => resolve(null), ms));
 
 // Gets the card ready while the button is on screen (good connections), and
