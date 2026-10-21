@@ -95,6 +95,11 @@ export default function Composer({
         element.style.height = `${Math.min(element.scrollHeight, 132)}px`;
     }, [text]);
 
+    // Replying (a swipe or the menu): the keyboard opens, as on WhatsApp.
+    useEffect(() => {
+        if (reply) field.current?.focus();
+    }, [reply]);
+
     useEffect(() => {
         if (!recording) return;
         const timer = window.setInterval(() => {

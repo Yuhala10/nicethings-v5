@@ -396,6 +396,7 @@ export default function ChatView({ handle }: { handle: string }) {
                                 onPhoto={setPhoto}
                                 onAnswer={(item, answer) => change(item, { action: "answer", answer })}
                                 onRetry={(item) => retries.current.get(item.id)?.()}
+                                onReply={setReply}
                                 onListened={(item) => {
                                     // Quietly: before script 015 there is nothing to note.
                                     if (item.pending) return;

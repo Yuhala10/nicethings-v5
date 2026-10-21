@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, Check, CheckCheck, Clock, MapPin } from "lucide-react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { AlertCircle, Check, CheckCheck, Clock, MapPin, Reply } from "lucide-react";
 import { useRef } from "react";
+import { cityBySlug } from "@/lib/cities";
 import { fill, type Locale } from "@/lib/i18n";
 import type { PeopleWords } from "@/lib/i18n/people";
 import { paths } from "@/lib/places/paths";
@@ -57,6 +59,7 @@ export default function Bubble({
     onAnswer,
     onRetry,
     onListened,
+    onReply,
 }: {
     message: Shown;
     name: string;
@@ -69,9 +72,16 @@ export default function Bubble({
     onAnswer: (message: Shown, answer: "yes" | "no") => void;
     onRetry: (message: Shown) => void;
     onListened: (message: Shown) => void;
+    onReply: (message: Shown) => void;
 }) {
     const mine = message.mine;
     const press = useRef(0);
+    // Pulled to the right, as on WhatsApp: the arrow shows, and let go past
+    // it, the message is quoted in the reply.
+    const pull = useMotionValue(0);
+    const arrow = useTransform(pull, [0, 64], [0, 1]);
+    const armed = useRef(false);
+    const canReply = !message.deleted && !message.pending && !message.failed;
     // A long press (or a right click) opens the reactions and the actions.
     const holding = {
         onPointerDown: () => {
@@ -107,7 +117,30 @@ export default function Bubble({
     }
 
     return (
-        <div className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+        <div className="relative">
+            <motion.span style={{ opacity: arrow, scale: arrow }} className="pointer-events-none absolute top-1/2 left-1 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-black/10 dark:bg-white/15" aria-hidden>
+                <Reply size={16} />
+            </motion.span>
+        <motion.div
+            drag={canReply ? "x" : false}
+            dragDirectionLock
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0, right: 0.55 }}
+            dragSnapToOrigin
+            style={{ x: pull, touchAction: "pan-y" }}
+            onDragStart={() => window.clearTimeout(press.current)}
+            onDrag={(_, info) => {
+                if (info.offset.x > 64 && !armed.current) {
+                    armed.current = true;
+                    navigator.vibrate?.(15);
+                }
+            }}
+            onDragEnd={(_, info) => {
+                armed.current = false;
+                if (info.offset.x > 64) onReply(message);
+            }}
+            className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
+        >
             <div className={shell} {...holding} onClick={message.failed ? () => onRetry(message) : undefined}>
                 {message.reply && (
                     <div className={`mb-1.5 rounded-lg border-l-4 px-2.5 py-1.5 text-[0.8rem] ${message.reply.mine ? "border-[#1faa59] bg-black/5" : "border-[#e8590c] bg-black/5"} dark:bg-white/5`}>
@@ -143,7 +176,7 @@ export default function Bubble({
                             <span className="block truncate font-bold">{message.place.name}</span>
                             <span className="flex items-center gap-1 truncate text-[0.8rem] opacity-70">
                                 <MapPin size={12} />
-                                {[message.place.neighborhood, message.place.city].filter(Boolean).join(", ")}
+                                {[message.place.neighborhood, cityBySlug(message.place.city)?.name ?? message.place.city].filter(Boolean).join(", ")}
                             </span>
                         </span>
                     </Link>
@@ -186,6 +219,7 @@ export default function Bubble({
                     {message.reactions.reduce((sum, reaction) => sum + reaction.count, 0) > 1 && <span className="ml-0.5 text-[0.7rem] text-muted">{message.reactions.reduce((sum, reaction) => sum + reaction.count, 0)}</span>}
                 </button>
             )}
+        </motion.div>
         </div>
     );
 }
