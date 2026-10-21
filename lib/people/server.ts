@@ -6,6 +6,7 @@ import { looksAutomated } from "../analytics";
 import { getSupabaseAdminClient } from "../supabase/admin";
 import { avatarUrl, defaultAvatar, parseAvatar } from "./avatars";
 import { levelOf, pointsOf, type Stats } from "./rules";
+import { seriesOf } from "./series";
 import type { Me, Person } from "./types";
 
 // Profiles on the server: the PIN's fingerprint, the cookie that keeps a
@@ -273,12 +274,15 @@ export async function peopleByIds(ids: string[]) {
 
 export async function meOf(row: ProfileRow): Promise<Me> {
     const db = getSupabaseAdminClient();
-    const [stats, saves, unread, level] = await Promise.all([
+    const [stats, saves, unread, level, best] = await Promise.all([
         statsOf([row.id]),
         db.from("nt_profile_saves").select("slug").eq("profile_id", row.id).order("created_at", { ascending: false }).limit(500),
         db.from("nt_notices").select("id", { count: "exact", head: true }).eq("profile_id", row.id).is("read_at", null),
         db.from("nt_notices").select("id,data").eq("profile_id", row.id).eq("kind", "level").is("read_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        // La série's best (script 014); before it, no série is shown.
+        db.from("nt_profiles").select("series_best").eq("id", row.id).maybeSingle(),
     ]);
+    const series = best.error ? null : await seriesOf(row.id, Number(best.data?.series_best ?? 0)).catch(() => null);
     const own = stats.get(row.id) ?? NO_STATS;
     return {
         ...toPerson(row, own),
@@ -292,5 +296,6 @@ export async function meOf(row: ProfileRow): Promise<Me> {
         // Before script 012 there is no Activité: nothing unread.
         unread: unread.error ? 0 : (unread.count ?? 0),
         levelUp: level.data ? { id: level.data.id as string, level: Number((level.data.data as { level?: number }).level ?? 0) } : null,
+        series,
     };
 }

@@ -1,0 +1,232 @@
+"use client";
+
+import Link from "next/link";
+import { AlertCircle, Check, CheckCheck, Clock, MapPin, Pause, Play } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { fill, type Locale } from "@/lib/i18n";
+import type { PeopleWords } from "@/lib/i18n/people";
+import { paths } from "@/lib/places/paths";
+import type { ChatMessage } from "@/lib/people/types";
+import { clock, previewOf, timeOf } from "./format";
+
+// One message, as on WhatsApp: green on the right for one's own, white on
+// the left for the other's, the time and the ticks in the corner.
+
+type Words = PeopleWords["chat"];
+// `canTakeBack` is worked out when the menu opens (24 hours after sending).
+export type Shown = ChatMessage & { failed?: boolean; canTakeBack?: boolean };
+
+// ✓ sent · ✓✓ grey: they were on the site since · ✓✓ blue: read.
+function Ticks({ message, theirRead, theirActive }: { message: Shown; theirRead: string | null; theirActive: string | null }) {
+    if (message.failed) return <AlertCircle size={14} className="text-closed" />;
+    if (message.pending) return <Clock size={13} className="opacity-60" />;
+    if (theirRead && theirRead >= message.at) return <CheckCheck size={16} className="text-[#34b7f1]" />;
+    if (theirActive && theirActive >= message.at) return <CheckCheck size={16} className="opacity-55" />;
+    return <Check size={15} className="opacity-55" />;
+}
+
+// Links to NiceThings itself are clickable; any other address stays plain
+// text, to copy if wanted (no tapping a stranger's link by mistake).
+function Text({ body }: { body: string }) {
+    const parts = body.split(/(https?:\/\/(?:www\.)?nicethings\.site\/\S*)/g);
+    return (
+        <>
+            {parts.map((part, index) =>
+                index % 2 ? (
+                    <a key={index} href={part} className="break-all underline">
+                        {part.replace(/^https?:\/\/(www\.)?/, "")}
+                    </a>
+                ) : (
+                    <span key={index}>{part}</span>
+                )
+            )}
+        </>
+    );
+}
+
+function Voice({ url, duration, words, mine }: { url: string; duration: number | null; words: Words; mine: boolean }) {
+    const audio = useRef<HTMLAudioElement>(null);
+    const [playing, setPlaying] = useState(false);
+    const [at, setAt] = useState(0);
+    const [broken, setBroken] = useState(false);
+    const length = duration ?? 0;
+    useEffect(() => {
+        const element = audio.current;
+        if (!element) return;
+        const tick = () => setAt(element.currentTime);
+        const end = () => {
+            setPlaying(false);
+            setAt(0);
+        };
+        element.addEventListener("timeupdate", tick);
+        element.addEventListener("ended", end);
+        return () => {
+            element.removeEventListener("timeupdate", tick);
+            element.removeEventListener("ended", end);
+        };
+    }, []);
+    if (broken) return <p className="text-[0.875rem] italic opacity-70">{words.voice.cantPlay}</p>;
+    return (
+        <div className="flex w-56 items-center gap-3 py-1">
+            <button
+                type="button"
+                aria-label={playing ? words.voice.pause : words.voice.play}
+                onClick={() => {
+                    const element = audio.current;
+                    if (!element) return;
+                    if (playing) element.pause();
+                    else element.play().catch(() => setBroken(true));
+                    setPlaying(!playing);
+                }}
+                className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${mine ? "bg-[#1faa59] text-white" : "bg-[#15110e] text-white dark:bg-white dark:text-[#15110e]"}`}
+            >
+                {playing ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="translate-x-px" />}
+            </button>
+            <span className="min-w-0 flex-1">
+                <span className="block h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+                    <span className="block h-full rounded-full bg-current opacity-70" style={{ width: `${length ? Math.min(100, (at / length) * 100) : 0}%` }} />
+                </span>
+                <span className="mt-1 block text-[0.75rem] opacity-70">{clock(playing || at ? at : length)}</span>
+            </span>
+            <audio ref={audio} src={url} preload="none" onError={() => setBroken(true)} />
+        </div>
+    );
+}
+
+export default function Bubble({
+    message,
+    name,
+    words,
+    locale,
+    theirRead,
+    theirActive,
+    onMenu,
+    onPhoto,
+    onAnswer,
+    onRetry,
+}: {
+    message: Shown;
+    name: string;
+    words: Words;
+    locale: Locale;
+    theirRead: string | null;
+    theirActive: string | null;
+    onMenu: (message: Shown) => void;
+    onPhoto: (url: string) => void;
+    onAnswer: (message: Shown, answer: "yes" | "no") => void;
+    onRetry: (message: Shown) => void;
+}) {
+    const mine = message.mine;
+    const press = useRef(0);
+    // A long press (or a right click) opens the reactions and the actions.
+    const holding = {
+        onPointerDown: () => {
+            press.current = window.setTimeout(() => onMenu(message), 450);
+        },
+        onPointerUp: () => window.clearTimeout(press.current),
+        onPointerLeave: () => window.clearTimeout(press.current),
+        onPointerCancel: () => window.clearTimeout(press.current),
+        onContextMenu: (event: React.MouseEvent) => {
+            event.preventDefault();
+            onMenu(message);
+        },
+    };
+
+    const shell = `relative max-w-[82%] rounded-[1.1rem] px-3 pt-2 pb-1.5 text-[0.95rem] leading-snug shadow-[0_1px_1px_rgba(0,0,0,0.08)] select-none ${
+        mine ? "self-end rounded-br-md bg-[#d9fdd3] text-[#111b21] dark:bg-[#144d37] dark:text-[#e9edef]" : "self-start rounded-bl-md bg-white text-[#111b21] dark:bg-[#202c33] dark:text-[#e9edef]"
+    }`;
+
+    const meta = (
+        <span className="ml-2 inline-flex translate-y-1 items-center gap-1 float-right text-[0.7rem] opacity-60">
+            {timeOf(message.at, locale)}
+            {mine && <Ticks message={message} theirRead={theirRead} theirActive={theirActive} />}
+        </span>
+    );
+
+    if (message.deleted) {
+        return (
+            <div className={shell} {...holding}>
+                <span className="italic opacity-60">{mine ? words.deletedMine : words.deleted}</span>
+                {meta}
+            </div>
+        );
+    }
+
+    return (
+        <div className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+            <div className={shell} {...holding} onClick={message.failed ? () => onRetry(message) : undefined}>
+                {message.reply && (
+                    <div className={`mb-1.5 rounded-lg border-l-4 px-2.5 py-1.5 text-[0.8rem] ${message.reply.mine ? "border-[#1faa59] bg-black/5" : "border-[#e8590c] bg-black/5"} dark:bg-white/5`}>
+                        <span className={`block font-bold ${message.reply.mine ? "text-[#1faa59]" : "text-[#e8590c]"}`}>{message.reply.mine ? words.you : name}</span>
+                        <span className="line-clamp-2 opacity-80">{message.reply.deleted ? words.deleted : previewOf(message.reply.kind, message.reply.body, words)}</span>
+                    </div>
+                )}
+
+                {message.kind === "photo" && message.media && (
+                    <button type="button" onClick={() => onPhoto(message.media!.url)} className="-mx-1.5 mb-1 block overflow-hidden rounded-[0.8rem]">
+                        { }
+                        <img
+                            src={message.media.url}
+                            alt=""
+                            className="max-h-80 w-64 max-w-full object-cover"
+                            style={message.media.width && message.media.height ? { aspectRatio: `${message.media.width} / ${message.media.height}` } : undefined}
+                        />
+                    </button>
+                )}
+                {message.kind === "photo" && !message.media && <span className="block h-40 w-56 animate-pulse rounded-[0.8rem] bg-black/10" />}
+
+                {message.kind === "voice" && (message.media ? <Voice url={message.media.url} duration={message.media.duration} words={words} mine={mine} /> : <span className="block w-56 py-3 text-[0.875rem] opacity-70">🎤 {words.sending}</span>)}
+
+                {(message.kind === "place" || message.kind === "plan") && message.place && (
+                    <Link href={paths.place(locale, message.place.slug)} className="-mx-1.5 mb-1.5 block w-64 max-w-full overflow-hidden rounded-[0.8rem] bg-black/5 dark:bg-white/5">
+                        {message.place.cover && <img src={message.place.cover} alt="" className="h-32 w-full object-cover" loading="lazy" />}
+                        <span className="block px-3 py-2">
+                            <span className="block truncate font-bold">{message.place.name}</span>
+                            <span className="flex items-center gap-1 truncate text-[0.8rem] opacity-70">
+                                <MapPin size={12} />
+                                {[message.place.neighborhood, message.place.city].filter(Boolean).join(", ")}
+                            </span>
+                        </span>
+                    </Link>
+                )}
+
+                {message.kind === "plan" && message.plan && (
+                    <div className="mb-1 w-64 max-w-full">
+                        <p className="font-bold">📅 {words.plan.title}</p>
+                        <p className="text-[0.875rem] capitalize opacity-80">
+                            {new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Douala" }).format(new Date(message.plan.at))}
+                        </p>
+                        <ul className="mt-1.5 text-[0.8rem] opacity-85">
+                            <li>{message.plan.mine === "yes" ? words.plan.youYes : message.plan.mine === "no" ? words.plan.youNo : ""}</li>
+                            <li>{message.plan.theirs === "yes" ? fill(words.plan.theyYes, { name }) : message.plan.theirs === "no" ? fill(words.plan.theyNo, { name }) : fill(words.plan.waiting, { name })}</li>
+                        </ul>
+                        <div className="mt-2 grid grid-cols-2 gap-1.5">
+                            <button type="button" onClick={() => onAnswer(message, "yes")} aria-pressed={message.plan.mine === "yes"} className={`h-10 rounded-full text-[0.8rem] font-bold ${message.plan.mine === "yes" ? "bg-[#1faa59] text-white" : "bg-black/5 dark:bg-white/10"}`}>
+                                {words.plan.yes}
+                            </button>
+                            <button type="button" onClick={() => onAnswer(message, "no")} aria-pressed={message.plan.mine === "no"} className={`h-10 rounded-full text-[0.8rem] font-bold ${message.plan.mine === "no" ? "bg-[#15110e] text-white dark:bg-white dark:text-[#15110e]" : "bg-black/5 dark:bg-white/10"}`}>
+                                {words.plan.no}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {message.body && (
+                    <span className="break-words whitespace-pre-wrap">
+                        <Text body={message.body} />
+                    </span>
+                )}
+                {meta}
+                {message.failed && <span className="mt-1 block text-[0.75rem] font-semibold text-closed">{words.sendFailed}</span>}
+            </div>
+            {message.reactions.length > 0 && (
+                <button type="button" onClick={() => onMenu(message)} className={`-mt-1.5 inline-flex items-center gap-0.5 rounded-full border border-line bg-surface px-1.5 py-0.5 text-[0.8rem] shadow-sm ${mine ? "mr-2" : "ml-2"}`}>
+                    {message.reactions.map((reaction) => (
+                        <span key={reaction.emoji}>{reaction.emoji}</span>
+                    ))}
+                    {message.reactions.reduce((sum, reaction) => sum + reaction.count, 0) > 1 && <span className="ml-0.5 text-[0.7rem] text-muted">{message.reactions.reduce((sum, reaction) => sum + reaction.count, 0)}</span>}
+                </button>
+            )}
+        </div>
+    );
+}

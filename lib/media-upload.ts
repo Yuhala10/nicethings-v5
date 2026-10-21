@@ -41,10 +41,10 @@ export async function readVideo(file: File) {
 }
 
 // Puts a file into storage with the one-time permission the server gave.
-export function put(path: string, token: string, body: Blob, type: string, onProgress?: (share: number) => void) {
+export function put(path: string, token: string, body: Blob, type: string, onProgress?: (share: number) => void, bucket = POST_BUCKET) {
     return new Promise<void>((resolve, reject) => {
         const request = new XMLHttpRequest();
-        request.open("PUT", `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/upload/sign/${POST_BUCKET}/${path}?token=${encodeURIComponent(token)}`);
+        request.open("PUT", `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/upload/sign/${bucket}/${path}?token=${encodeURIComponent(token)}`);
         request.setRequestHeader("apikey", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
         request.setRequestHeader("content-type", type);
         request.setRequestHeader("cache-control", "max-age=31536000");

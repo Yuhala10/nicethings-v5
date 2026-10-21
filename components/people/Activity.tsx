@@ -102,6 +102,7 @@ function PushSwitch() {
 
 function noticeHref(notice: Notice, locale: "fr" | "en") {
     if (notice.data.outing) return paths.outing(locale, notice.data.outing);
+    if (notice.kind === "flame" && notice.actor) return paths.chat(locale, notice.actor.handle);
     if (notice.kind === "follow" && notice.actor) return paths.person(locale, notice.actor.handle);
     if (notice.kind === "level" || !notice.data.place) return paths.me(locale);
     return `${paths.place(locale, notice.data.place)}${notice.kind === "tip_vote" ? "#y-aller" : notice.kind === "like" || notice.kind === "comment" ? "" : "#avis"}`;
@@ -158,7 +159,7 @@ export default function Activity() {
                                 )}
                                 <span className="min-w-0 flex-1">
                                     <span className="block text-[0.875rem] leading-snug">
-                                        {fill(words[notice.kind], { actor: notice.actor ? `@${notice.actor.handle}` : "", place: notice.data.name ?? "", level: t.people.levels[notice.data.level ?? 0] ?? "" })}
+                                        {fill(words[notice.kind], { actor: notice.actor ? `@${notice.actor.handle}` : "", place: notice.data.name ?? "", level: t.people.levels[notice.data.level ?? 0] ?? "", flame: notice.data.flame ?? "" })}
                                     </span>
                                     {notice.data.snippet && <span className="mt-0.5 block truncate text-[0.75rem] text-muted">« {notice.data.snippet} »</span>}
                                     <span className="mt-0.5 block text-[0.75rem] text-muted">{formatRelativeDays(notice.createdAt, locale)}</span>

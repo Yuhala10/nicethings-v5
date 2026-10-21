@@ -8,7 +8,7 @@ type Doc = { title: string; updated: string; sections: { heading: string; body: 
 export const PRIVACY: Record<Locale, Doc> = {
     fr: {
         title: "Confidentialité",
-        updated: "Mise à jour : 19 octobre 2026",
+        updated: "Mise à jour : 21 octobre 2026",
         sections: [
             {
                 heading: "En bref",
@@ -47,6 +47,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "Si tu demandes le badge vérifié, on garde ce que tu nous envoies (qui tu es, le lien, ton mot) pour l'examiner. Le badge et ce qu'il dit de toi (« Créateur de contenu »…) sont publics sur ton profil.",
                     "Tes sorties (photos ou vidéo, le lieu, l'ambiance, le prix, ton mot) sont publiées avec ton @nom ; celles d'un nouveau membre sont d'abord vues par l'équipe. Qui tu suis et qui te suit se voit en nombre sur ton profil. Supprimer une sortie efface aussi ses fichiers.",
                     "Les chemins que tu écris (« Dis au taxi », le chemin en mots) et les nouvelles en direct que tu donnes (ouvert, ça bouge, coupure…) sont publiés avec ton @nom ; une nouvelle en direct s'efface de la fiche après quelques heures. Ton activité (qui a validé, répondu, aimé) n'est visible que par toi. Si tu actives ses notifications, on garde ce que ton navigateur remet pour t'écrire, rattaché à ton profil, jusqu'à ce que tu les coupes.",
+                    "Tes messages (texte, photos, vocaux, lieux partagés, « On y va ? », réactions) sont gardés sur nos serveurs pour les deux personnes de la discussion. Ils ne sont pas chiffrés de bout en bout : l'équipe ne les lit pas, sauf un message qu'on lui signale, qu'elle lit avec les deux messages qui le précèdent. Les photos et les vocaux sont rangés à part et ne s'ouvrent que par des liens qui expirent au bout d'une heure, donnés aux deux personnes seulement. On note quand tu as lu, quand tu étais là pour la dernière fois (« en ligne », « vu à ») et les jours où vous vous êtes écrit (la flamme) ; tu peux masquer le « vu à » et les confirmations de lecture, choisir qui peut t'écrire, et bloquer quelqu'un. « Supprimer pour tout le monde » efface le message et son fichier ; supprimer ton profil efface tes discussions et leurs fichiers.",
                 ],
             },
             {
@@ -79,7 +80,7 @@ export const PRIVACY: Record<Locale, Doc> = {
     },
     en: {
         title: "Privacy",
-        updated: "Updated: 19 October 2026",
+        updated: "Updated: 21 October 2026",
         sections: [
             {
                 heading: "In short",
@@ -116,6 +117,7 @@ export const PRIVACY: Record<Locale, Doc> = {
                     "If you request the verified badge, we keep what you send us (who you are, the link, your words) to review it. The badge and what it says about you (“Content creator”…) are public on your profile.",
                     "Your outings (photos or video, the place, the vibe, the price, your words) are published with your @name; a new member's are first seen by the team. Who you follow and who follows you show as numbers on your profile. Deleting an outing also erases its files.",
                     "The ways you write (“Tell the taxi”, the way in words) and the live news you give (open, lively, power cut…) are published with your @name; a live news leaves the page after a few hours. Your activity (who validated, replied, liked) is visible to you alone. If you turn on its notifications, we keep what your browser hands us to write to you, tied to your profile, until you turn them off.",
+                    "Your messages (text, photos, voice notes, shared places, “Shall we go?”, reactions) are kept on our servers for the two people in the conversation. They are not end-to-end encrypted: the team does not read them, except a message reported to it, which it reads with the two messages before it. Photos and voice notes are stored apart and only open through links that expire after an hour, given to the two people only. We note when you read, when you were last there (“online”, “last seen”) and the days you wrote to each other (the flame); you can hide “last seen” and read receipts, choose who can message you, and block someone. “Delete for everyone” erases the message and its file; deleting your profile erases your conversations and their files.",
                 ],
             },
             {

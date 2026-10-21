@@ -23,6 +23,8 @@ const LEVELS = [
     ["Légende du kwat", "Neighbourhood legend"],
 ] as const;
 const RATINGS = ["C'est le ndem", "Bof", "Ça peut aller", "C'est propre", "C'est validé !"];
+// A reported message (script 014), with the two before it.
+type Reported = { id: string; kind: string; body: string | null; status: string; createdAt: string; person: Person | null; reports: number; reasons: string[]; context: { person: string; kind: string; body: string | null }[] };
 type Ask = { id: string; profile_id: string; kind: string; link: string | null; note: string | null; created_at: string; person: Person | null };
 // What a verified member is shown as, by the kind of request.
 const KNOWN_AS: Record<string, [string, string]> = {
@@ -47,6 +49,21 @@ export default function MembersPage() {
     const [busy, setBusy] = useState<string | null>(null);
     const people = useAdminData<{ setup: boolean; total: number; week: number; people: Member[]; requests?: Ask[] }>("people");
     const words = useAdminData<{ setup: boolean; waiting: Word[]; recent: Word[] }>("comments");
+    const reported = useAdminData<{ setup: boolean; messages: Reported[] }>("messages");
+
+    const judge = async (message: Reported, action: "delete" | "keep") => {
+        if (action === "delete" && !window.confirm(tr("Supprimer ce message ?", "Delete this message?"))) return;
+        setBusy(message.id);
+        try {
+            await adminPost("messages", { id: message.id, action });
+            toast(action === "delete" ? tr("Supprimé", "Deleted") : tr("Laissé", "Kept"));
+            await reported.reload();
+        } catch (caught) {
+            toast((caught as Error).message, true);
+        } finally {
+            setBusy(null);
+        }
+    };
 
     const act = async (member: Pick<Member, "id" | "handle">, action: "suspend" | "restore" | "photo" | "role" | "verify" | "unverify" | "decline", role?: string, label?: string) => {
         if (action === "suspend" && !window.confirm(tr(`Suspendre @${member.handle} ? Il est déconnecté partout.`, `Suspend @${member.handle}? They are signed out everywhere.`))) return;
@@ -202,6 +219,46 @@ export default function MembersPage() {
                                             <button type="button" className="a-btn a-btn-soft h-10" disabled={busy !== null} onClick={() => act({ id: ask.profile_id, handle: ask.person?.handle ?? "" }, "decline")}>
                                                 {tr("Refuser", "Decline")}
                                             </button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+
+                    {/* ---- Reported messages: only the message and the two before it ---- */}
+                    {Boolean(reported.data?.messages.length) && (
+                        <>
+                            <h2 className="a-serif mb-3 flex items-center gap-2 text-2xl">
+                                <Flag size={18} className="text-closed" />
+                                {tr("Messages signalés", "Reported messages")} <span className="text-muted">· {reported.data?.messages.length}</span>
+                            </h2>
+                            <ul className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                {reported.data?.messages.map((message) => (
+                                    <li key={message.id} className="a-card flex flex-col gap-2 p-4">
+                                        <p className="text-xs text-muted">
+                                            @{message.person?.handle ?? "?"} · {timeAgo(message.createdAt)} · {message.reports} {tr("signalement(s)", "report(s)")}
+                                        </p>
+                                        {message.context.map((item, index) => (
+                                            <p key={index} className="truncate text-xs text-muted">
+                                                @{item.person} : {item.body ?? `[${item.kind}]`}
+                                            </p>
+                                        ))}
+                                        <p className="rounded-xl bg-surface-2 p-2.5 text-sm whitespace-pre-line">{message.status === "DELETED" ? tr("(déjà supprimé)", "(already deleted)") : (message.body ?? `[${message.kind}]`)}</p>
+                                        {message.reasons.length > 0 && <p className="text-xs text-text-2">{message.reasons.join(" · ")}</p>}
+                                        <div className="flex gap-2">
+                                            <button type="button" className="a-btn a-btn-soft h-10 flex-1" disabled={busy !== null} onClick={() => judge(message, "delete")}>
+                                                <Trash2 size={15} />
+                                                {tr("Supprimer", "Delete")}
+                                            </button>
+                                            <button type="button" className="a-btn a-btn-soft h-10" disabled={busy !== null} onClick={() => judge(message, "keep")}>
+                                                {tr("Laisser", "Keep")}
+                                            </button>
+                                            {message.person && (
+                                                <button type="button" className="a-btn a-btn-soft h-10" disabled={busy !== null} onClick={() => act({ id: message.person!.id, handle: message.person!.handle }, "suspend")}>
+                                                    {tr("Suspendre", "Suspend")}
+                                                </button>
+                                            )}
                                         </div>
                                     </li>
                                 ))}

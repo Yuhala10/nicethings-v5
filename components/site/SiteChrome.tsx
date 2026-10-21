@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, Home, Lock, Map as MapIcon, Plus, Search, UserRound } from "lucide-react";
+import { Heart, Home, Lock, Map as MapIcon, MessageCircle, Plus, Search, UserRound } from "lucide-react";
 import { CITIES, DEFAULT_CITY, cityBySlug } from "@/lib/cities";
 import { LOCALE_COOKIE, otherLocale } from "@/lib/i18n/config";
 import { paths } from "@/lib/places/paths";
 import { useMe } from "@/lib/people/client";
+import { useInbox } from "@/lib/people/inbox";
 import AuthSheet from "../people/AuthSheet";
 import LevelUp from "../people/LevelUp";
 import OutingComposer from "../people/OutingComposer";
@@ -24,6 +25,8 @@ type Layout = "map" | "navigation" | "page";
 // Map screens own the whole viewport; navigation hides even the tab bar.
 function layoutFor(pathname: string): Layout {
     if (/^\/(fr|en)\/y-aller\//.test(pathname)) return "navigation";
+    // A conversation takes the whole screen, like on WhatsApp.
+    if (/^\/(fr|en)\/messages\/[^/]+\/?$/.test(pathname)) return "navigation";
     if (/^\/(fr|en)\/carte\/?$/.test(pathname) || /^\/(fr|en)\/[^/]+\/carte\/?$/.test(pathname)) return "map";
     return "page";
 }
@@ -145,6 +148,24 @@ function SiteHeader() {
     );
 }
 
+// The way to one's messages: a bubble, with the number of conversations
+// waiting (unread ones and requests) in green.
+function MessagesIcon({ size, active }: { size: number; active: boolean }) {
+    const { me } = useMe();
+    const inbox = useInbox(me?.id ?? null);
+    const waiting = inbox.unread + inbox.requests;
+    return (
+        <span className="relative inline-flex">
+            <MessageCircle size={size} strokeWidth={active ? 2.2 : 1.9} />
+            {waiting > 0 && (
+                <span className="absolute -top-1.5 -right-2 grid h-[1.1rem] min-w-[1.1rem] place-items-center rounded-full border-2 border-[#15110e] bg-[#25d366] px-1 text-[0.62rem] leading-none font-bold text-white" aria-hidden>
+                    {waiting > 9 ? "9+" : waiting}
+                </span>
+            )}
+        </span>
+    );
+}
+
 // Phone navigation: four islands floating over the page, each on its own
 // (site.css, ".nt-island"). The one for the page being read opens to say its
 // name; the others are their icon alone. Dark with a light edge, so they read
@@ -153,6 +174,7 @@ export function TabBar() {
     const { locale, t } = useLocale();
     const pathname = usePathname();
     const city = useCurrentCity();
+    const { me } = useMe();
     // The island that was just tapped opens at once, before its page is there.
     const [tapped, setTapped] = useState<{ key: string; from: string } | null>(null);
     const chosen = tapped && tapped.from === pathname ? tapped.key : null;
@@ -173,6 +195,8 @@ export function TabBar() {
         { key: "search", href: paths.search(locale, city), label: t.nav.search, icon: Search, active: pathname.includes("/recherche") },
         { key: "map", href: paths.explore(locale, city), label: t.nav.map, icon: MapIcon, active: pathname.includes("/carte") },
         { key: "saved", href: paths.saved(locale), label: t.nav.saved, icon: Heart, active: pathname.startsWith(paths.saved(locale)) },
+        // Messages, once someone is signed in (a sixth island).
+        ...(me ? [{ key: "messages", href: paths.messages(locale), label: t.people.chat.nav, icon: "messages" as const, active: pathname.startsWith(paths.messages(locale)) }] : []),
         { key: "me", href: paths.me(locale), label: t.people.island, icon: null, active: pathname.startsWith(paths.me(locale)) || pathname.startsWith(`/${locale}/u/`) },
     ];
 
@@ -181,7 +205,7 @@ export function TabBar() {
             className="pointer-events-none fixed inset-x-0 bottom-0 z-50 pb-[max(env(safe-area-inset-bottom),0.75rem)] md:hidden"
             aria-label={t.nav.menu}
         >
-            <ul className="nt-dock pointer-events-auto mx-auto flex w-fit items-center gap-2">
+            <ul className="nt-dock pointer-events-auto mx-auto flex w-fit items-center gap-2" data-count={tabs.length}>
                 {tabs.map(({ key, href, label, icon: Icon, active: here }) => {
                     const active = chosen ? chosen === key : here;
                     return (
@@ -194,7 +218,7 @@ export function TabBar() {
                                 aria-current={active ? "page" : undefined}
                                 aria-label={label}
                             >
-                                {Icon ? <Icon size={21} strokeWidth={active ? 2.2 : 1.9} /> : <MeIcon size={24} />}
+                                {Icon === "messages" ? <MessagesIcon size={21} active={active} /> : Icon ? <Icon size={21} strokeWidth={active ? 2.2 : 1.9} /> : <MeIcon size={24} />}
                                 <span className="nt-island-label" aria-hidden>
                                     {label}
                                 </span>

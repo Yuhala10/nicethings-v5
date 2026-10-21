@@ -14,22 +14,25 @@ import type { Notice } from "./types";
 // given again is told once. Everything is quiet before script 012.
 
 type Kind = Notice["kind"];
-type Data = { place?: string; name?: string; level?: number; snippet?: string; post?: string; review?: string; tip?: string; outing?: string };
+type Data = { place?: string; name?: string; level?: number; snippet?: string; post?: string; review?: string; tip?: string; outing?: string; flame?: number };
 
 // The sentence of a notice, for Activité and for the phone.
 export function noticeText(kind: Kind, data: Data, actor: string | null, lang: Locale) {
     const words = getDictionary(lang).people;
-    return fill(words.activity[kind], { actor: actor ? `@${actor}` : "", place: data.name ?? "", level: words.levels[data.level ?? 0] ?? "" });
+    return fill(words.activity[kind], { actor: actor ? `@${actor}` : "", place: data.name ?? "", level: words.levels[data.level ?? 0] ?? "", flame: data.flame ?? "" });
 }
 
 function noticeUrl(kind: Kind, data: Data, lang: Locale, actor: string | null) {
     if (data.outing) return paths.outing(lang, data.outing);
+    if (kind === "flame" && actor) return paths.chat(lang, actor);
     if (kind === "follow" && actor) return paths.person(lang, actor);
     if (kind === "level" || !data.place) return paths.me(lang);
     return `${paths.place(lang, data.place)}${kind === "tip_vote" ? "#y-aller" : kind === "like" || kind === "comment" ? "" : "#avis"}`;
 }
 
-async function sendToPhones(profileId: string, kind: Kind, data: Data, actorHandle: string | null) {
+// Sends a notification to the phones a member asked for, written in each
+// phone's language. Phones that are gone are forgotten.
+export async function pushToPhones(profileId: string, write: (lang: Locale) => { title: string; body: string; url: string; tag: string }) {
     const keys = pushKeys();
     if (!keys) return;
     const db = getSupabaseAdminClient();
@@ -39,7 +42,7 @@ async function sendToPhones(profileId: string, kind: Kind, data: Data, actorHand
     await Promise.all(
         phones.data.map(async (phone) => {
             const lang = isLocale(phone.lang) ? phone.lang : "fr";
-            const payload = JSON.stringify({ title: "NiceThings", body: noticeText(kind, data, actorHandle, lang), url: noticeUrl(kind, data, lang, actorHandle), tag: `activity-${kind}`, lang });
+            const payload = JSON.stringify({ ...write(lang), lang });
             try {
                 await webpush.sendNotification({ endpoint: phone.endpoint, keys: { p256dh: phone.p256dh, auth: phone.auth } }, payload, { TTL: 86_400 });
                 await db.from("nt_profile_phones").update({ last_sent_at: new Date().toISOString(), failures: 0 }).eq("endpoint", phone.endpoint);
@@ -51,6 +54,10 @@ async function sendToPhones(profileId: string, kind: Kind, data: Data, actorHand
             }
         })
     );
+}
+
+function sendToPhones(profileId: string, kind: Kind, data: Data, actorHandle: string | null) {
+    return pushToPhones(profileId, (lang) => ({ title: "NiceThings", body: noticeText(kind, data, actorHandle, lang), url: noticeUrl(kind, data, lang, actorHandle), tag: `activity-${kind}` }));
 }
 
 // Tells `recipient` that `actor` did something to what they gave. Never

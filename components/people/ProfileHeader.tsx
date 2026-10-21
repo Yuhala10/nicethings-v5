@@ -2,11 +2,12 @@ import { MapPin } from "lucide-react";
 import { cityBySlug } from "@/lib/cities";
 import { fill, getDictionary, type Locale } from "@/lib/i18n";
 import { levelOf, type Stats } from "@/lib/people/rules";
-import type { Person } from "@/lib/people/types";
+import type { Person, Series } from "@/lib/people/types";
 import { Face, Ranks, VerifiedBadge, displayName } from "./Person";
 
-// The top of a profile: the face, the name, the ranks, the neighbourhood,
-// what they gave, and how far the next level is. The founder and the
+// The top of a profile: the face, the name, the ranks, la série, the
+// neighbourhood, what they gave (and the likes it earned), and how far the
+// next level is. The founder and the
 // neighbourhood legends wear green and gold; everyone else the night.
 
 export default function ProfileHeader({
@@ -14,6 +15,7 @@ export default function ProfileHeader({
     bio,
     createdAt,
     stats,
+    series = null,
     locale,
     children,
 }: {
@@ -21,6 +23,7 @@ export default function ProfileHeader({
     bio: string | null;
     createdAt: string;
     stats: Stats;
+    series?: Series | null;
     locale: Locale;
     children?: React.ReactNode;
 }) {
@@ -33,6 +36,7 @@ export default function ProfileHeader({
         [stats.reviews, words.stats.reviews],
         [(stats.outings ?? 0) + stats.photos, words.stats.outings],
         [stats.followers ?? 0, words.stats.followers],
+        [stats.cheers, words.stats.likes],
     ] as const;
 
     return (
@@ -53,6 +57,11 @@ export default function ProfileHeader({
 
             <div className="relative mt-5 flex flex-wrap gap-2">
                 <Ranks person={person} locale={locale} />
+                {series && series.weeks > 0 && (
+                    <span className="inline-flex h-6 shrink-0 items-center rounded-full bg-[#e8590c]/20 px-2.5 text-[0.75rem] font-semibold whitespace-nowrap text-[#ffb27a]" title={fill(words.series.best, { count: series.best })}>
+                        {fill(words.series.chip, { count: series.weeks })}
+                    </span>
+                )}
             </div>
 
             {bio && <p className="relative mt-4 max-w-xl text-[1rem] leading-relaxed whitespace-pre-line text-white/85">{bio}</p>}
@@ -67,7 +76,7 @@ export default function ProfileHeader({
                 <span>{fill(words.memberNo, { number: person.memberNo })}</span>
             </p>
 
-            <dl className="relative mt-6 grid grid-cols-3 gap-2 border-t border-white/10 pt-5">
+            <dl className="relative mt-6 grid grid-cols-4 gap-2 border-t border-white/10 pt-5">
                 {figures.map(([value, label]) => (
                     <div key={label}>
                         <dt className="sr-only">{label}</dt>

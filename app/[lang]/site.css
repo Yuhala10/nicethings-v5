@@ -1519,3 +1519,27 @@ html[data-nt-welcome] .nt-welcome-hint > .nt-welcome-rise {
         margin-left: 0.45rem;
     }
 }
+
+/* Six islands (a member signed in, with Messages): on a narrow phone they
+   stay icons, the one for the page being read lit, so all six fit. */
+@media (max-width: 420px) {
+    .nt-dock[data-count="6"] {
+        gap: 0.3rem;
+    }
+
+    .nt-dock[data-count="6"] .nt-island,
+    .nt-dock[data-count="6"] .nt-island[aria-current="page"] {
+        min-width: 2.85rem;
+        height: 3rem;
+        padding: 0 0.6rem;
+    }
+
+    .nt-dock[data-count="6"] .nt-island[aria-current="page"] {
+        background: #faf7f2;
+        color: #15110e;
+    }
+
+    .nt-dock[data-count="6"] .nt-island-label {
+        display: none;
+    }
+}

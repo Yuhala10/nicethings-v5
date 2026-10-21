@@ -5,6 +5,7 @@ import { cityBySlug } from "@/lib/cities";
 import { cleanText } from "@/lib/feedback";
 import { getPlacesBySlugs } from "@/lib/places/server";
 import { parseAvatar } from "@/lib/people/avatars";
+import { CHAT_BUCKET } from "@/lib/people/chats";
 import { refreshPerson } from "@/lib/people/pages";
 import { reviewsTag } from "@/lib/people/reviews";
 import { recount, talkTag, type Target } from "@/lib/people/talk";
@@ -81,6 +82,13 @@ export async function DELETE(request: Request) {
     ]);
 
     if (profile.photo_path) await db.storage.from(PHOTO_BUCKET).remove([profile.photo_path]);
+    // Their conversations go with them, photos and voice notes included (script 014).
+    const chats = await db.from("nt_chats").select("id").or(`a_id.eq.${profile.id},b_id.eq.${profile.id}`);
+    if (chats.data?.length) {
+        const files = await db.from("nt_messages").select("media_path").in("chat_id", chats.data.map((chat) => chat.id as string)).not("media_path", "is", null);
+        const paths = (files.data ?? []).map((file) => file.media_path as string);
+        for (let from = 0; from < paths.length; from += 100) await db.storage.from(CHAT_BUCKET).remove(paths.slice(from, from + 100));
+    }
     const gone = await db.from("nt_profiles").delete().eq("id", profile.id);
     if (gone.error) {
         console.error("Profile not deleted:", gone.error);

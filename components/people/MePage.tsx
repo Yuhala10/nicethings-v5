@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Heart, KeyRound, LifeBuoy, LogOut, Pencil, Share2, Smartphone, Star, Trash2, TrendingUp, UserRound } from "lucide-react";
+import { ChevronRight, Heart, KeyRound, LifeBuoy, LockKeyhole, LogOut, MessageCircle, Pencil, Share2, Smartphone, Star, Trash2, TrendingUp, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CITIES } from "@/lib/cities";
 import { fill } from "@/lib/i18n";
@@ -15,12 +15,14 @@ import type { Me } from "@/lib/people/types";
 import { useSaved } from "@/lib/hooks/useSaved";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
+import PrivacySheet from "../chat/PrivacySheet";
 import Activity from "./Activity";
 import OutingList, { PostOutingButton } from "./OutingList";
 import AvatarPicker, { type FaceChoice } from "./AvatarPicker";
 import { displayName } from "./Person";
 import PinInput from "./PinInput";
 import ProfileHeader from "./ProfileHeader";
+import SeriesCard from "./SeriesCard";
 import ShareCard from "./ShareCard";
 import VerifyRequest from "./VerifyRequest";
 import Sheet from "./Sheet";
@@ -28,7 +30,7 @@ import Sheet from "./Sheet";
 // "Moi": the profile of the person signed in on this phone, and everything
 // they can change. Signed out, an invitation to join.
 
-type Panel = "edit" | "top" | "pin" | "recovery" | "delete" | null;
+type Panel = "edit" | "top" | "pin" | "recovery" | "delete" | "privacy" | null;
 
 function Row({ icon: Icon, label, onClick, href, danger = false }: { icon: typeof Heart; label: string; onClick?: () => void; href?: string; danger?: boolean }) {
     const inner = (
@@ -383,7 +385,7 @@ export default function MePage() {
 
     return (
         <div>
-            <ProfileHeader person={me} bio={me.bio} createdAt={me.createdAt} stats={me.stats} locale={locale}>
+            <ProfileHeader person={me} bio={me.bio} createdAt={me.createdAt} stats={me.stats} series={me.series} locale={locale}>
                 <button type="button" onClick={() => setPanel("edit")} className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[0.875rem] font-semibold text-[#15110e]">
                     <Pencil size={15} />
                     {words.me.edit}
@@ -395,6 +397,8 @@ export default function MePage() {
             </ProfileHeader>
 
             <p className="mt-3 px-1 text-[0.75rem] leading-relaxed text-muted">{words.howPoints}</p>
+
+            <SeriesCard series={me.series} />
 
             <PostOutingButton label={words.outing.publish} className="mt-6 w-full" />
 
@@ -427,6 +431,7 @@ export default function MePage() {
             </section>
 
             <section className="mt-8 overflow-hidden rounded-[1.25rem] border border-line bg-surface divide-y divide-line">
+                <Row icon={MessageCircle} label={words.chat.title} href={paths.messages(locale)} />
                 <Row icon={UserRound} label={words.me.view} href={paths.person(locale, me.handle)} />
                 <Row icon={Heart} label={`${words.me.saved} · ${saved.length}`} href={paths.saved(locale)} />
                 <VerifyRequest />
@@ -434,6 +439,7 @@ export default function MePage() {
 
             <h2 className="nt-eyebrow mt-10 mb-3 px-1">{words.me.security}</h2>
             <section className="overflow-hidden rounded-[1.25rem] border border-line bg-surface divide-y divide-line">
+                <Row icon={LockKeyhole} label={words.chat.privacy.title} onClick={() => setPanel("privacy")} />
                 <Row icon={KeyRound} label={words.me.changePin} onClick={() => setPanel("pin")} />
                 <Row icon={LifeBuoy} label={words.me.newRecovery} onClick={() => setPanel("recovery")} />
                 <Row icon={LogOut} label={words.me.signout} onClick={() => signOut(false)} />
@@ -452,6 +458,7 @@ export default function MePage() {
             {panel === "edit" && <EditSheet me={me} open onClose={() => setPanel(null)} />}
             {panel === "top" && <TopSheet me={me} open onClose={() => setPanel(null)} />}
             {(panel === "pin" || panel === "recovery" || panel === "delete") && <SecretSheet panel={panel} onClose={() => setPanel(null)} />}
+            <PrivacySheet open={panel === "privacy"} onClose={() => setPanel(null)} />
         </div>
     );
 }

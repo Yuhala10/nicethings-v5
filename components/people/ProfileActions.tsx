@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Flag, Pencil, Share2 } from "lucide-react";
+import { Flag, MessageCircle, Pencil, Share2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { paths } from "@/lib/places/paths";
-import { call, useMe } from "@/lib/people/client";
+import { call, useMe, withMe } from "@/lib/people/client";
 import { visitorId } from "../site/Analytics";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
@@ -12,7 +13,7 @@ import FollowButton from "./FollowButton";
 import ShareCard from "./ShareCard";
 
 // Under a profile: share its card, and for its owner, change it; for
-// others, report it.
+// others, follow, write to them, report them.
 export default function ProfileActions({ id, handle, name, version }: { id: string; handle: string; name: string; version: string }) {
     const { locale, t } = useLocale();
     const words = t.people;
@@ -20,10 +21,21 @@ export default function ProfileActions({ id, handle, name, version }: { id: stri
     const { me } = useMe();
     const mine = me?.id === id;
     const [sharing, setSharing] = useState(false);
+    const router = useRouter();
 
     return (
         <>
             {!mine && <FollowButton handle={handle} light />}
+            {!mine && (
+                <button
+                    type="button"
+                    onClick={() => withMe("generic", () => router.push(paths.chat(locale, handle)))}
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-[#25d366] px-5 text-[0.875rem] font-semibold text-white"
+                >
+                    <MessageCircle size={15} />
+                    {words.chat.write}
+                </button>
+            )}
             {mine && (
                 <Link href={paths.me(locale)} className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[0.875rem] font-semibold text-[#15110e]">
                     <Pencil size={15} />

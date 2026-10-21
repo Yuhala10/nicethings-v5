@@ -70,7 +70,7 @@ export default async function PersonPage({ params }: Props) {
         <div className="mx-auto max-w-3xl px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-24 md:px-6 md:pt-8">
             <BackButton className="mb-4 border border-line !bg-surface !shadow-none !backdrop-blur-none" />
 
-            <ProfileHeader person={person} bio={page.bio} createdAt={page.createdAt} stats={page.stats} locale={lang}>
+            <ProfileHeader person={person} bio={page.bio} createdAt={page.createdAt} stats={page.stats} series={page.series} locale={lang}>
                 <ProfileActions id={person.id} handle={person.handle} name={displayName(person)} version={cardVersion(page)} />
             </ProfileHeader>
 

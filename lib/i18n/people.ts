@@ -2,6 +2,8 @@
 // are many, but part of the dictionary like any other (`t.people`). The
 // English must keep the French shape (enforced by its type).
 
+import { chatEn, chatFr, seriesEn, seriesFr } from "./chat";
+
 export const peopleFr = {
     island: "Moi",
     hello: "On dit quoi, {name} ?",
@@ -38,6 +40,7 @@ export const peopleFr = {
         outing_comment: "{actor} a commenté ta sortie à {place}",
         approved: "Ta sortie à {place} est en ligne 🎉",
         verified: "Ton profil est maintenant vérifié ✓",
+        flame: "🔥 {flame} jours de flamme avec {actor} !",
         push: "Recevoir mon activité sur ce téléphone",
         pushOn: "Notifications activées sur ce téléphone ✓",
         pushOff: "Couper",
@@ -300,7 +303,9 @@ export const peopleFr = {
     nextLevel: "Encore {points} pts pour devenir « {level} »",
     topLevel: "Niveau le plus haut atteint",
     howPoints: "Un avis 10 pts · une sortie ou une photo publiée 8 pts · un chemin écrit 5 pts · un commentaire 2 pts · une nouvelle en direct 1 pt · chaque j'aime, « validé » ou « ça m'a aidé » reçu 1 pt",
-    stats: { reviews: "avis", photos: "photos", comments: "commentaires", cheers: "j'aime reçus", outings: "sorties", followers: "abonnés" },
+    stats: { reviews: "avis", photos: "photos", comments: "commentaires", cheers: "j'aime reçus", outings: "sorties", followers: "abonnés", likes: "j'aime" },
+    chat: chatFr,
+    series: seriesFr,
     ratings: ["C'est le ndem", "Bof", "Ça peut aller", "C'est propre", "C'est validé !"],
     ratingFaces: ["😩", "😕", "🙂", "😋", "🔥"],
     tags: {
@@ -469,6 +474,7 @@ export const peopleEn: PeopleWords = {
         outing_comment: "{actor} commented on your outing at {place}",
         approved: "Your outing at {place} is live 🎉",
         verified: "Your profile is now verified ✓",
+        flame: "🔥 {flame}-day flame with {actor}!",
         push: "Get my activity on this phone",
         pushOn: "Notifications on for this phone ✓",
         pushOff: "Turn off",
@@ -731,7 +737,9 @@ export const peopleEn: PeopleWords = {
     nextLevel: "{points} more pts to become \"{level}\"",
     topLevel: "Highest level reached",
     howPoints: "A review 10 pts · a published outing or photo 8 pts · a written way 5 pts · a comment 2 pts · a live news 1 pt · each like, \"validated\" or \"it helped me\" received 1 pt",
-    stats: { reviews: "reviews", photos: "photos", comments: "comments", cheers: "likes received", outings: "outings", followers: "followers" },
+    stats: { reviews: "reviews", photos: "photos", comments: "comments", cheers: "likes received", outings: "outings", followers: "followers", likes: "likes" },
+    chat: chatEn,
+    series: seriesEn,
     ratings: ["A flop", "Meh", "It's alright", "Solid", "Validated!"],
     ratingFaces: ["😩", "😕", "🙂", "😋", "🔥"],
     tags: {

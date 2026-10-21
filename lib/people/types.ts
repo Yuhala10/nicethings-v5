@@ -30,14 +30,16 @@ export type Me = Person & {
     // Activité: what has not been seen yet, and a level waiting to be celebrated.
     unread: number;
     levelUp: { id: string; level: number } | null;
+    // La série (null before script 014).
+    series: Series | null;
 };
 
 // One line of Activité.
 export type Notice = {
     id: string;
-    kind: "vote" | "reply" | "comment" | "like" | "tip_vote" | "level" | "follow" | "going" | "outing_like" | "outing_comment" | "approved" | "verified";
+    kind: "vote" | "reply" | "comment" | "like" | "tip_vote" | "level" | "follow" | "going" | "outing_like" | "outing_comment" | "approved" | "verified" | "flame";
     actor: Person | null;
-    data: { place?: string; name?: string; level?: number; snippet?: string; outing?: string };
+    data: { place?: string; name?: string; level?: number; snippet?: string; outing?: string; flame?: number };
     read: boolean;
     createdAt: string;
 };
@@ -96,6 +98,72 @@ export type ReviewSummary = {
     // What people say they paid per person, when enough of them said.
     price: { median: number; count: number } | null;
 };
+
+// ---------------------------------------------------------------- messages (script 014)
+
+export type ChatKind = "text" | "photo" | "voice" | "place" | "plan";
+
+// "En ligne", or when they were last there (null when either of the two hides it).
+export type ChatPresence = { online: boolean; lastSeen: string | null };
+
+// La flamme: the days in a row both wrote. `ending`: alive since yesterday,
+// not yet kept today, and the evening has come.
+export type ChatFlame = { count: number; best: number; alive: boolean; ending: boolean };
+
+export type ChatMessage = {
+    id: string;
+    mine: boolean;
+    kind: ChatKind;
+    body: string | null;
+    media: { url: string; width: number | null; height: number | null; duration: number | null } | null;
+    place: KwatPlace | null;
+    // "On y va ?": when, and each one's answer.
+    plan: { at: string; mine: "yes" | "no" | null; theirs: "yes" | "no" | null } | null;
+    reply: { id: string; mine: boolean; kind: ChatKind; body: string | null; deleted: boolean } | null;
+    reactions: { emoji: string; count: number; mine: boolean }[];
+    deleted: boolean;
+    // Its file is still on its way (only the sender sees it).
+    pending: boolean;
+    at: string;
+    changedAt: string;
+};
+
+export type ChatRequest = "incoming" | "outgoing" | null;
+
+export type ChatSummary = {
+    id: string;
+    person: Person;
+    last: { kind: ChatKind; body: string | null; mine: boolean; at: string; deleted: boolean } | null;
+    unread: number;
+    flame: ChatFlame | null;
+    pinned: boolean;
+    muted: boolean;
+    archived: boolean;
+    request: ChatRequest;
+    presence: ChatPresence;
+    blocked: boolean;
+};
+
+export type ChatWrite = { ok: true } | { ok: false; why: "blocked" | "unavailable" | "closed" | "following" | "limit" };
+
+export type ChatThread = {
+    chat: { id: string; key: string; accepted: boolean; request: ChatRequest; pinned: boolean; muted: boolean; archived: boolean; flame: ChatFlame | null } | null;
+    person: Person;
+    presence: ChatPresence;
+    write: ChatWrite;
+    blocked: boolean;
+    // When they last read (null when either hides the blue ticks), and when
+    // they were last on the site (the grey double tick).
+    theirRead: string | null;
+    theirActive: string | null;
+    messages: ChatMessage[];
+    more: boolean;
+};
+
+export type ChatPrivacy = { messagesFrom: "everyone" | "following" | "nobody"; hideLastSeen: boolean; hideRead: boolean };
+
+// La série: the weeks in a row a member gave something to the city.
+export type Series = { weeks: number; thisWeek: boolean; best: number };
 
 // "Ma sortie": an outing at a real place, as everyone sees it.
 export type OutingMedia = { kind: "photo" | "video"; url: string; poster: string | null; width: number | null; height: number | null };
