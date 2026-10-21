@@ -47,7 +47,7 @@ export default async function OutingPage({ params }: Props) {
     return (
         <div className="mx-auto max-w-xl px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-28 md:px-6 md:pt-8">
             <BackButton className="mb-4 border border-line !bg-surface !shadow-none !backdrop-blur-none" />
-            <OutingCard outing={outing} />
+            <OutingCard outing={outing} live />
             <div className="mt-6 flex justify-center">
                 <PostOutingButton place={{ slug: outing.place.slug, name: outing.place.name, neighborhood: outing.place.neighborhood }} label={words.iWasHere} />
             </div>

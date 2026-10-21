@@ -155,7 +155,7 @@ export async function photoKeepsake(src: string, story: Story): Promise<Keepsake
     ctx.fillStyle = strip;
     ctx.fillRect(0, height - 12, width, 12);
 
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
     if (!blob) throw new Error("photo");
     const file = new File([blob], `nicethings-${story.handle}.jpg`, { type: "image/jpeg" });
     return { file, url: URL.createObjectURL(file), kind: "photo" };
@@ -352,14 +352,28 @@ export async function videoKeepsake(making: Making, story: Story, audio: AudioCo
             const sh = image.naturalHeight;
             ctx.globalAlpha = alpha;
             backdrop(image, sw, sh);
-            // Ken Burns: each photo slowly comes closer, drifting one way or the other.
-            const drift = (index % 2 ? 1 : -1) * 0.018 * progress;
-            lay(ctx, image, sw, sh, W, H, modeOf(sw, sh), 1 + 0.09 * progress, drift, -drift / 2);
+            if (sw > sh * 1.05) {
+                // Wider than tall: shown big (two thirds of the height, not a
+                // strip lost in the middle), the camera travelling across it
+                // so nothing is cut off.
+                const scale = ((H * 0.66) / sh) * (1 + 0.04 * progress);
+                const dw = sw * scale;
+                const dh = sh * scale;
+                const along = 0.5 - Math.cos(Math.PI * (index % 2 ? 1 - progress : progress)) / 2;
+                ctx.drawImage(image, -(dw - W) * along, (H - dh) / 2, dw, dh);
+            } else {
+                // Ken Burns: each photo slowly comes closer, drifting one way or the other.
+                const drift = (index % 2 ? 1 : -1) * 0.018 * progress;
+                lay(ctx, image, sw, sh, W, H, modeOf(sw, sh), 1 + 0.09 * progress, drift, -drift / 2);
+            }
             ctx.globalAlpha = 1;
         };
 
         const tracks = [...canvas.captureStream(30).getVideoTracks(), ...(into?.stream.getAudioTracks() ?? [])];
-        const recorder = new MediaRecorder(new MediaStream(tracks), { mimeType: type, videoBitsPerSecond: 4_000_000, audioBitsPerSecond: 128_000 });
+        // Light, for WhatsApp and for data: photos that roll need little
+        // (about 3 MB for four), a filmed video a little more (about 1 MB
+        // for every 4 seconds).
+        const recorder = new MediaRecorder(new MediaStream(tracks), { mimeType: type, videoBitsPerSecond: video ? 2_000_000 : 1_200_000, audioBitsPerSecond: 96_000 });
         const chunks: Blob[] = [];
         recorder.ondataavailable = (event) => {
             if (event.data.size) chunks.push(event.data);

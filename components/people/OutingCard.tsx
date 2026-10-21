@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { Flag, Heart, MapPin, MessageCircle, Pencil, Share2, Trash2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SITE_URL, fill } from "@/lib/i18n";
 import { formatPrice } from "@/lib/i18n/format";
 import { paths } from "@/lib/places/paths";
 import { useSaved } from "@/lib/hooks/useSaved";
-import { call, withMe } from "@/lib/people/client";
+import { call, useMe, withMe } from "@/lib/people/client";
 import { sharePlace } from "@/lib/share";
 import type { OutingView } from "@/lib/people/types";
 import { visitorId } from "../site/Analytics";
@@ -26,8 +26,11 @@ import Talk from "./Talk";
 // video, the place as a card that opens it, the vibe, the price, the words.
 // A heart, the comments, the download marked NiceThings, and "J'y vais
 // aussi", which keeps the place for later. Its author can change the words.
+// `live`: the outing comes from a page made for everyone (kept a minute), so
+// the phone asks again, as the one looking: their heart, their "J'y vais",
+// and, for its author, "Modifier" and "Supprimer".
 
-export default function OutingCard({ outing: given, onRemoved }: { outing: OutingView; onRemoved?: (id: string) => void }) {
+export default function OutingCard({ outing: given, onRemoved, live = false }: { outing: OutingView; onRemoved?: (id: string) => void; live?: boolean }) {
     const [outing, setOuting] = useState(given);
     const [editing, setEditing] = useState(false);
     const stopEditing = useCallback(() => setEditing(false), []);
@@ -42,6 +45,30 @@ export default function OutingCard({ outing: given, onRemoved }: { outing: Outin
     const [comments, setComments] = useState(outing.comments);
     const [talking, setTalking] = useState(false);
     const [shown, setShown] = useState(0);
+    const { me } = useMe();
+    const mine = outing.mine || (Boolean(me) && me?.id === outing.person.id);
+    const meId = me?.id ?? null;
+
+    useEffect(() => {
+        if (!live || !meId) return;
+        let gone = false;
+        fetch(`/api/outings?id=${given.id}`, { cache: "no-store" })
+            .then((response) => response.json() as Promise<{ outings?: OutingView[] }>)
+            .then((answer) => {
+                const fresh = answer.outings?.[0];
+                if (gone || !fresh) return;
+                setOuting(fresh);
+                setLiked(fresh.liked);
+                setLikes(fresh.likes);
+                setGoing(fresh.going);
+                setGoers(fresh.goers);
+                setComments(fresh.comments);
+            })
+            .catch(() => {});
+        return () => {
+            gone = true;
+        };
+    }, [live, meId, given.id]);
     const url = `${SITE_URL.replace(/^https:\/\/www\./, "https://")}${paths.outing(locale, outing.id)}`;
 
     const react = (what: "like" | "go") =>
@@ -87,7 +114,7 @@ export default function OutingCard({ outing: given, onRemoved }: { outing: Outin
                 <div className="min-w-0 flex-1">
                     <PersonLine person={outing.person} locale={locale} meta={<Ago iso={outing.at} words={t.people.pulse} />} size={38} />
                 </div>
-                {!outing.mine && <FollowButton handle={outing.person.handle} small />}
+                {!mine && <FollowButton handle={outing.person.handle} small />}
             </header>
 
             <OutingStage
@@ -129,9 +156,9 @@ export default function OutingCard({ outing: given, onRemoved }: { outing: Outin
                     <button type="button" onClick={share} className="nt-tap inline-flex h-10 items-center rounded-full px-2.5" aria-label={words.share}>
                         <Share2 size={19} />
                     </button>
-                    {(outing.status === "PUBLISHED" || outing.mine) && <OutingDownload outing={outing} shown={shown} story={story} link={url} />}
+                    {(outing.status === "PUBLISHED" || mine) && <OutingDownload outing={outing} shown={shown} story={story} link={url} />}
                     <span className="ml-auto flex items-center gap-2">
-                        {outing.mine ? (
+                        {mine ? (
                             <>
                                 <button type="button" onClick={() => setEditing(true)} className="nt-tap inline-flex h-9 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-[0.75rem] font-bold" aria-label={t.people.post.editTitle}>
                                     <Pencil size={13} />
@@ -154,7 +181,7 @@ export default function OutingCard({ outing: given, onRemoved }: { outing: Outin
                                 <Flag size={15} />
                             </button>
                         )}
-                        {!outing.mine && outing.status === "PUBLISHED" && (
+                        {!mine && outing.status === "PUBLISHED" && (
                             <button type="button" onClick={() => react("go")} aria-pressed={going} className={`inline-flex h-9 items-center rounded-full px-3.5 text-[0.75rem] font-bold transition active:scale-95 ${going ? "bg-open/15 text-open" : "nt-sunset text-white"}`}>
                                 {going ? "✓ " : ""}
                                 {words.going}
