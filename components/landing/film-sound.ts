@@ -1,3 +1,4 @@
+import { audible, quiet } from "@/lib/audible";
 import { BEAT, FILM, FILM_BEATS, FILM_STARTS } from "@/lib/film";
 
 // The film's soundtrack, played by the browser itself: a kick, a clap, a
@@ -42,6 +43,9 @@ export type FilmSound = { start: (seconds: number) => void; stop: () => void };
 export function createFilmSound(): FilmSound | null {
     const Context = typeof window === "undefined" ? null : (window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext);
     if (!Context) return null;
+    // Heard on an iPhone set to silent too (lib/audible.ts): created in answer to a touch.
+    const owner = {};
+    audible(owner);
     // iPhones can refuse an audio device (a call in progress, silent mode,
     // too many players open): the film then simply plays without sound.
     let ctx: AudioContext;
@@ -159,6 +163,7 @@ export function createFilmSound(): FilmSound | null {
     return {
         // Plays from `seconds` into the film (the film's own clock).
         start(seconds) {
+            audible(owner);
             ctx.resume().catch(() => {});
             window.clearInterval(timer);
             origin = ctx.currentTime - seconds;
@@ -169,6 +174,7 @@ export function createFilmSound(): FilmSound | null {
         stop() {
             window.clearInterval(timer);
             ctx.suspend().catch(() => {});
+            quiet(owner);
         },
     };
 }

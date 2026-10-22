@@ -7,6 +7,7 @@
 // A browser only lets a page make sound after a tap: `playTrack` must be
 // called from one.
 
+import { audible, quiet } from "./audible";
 import type { Sound } from "./sounds";
 
 export { SOUNDS, isSound, type Sound } from "./sounds";
@@ -124,7 +125,11 @@ export const audioContext = () => {
 // Plays `sound` in a loop until stopped (one at a time on the page; any
 // number into recordings).
 export function playTrack(sound: Sound, level = 0.5, into?: Into): Playing | null {
-    if (!into) current?.stop();
+    if (!into) {
+        current?.stop();
+        // Heard on an iPhone set to silent too (lib/audible.ts).
+        audible(TRACKS);
+    }
     const ctx = into?.ctx ?? audioContext();
     if (!ctx) return null;
     ctx.resume().catch(() => {});
@@ -225,6 +230,7 @@ export function playTrack(sound: Sound, level = 0.5, into?: Into): Playing | nul
             window.setTimeout(() => (into ? master.disconnect() : ctx.close().catch(() => {})), 400);
             if (current === playing) {
                 current = null;
+                quiet(TRACKS);
                 announce();
             }
         },
