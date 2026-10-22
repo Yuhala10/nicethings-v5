@@ -41,7 +41,7 @@ export default function Elsewhere({ text, city }: { text: string; city: City }) 
             <ul className="mt-2 grid gap-1">
                 {places.map((place) => (
                     <li key={place.slug}>
-                        <Link href={paths.place(locale, place.slug)} className="flex min-h-11 items-center gap-3 rounded-2xl p-2 transition hover:bg-surface-2 active:scale-[0.99]">
+                        <Link href={paths.place(locale, place.slug)} prefetch={false} className="flex min-h-11 items-center gap-3 rounded-2xl p-2 transition hover:bg-surface-2 active:scale-[0.99]">
                             <PlaceThumb cover={place.cover} category={place.category} name={place.name} sizes="56px" className="h-14 w-14 shrink-0 rounded-[0.8rem]" iconSize={18} />
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-semibold text-text">{place.name}</span>

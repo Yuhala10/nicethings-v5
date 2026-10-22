@@ -34,6 +34,7 @@ export default function PlaceCard({
     return (
         <Link
             href={paths.place(locale, place.slug)}
+            prefetch={false}
             className={`group nt-pressable block rounded-[1.25rem] ${className}`}
         >
             <div className="relative">

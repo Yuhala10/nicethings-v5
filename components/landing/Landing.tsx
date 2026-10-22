@@ -226,7 +226,7 @@ export default function Landing({
                                 <nav aria-label={t.nav.cities} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.875rem] md:justify-end">
                                     <span className="text-muted">{t.landing.elsewhere}</span>
                                     {otherCities.slice(0, 4).map((city) => (
-                                        <Link key={city.slug} href={paths.city(locale, city.slug)} className="nt-link">
+                                        <Link key={city.slug} href={paths.city(locale, city.slug)} prefetch={false} className="nt-link">
                                             {city.name}
                                         </Link>
                                     ))}
@@ -245,7 +245,7 @@ export default function Landing({
                             <ul className="mt-5 flex flex-wrap gap-2">
                                 {homeAreas.map((area) => (
                                     <li key={area.slug}>
-                                        <Link href={paths.neighborhood(locale, homeCity.slug, area.name)} className="nt-chip">
+                                        <Link href={paths.neighborhood(locale, homeCity.slug, area.name)} prefetch={false} className="nt-chip">
                                             <MapPin size={14} className="text-muted" />
                                             {area.name}
                                             <span className="font-normal text-muted">{area.count}</span>
@@ -307,6 +307,7 @@ export default function Landing({
                         <li key={city.slug} className="nt-reveal">
                             <Link
                                 href={paths.city(locale, city.slug)}
+                                prefetch={false}
                                 className="nt-pressable group flex h-full min-h-[9.5rem] flex-col justify-between rounded-[1.25rem] border border-line bg-surface p-4 md:min-h-[11rem] md:p-5"
                             >
                                 <span className="text-[0.75rem] font-semibold tracking-[0.12em] text-muted uppercase">{city.region[locale]}</span>
@@ -325,7 +326,7 @@ export default function Landing({
                     <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.875rem]">
                         <span className="text-muted">{t.landing.allCities} :</span>
                         {cities.slice(8).map((city) => (
-                            <Link key={city.slug} href={paths.city(locale, city.slug)} className="nt-link">
+                            <Link key={city.slug} href={paths.city(locale, city.slug)} prefetch={false} className="nt-link">
                                 {city.name}
                             </Link>
                         ))}

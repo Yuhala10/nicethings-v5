@@ -58,7 +58,7 @@ export default function PinCard({
     const long = place.name.length > 30 ? "text-[1.125rem]" : place.name.length > 16 ? "text-[1.5rem]" : "text-[1.75rem]";
 
     return (
-        <Link href={paths.place(locale, place.slug)} className="group nt-pressable block">
+        <Link href={paths.place(locale, place.slug)} prefetch={false} className="group nt-pressable block">
             <div className={`relative overflow-hidden rounded-[1.1rem] bg-surface-2 ${aspect}`}>
                 {photo ? (
                     <>

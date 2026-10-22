@@ -149,7 +149,7 @@ export default function Activity() {
                 <ul className="overflow-hidden rounded-[1.25rem] border border-line bg-surface divide-y divide-line">
                     {shown.map((notice) => (
                         <li key={notice.id}>
-                            <Link href={noticeHref(notice, locale)} className={`flex items-center gap-3 px-4 py-3 transition hover:bg-surface-2 ${notice.read ? "" : "bg-brand-50/60 dark:bg-brand-700/10"}`}>
+                            <Link href={noticeHref(notice, locale)} prefetch={false} className={`flex items-center gap-3 px-4 py-3 transition hover:bg-surface-2 ${notice.read ? "" : "bg-brand-50/60 dark:bg-brand-700/10"}`}>
                                 {notice.actor ? (
                                     <Face person={notice.actor} size={38} />
                                 ) : (

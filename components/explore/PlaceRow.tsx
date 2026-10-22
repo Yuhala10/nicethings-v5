@@ -26,6 +26,7 @@ export default function PlaceRow({
     return (
         <Link
             href={paths.place(locale, place.slug)}
+            prefetch={false}
             onMouseEnter={() => onFocus?.(place.id)}
             className={`group flex items-center gap-3.5 rounded-2xl p-2.5 transition hover:bg-surface-2 active:scale-[0.99] ${active ? "bg-surface-2" : ""}`}
         >

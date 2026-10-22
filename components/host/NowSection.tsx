@@ -247,7 +247,7 @@ export default function NowSection({ city, initial, fixed = false }: { city: str
                                         <ul className="mt-1 divide-y divide-line">
                                             {after.map((item) => (
                                                 <li key={item.place.slug}>
-                                                    <Link href={paths.place(locale, item.place.slug)} className="group flex items-center gap-3 py-3">
+                                                    <Link href={paths.place(locale, item.place.slug)} prefetch={false} className="group flex items-center gap-3 py-3">
                                                         <MapPin size={16} className="shrink-0 text-muted" />
                                                         <span className="min-w-0 flex-1">
                                                             <span className="block truncate font-semibold">{item.place.name}</span>

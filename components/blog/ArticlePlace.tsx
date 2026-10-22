@@ -24,7 +24,7 @@ export default function ArticlePlace({ place, note, number }: { place: PlaceSumm
     return (
         <article id={`lieu-${place.slug}`} className="my-8 scroll-mt-24 overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-card">
             {place.cover && (
-                <Link href={paths.place(locale, place.slug)} className="group relative block">
+                <Link href={paths.place(locale, place.slug)} prefetch={false} className="group relative block">
                     <PlaceThumb
                         cover={place.cover}
                         category={place.category}
@@ -43,7 +43,7 @@ export default function ArticlePlace({ place, note, number }: { place: PlaceSumm
                     <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold tracking-wide text-brand-600 uppercase">{kind}</p>
                         <h3 className="nt-serif mt-1 flex min-w-0 items-center gap-1.5 text-[1.75rem] leading-tight">
-                            <Link href={paths.place(locale, place.slug)} title={place.name} className="min-w-0 truncate hover:text-brand-600">
+                            <Link href={paths.place(locale, place.slug)} prefetch={false} title={place.name} className="min-w-0 truncate hover:text-brand-600">
                                 {place.name}
                             </Link>
                             <VerifiedMark verified={place.verified} />

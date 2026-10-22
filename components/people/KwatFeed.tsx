@@ -56,7 +56,7 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
 
     if (item.type === "outing") {
         return (
-            <Link href={paths.outing(locale, item.id)} className={box}>
+            <Link href={paths.outing(locale, item.id)} prefetch={false} className={box}>
                 <span className="relative block aspect-[4/5] overflow-hidden bg-surface-2">
                     { }
                     <img src={item.cover} alt={item.place.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
@@ -75,7 +75,7 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
     }
     if (item.type === "photo") {
         return (
-            <Link href={href} className={box}>
+            <Link href={href} prefetch={false} className={box}>
                 <span className="relative block aspect-[4/3] overflow-hidden bg-surface-2">
                     { }
                     <img src={item.url} alt={item.caption ?? item.place.name} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
@@ -89,7 +89,7 @@ function Item({ item, wide = false }: { item: KwatItem; wide?: boolean }) {
         );
     }
     return (
-        <Link href={href} className={box}>
+        <Link href={href} prefetch={false} className={box}>
             {/* The place's photo, so a review or a way is not a bare white card. */}
             {item.place.cover && (
                 <span className="relative block aspect-[16/9] overflow-hidden bg-surface-2">

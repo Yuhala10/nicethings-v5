@@ -55,7 +55,7 @@ export default function OutingList({ source, empty, grid = false }: { source: So
             <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
                 {outings.map((outing) => (
                     <li key={outing.id}>
-                        <Link href={paths.outing(locale, outing.id)} className="group block rounded-[1.35rem] border border-line bg-surface p-1.5 shadow-[var(--nt-shadow)] transition hover:-translate-y-0.5 hover:shadow-[var(--nt-shadow-lg)] active:scale-[0.98]">
+                        <Link href={paths.outing(locale, outing.id)} prefetch={false} className="group block rounded-[1.35rem] border border-line bg-surface p-1.5 shadow-[var(--nt-shadow)] transition hover:-translate-y-0.5 hover:shadow-[var(--nt-shadow-lg)] active:scale-[0.98]">
                             <span className="relative block aspect-[4/5] overflow-hidden rounded-[1rem] bg-surface-2">
                                 { }
                                 <img src={outing.media[0].kind === "video" ? (outing.media[0].poster ?? "") : outing.media[0].url} alt={outing.place.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
