@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BadgeCheck, BarChart3, Camera, ExternalLink, Film, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Menu, Newspaper, Search, Sparkles, Users, X, type LucideIcon } from "lucide-react";
+import { BadgeCheck, BarChart3, Camera, ExternalLink, Film, Flag, Inbox, LayoutDashboard, LogOut, MapPin, Menu, Music2, Newspaper, Search, Sparkles, Users, X, type LucideIcon } from "lucide-react";
 import { adminGet, adminPost } from "@/lib/admin-client";
 import { TEAM_KEY, VISITOR_KEY } from "@/lib/analytics";
 import { AdminLangProvider, LangSwitch, useTr, type AdminLang } from "./i18n";
@@ -31,6 +31,7 @@ const GROUPS: { title: [string, string]; items: Item[] }[] = [
             { href: "/admin/reports", label: ["Signalements", "Reports"], short: ["Signal.", "Reports"], icon: Flag, badge: "reports" },
             { href: "/admin/publications", label: ["Contributions", "Contributions"], short: ["Contrib.", "Contrib."], icon: Film },
             { href: "/admin/membres", label: ["Membres", "Members"], short: ["Membres", "Members"], icon: Users },
+            { href: "/admin/musique", label: ["Musique", "Music"], short: ["Musique", "Music"], icon: Music2 },
             { href: "/admin/revendications", label: ["Revendications", "Owner claims"], short: ["Proprios", "Owners"], icon: BadgeCheck, badge: "claims" },
         ],
     },

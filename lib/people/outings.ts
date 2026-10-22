@@ -1,5 +1,6 @@
 import { postUrl } from "../posts";
 import { getAllPlaces } from "../places/server";
+import { hasOutingSong, songsByIds } from "../songs";
 import { getSupabaseAdminClient } from "../supabase/admin";
 import { peopleByIds } from "./server";
 import type { KwatPlace, OutingMedia, OutingView } from "./types";
@@ -16,6 +17,7 @@ type Row = {
     spot_id: string;
     mood: string | null;
     sound?: string | null;
+    song_id?: string | null;
     price_paid: number | null;
     company: string | null;
     body: string | null;
@@ -35,16 +37,22 @@ export async function placesById() {
     return places;
 }
 
-// With script 015, an outing's soundtrack.
-let soundColumn: Promise<boolean> | null = null;
+// With script 015, an outing's soundtrack. Until it is run, asked again
+// every minute, so it switches on by itself once it is.
+let soundColumn: { check: Promise<boolean>; at: number; yes: boolean } | null = null;
 export function hasOutingSound() {
-    soundColumn ??= Promise.resolve(getSupabaseAdminClient().from("nt_outings").select("sound").limit(1)).then((read) => !read.error);
-    return soundColumn;
+    if (!soundColumn || (!soundColumn.yes && Date.now() - soundColumn.at > 60_000)) {
+        const entry = { check: Promise.resolve(false), at: Date.now(), yes: false };
+        entry.check = Promise.resolve(getSupabaseAdminClient().from("nt_outings").select("sound").limit(1)).then((read) => (entry.yes = !read.error));
+        soundColumn = entry;
+    }
+    return soundColumn.check;
 }
 
 export async function loadOutings({ ids, spotId, profileId, profiles, limit = 30, viewer = null, withPending = false }: Where): Promise<OutingView[]> {
     const db = getSupabaseAdminClient();
-    let query = db.from("nt_outings").select((await hasOutingSound()) ? `${OUTING_COLUMNS},sound` : OUTING_COLUMNS);
+    const [withSound, withSong] = await Promise.all([hasOutingSound(), hasOutingSong()]);
+    let query = db.from("nt_outings").select(`${OUTING_COLUMNS}${withSound ? ",sound" : ""}${withSong ? ",song_id" : ""}`);
     if (ids) query = query.in("id", ids);
     if (spotId) query = query.eq("spot_id", spotId);
     if (profileId) query = query.eq("profile_id", profileId);
@@ -57,12 +65,13 @@ export async function loadOutings({ ids, spotId, profileId, profiles, limit = 30
     if (!rows.length) return [];
 
     const outingIds = rows.map((row) => row.id);
-    const [media, people, places, liked, going] = await Promise.all([
+    const [media, people, places, liked, going, songs] = await Promise.all([
         db.from("nt_outing_media").select("outing_id,kind,media_path,poster_path,width,height,sort").in("outing_id", outingIds).order("sort", { ascending: true }),
         peopleByIds(rows.map((row) => row.profile_id)),
         placesById(),
         viewer ? db.from("nt_outing_likes").select("outing_id").eq("profile_id", viewer).in("outing_id", outingIds) : null,
         viewer ? db.from("nt_outing_goers").select("outing_id").eq("profile_id", viewer).in("outing_id", outingIds) : null,
+        songsByIds(rows.map((row) => row.song_id ?? "")),
     ]);
     const files = new Map<string, OutingMedia[]>();
     for (const item of media.data ?? []) {
@@ -81,6 +90,7 @@ export async function loadOutings({ ids, spotId, profileId, profiles, limit = 30
             place: places.get(row.spot_id)!,
             mood: row.mood,
             sound: row.sound ?? null,
+            song: (row.song_id && songs.get(row.song_id)) || null,
             pricePaid: row.price_paid,
             company: row.company,
             body: row.body,

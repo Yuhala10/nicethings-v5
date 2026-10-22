@@ -4,7 +4,7 @@ import { Heart, Music2, Pause } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { fill } from "@/lib/i18n";
 import type { OutingView } from "@/lib/people/types";
-import { isSound, nowPlaying, playTrack, type Playing } from "@/lib/soundtracks";
+import { isSound, nowPlaying, playSong, playTrack, type Playing } from "@/lib/soundtracks";
 import { useLocale } from "../site/LocaleProvider";
 
 // The photos of an outing (swiped sideways) or its video. With music, a
@@ -23,7 +23,11 @@ export default function OutingStage({ outing, shown, onShown, onDoubleTap }: { o
     const lastTap = useRef({ at: 0, x: 0, y: 0 });
     const [playing, setPlaying] = useState(false);
     const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([]);
-    const sound = isSound(outing.sound) && outing.media.every((item) => item.kind === "photo") ? outing.sound : null;
+    const photos = outing.media.every((item) => item.kind === "photo");
+    // A real song, or one of NiceThings' vibes (photos only: a video has its own sound).
+    const song = photos ? outing.song : null;
+    const sound = photos && !song && isSound(outing.sound) ? outing.sound : null;
+    const music = Boolean(song || sound);
     const count = outing.media.length;
 
     // Another outing's music, or this one stopped: the disc stops turning.
@@ -65,12 +69,12 @@ export default function OutingStage({ outing, shown, onShown, onDoubleTap }: { o
     }, [playing, count]);
 
     const toggle = () => {
-        if (!sound) return;
+        if (!music) return;
         if (track.current && nowPlaying() === track.current) {
             track.current.stop();
             return;
         }
-        track.current = playTrack(sound, 0.55);
+        track.current = song ? playSong(song.url, song.start) : playTrack(sound!, 0.55);
         setPlaying(Boolean(track.current));
     };
 
@@ -119,14 +123,14 @@ export default function OutingStage({ outing, shown, onShown, onDoubleTap }: { o
             </div>
 
             {/* A soft shade at the bottom, so what sits on the photo reads. */}
-            {sound && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/55 to-transparent" aria-hidden />}
+            {music && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/55 to-transparent" aria-hidden />}
 
             {count > 1 && (
                 <>
                     <span className="pointer-events-none absolute top-3 right-3 rounded-full bg-black/45 px-2.5 py-1 text-[0.75rem] font-bold text-white tabular-nums backdrop-blur-sm">
                         {shown + 1}/{count}
                     </span>
-                    <div className={`pointer-events-none absolute inset-x-0 flex justify-center gap-1.5 ${sound ? "bottom-[4.25rem]" : "bottom-3"}`}>
+                    <div className={`pointer-events-none absolute inset-x-0 flex justify-center gap-1.5 ${music ? "bottom-[4.25rem]" : "bottom-3"}`}>
                         {outing.media.map((item, index) => (
                             <span key={item.url} className={`h-1.5 rounded-full transition-all ${index === shown ? "w-4 bg-white" : "w-1.5 bg-white/60"}`} />
                         ))}
@@ -135,7 +139,7 @@ export default function OutingStage({ outing, shown, onShown, onDoubleTap }: { o
             )}
 
             {/* The music, as on TikTok: its name rolling by, a turning disc. */}
-            {sound && (
+            {music && (
                 <button type="button" onClick={toggle} aria-pressed={playing} aria-label={playing ? words.mute : words.play} className="absolute inset-x-3 bottom-3 flex items-center gap-2.5 text-left text-white">
                     <span className="flex h-10 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full bg-black/40 px-3.5 backdrop-blur-sm">
                         {playing ? (
@@ -148,7 +152,7 @@ export default function OutingStage({ outing, shown, onShown, onDoubleTap }: { o
                             <Music2 size={16} className="shrink-0" />
                         )}
                         <span className="min-w-0 flex-1 overflow-hidden">
-                            <span className={`block text-[0.8125rem] font-semibold whitespace-nowrap ${playing ? "nt-marquee" : "truncate"}`}>{fill(words.ticker, { sound: words.sounds[sound] })}</span>
+                            <span className={`block text-[0.8125rem] font-semibold whitespace-nowrap ${playing ? "nt-marquee" : "truncate"}`}>{song ? `${song.title} · ${song.artist}` : fill(words.ticker, { sound: words.sounds[sound!] })}</span>
                         </span>
                     </span>
                     <span className="relative h-11 w-11 shrink-0">

@@ -170,6 +170,11 @@ export type Series = { weeks: number; thisWeek: boolean; best: number };
 // "Ma sortie": an outing at a real place, as everyone sees it.
 export type OutingMedia = { kind: "photo" | "video"; url: string; poster: string | null; width: number | null; height: number | null };
 
+// A real song of NiceThings' library (script 016, lib/songs.ts): played from
+// `start` (its best part); `credit` is its licence line ("CC BY 3.0"), none
+// for a song sent by its artist; `link` is where to hear it whole.
+export type SongView = { id: string; title: string; artist: string; genre: string; url: string; start: number; link: string | null; credit: string | null; source: string | null };
+
 export type OutingView = {
     id: string;
     person: Person;
@@ -177,6 +182,8 @@ export type OutingView = {
     mood: string | null;
     // One of NiceThings' soundtracks (lib/soundtracks.ts), for photos.
     sound: string | null;
+    // Or a real song (script 016).
+    song: SongView | null;
     pricePaid: number | null;
     company: string | null;
     body: string | null;

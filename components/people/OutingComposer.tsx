@@ -9,6 +9,7 @@ import { put, readVideo } from "@/lib/media-upload";
 import { call, peekMe } from "@/lib/people/client";
 import { COMPANIES, MAX_OUTING_BODY, MAX_OUTING_PHOTOS, MOODS } from "@/lib/people/rules";
 import { MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, POST_TYPES } from "@/lib/posts";
+import type { SongView } from "@/lib/people/types";
 import { useLocale } from "../site/LocaleProvider";
 import { useToast } from "../site/Toast";
 import Sheet from "./Sheet";
@@ -34,6 +35,7 @@ export default function OutingComposer() {
     const [media, setMedia] = useState<Picked[]>([]);
     const [mood, setMood] = useState<string | null>(null);
     const [sound, setSound] = useState<string | null>(null);
+    const [song, setSong] = useState<SongView | null>(null);
     const [company, setCompany] = useState<string | null>(null);
     const [price, setPrice] = useState("");
     const [body, setBody] = useState("");
@@ -124,6 +126,7 @@ export default function OutingComposer() {
             place: place.slug,
             mood,
             sound,
+            song: song?.id ?? null,
             company,
             pricePaid: Number(price.replace(/\D/g, "")) || null,
             body,
@@ -234,7 +237,15 @@ export default function OutingComposer() {
                 ))}
             </div>
             <p className="mt-5 mb-1 text-[0.875rem] font-semibold">🎵 {t.people.post.music}</p>
-            <SoundPicker value={sound} onChange={setSound} video={media.some((item) => item.kind === "video")} />
+            <SoundPicker
+                sound={sound}
+                song={song}
+                onChange={(music) => {
+                    setSound(music.sound);
+                    setSong(music.song);
+                }}
+                video={media.some((item) => item.kind === "video")}
+            />
             <p className="mt-5 mb-2 text-[0.875rem] font-semibold">{words.with}</p>
             <div className="flex flex-wrap gap-2">
                 {COMPANIES.map((key) => (

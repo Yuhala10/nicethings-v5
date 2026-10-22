@@ -104,7 +104,9 @@ export default function OutingCard({ outing: given, onRemoved, live = false }: {
     };
 
     const mood = outing.mood ? words.moods[outing.mood as keyof typeof words.moods] : null;
-    const story = { handle: outing.person.handle, place: outing.place.name, detail: [outing.place.neighborhood, mood].filter(Boolean).join(" · ") };
+    const song = outing.song;
+    const songLink = song?.link ?? song?.source ?? null;
+    const story = { handle: outing.person.handle, place: outing.place.name, detail: [outing.place.neighborhood, mood].filter(Boolean).join(" · "), music: song ? `${song.title} — ${song.artist}${song.credit ? ` · ${song.credit}` : ""}` : undefined };
 
     const facts = [outing.mood ? words.moods[outing.mood as keyof typeof words.moods] : null, outing.pricePaid ? fill(words.paidLabel, { price: formatPrice(outing.pricePaid, locale) }) : null, outing.company ? t.people.companies[outing.company as keyof typeof t.people.companies] : null].filter(Boolean);
 
@@ -142,6 +144,21 @@ export default function OutingCard({ outing: given, onRemoved, live = false }: {
                     </span>
                 </Link>
                 {facts.length > 0 && <p className="mt-3 text-[0.875rem] font-semibold">{facts.join(" · ")}</p>}
+                {/* The song's credit, and where to hear it whole (its artist's link). */}
+                {outing.song && outing.media.every((item) => item.kind === "photo") && (
+                    <p className="mt-1.5 truncate text-[0.75rem] text-muted">
+                        🎵 {outing.song.title} — {outing.song.artist}
+                        {outing.song.credit ? ` · ${outing.song.credit}` : ""}
+                        {songLink && (
+                            <>
+                                {" · "}
+                                <a href={songLink} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-600 underline-offset-2 hover:underline">
+                                    {t.people.post.hearWhole}
+                                </a>
+                            </>
+                        )}
+                    </p>
+                )}
                 {outing.body && <p className="mt-1.5 text-[1rem] leading-relaxed whitespace-pre-line text-text-2">{outing.body}</p>}
 
                 <div className="mt-3 flex items-center gap-1">

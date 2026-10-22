@@ -100,7 +100,9 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             steps: [
                 "« Publier ma sortie » (dans Moi, sur l'accueil ou sur la fiche d'un lieu) : le lieu, jusqu'à 4 photos ou une vidéo de 45 secondes, l'ambiance, avec qui, ce que tu as payé, un mot.",
                 "Tes premières sorties passent par l'équipe ; dès « Habitué », elles sont en ligne tout de suite.",
-                "Sous une sortie : un cœur, des commentaires, et « J'y vais aussi », qui garde le lieu dans tes favoris et le dit à son auteur.",
+                "Avec des photos, choisis une musique : une vraie chanson (avec le nom de son artiste) ou une ambiance NiceThings. Sur la sortie, touche le disque qui tourne : la musique joue et les photos défilent.",
+                "Sous une sortie : un cœur (ou deux touches sur la photo), des commentaires, et « J'y vais aussi », qui garde le lieu dans tes favoris et le dit à son auteur.",
+                "Ta sortie : « Modifier » change l'ambiance, la musique, le prix et tes mots. La flèche ⬇ la télécharge : la photo encadrée, ou une vidéo avec la marque NiceThings, à envoyer sur WhatsApp ou TikTok.",
                 "« Suivre » sur le profil de quelqu'un : ses sorties apparaissent dans « Mes amis », sur la page « Ça bouge au kwat ».",
             ],
         },
@@ -303,7 +305,9 @@ export const HELP: Record<Locale, HelpTopic[]> = {
             steps: [
                 "“Post my outing” (in Me, on the home page or on a place's page): the place, up to 4 photos or a 45-second video, the vibe, who with, what you paid, a few words.",
                 "Your first outings go through the team; from “Regular” on, they're online at once.",
-                "Under an outing: a heart, comments, and “I'm going too”, which keeps the place in your saved places and tells its author.",
+                "With photos, choose music: a real song (with its artist's name) or a NiceThings vibe. On the outing, tap the turning disc: the music plays and the photos roll.",
+                "Under an outing: a heart (or two taps on the photo), comments, and “I'm going too”, which keeps the place in your saved places and tells its author.",
+                "Your outing: “Edit” changes the vibe, the music, the price and your words. The ⬇ arrow downloads it: the framed photo, or a video with the NiceThings mark, to send on WhatsApp or TikTok.",
                 "“Follow” on someone's profile: their outings show in “My friends”, on the “What's happening around” page.",
             ],
         },

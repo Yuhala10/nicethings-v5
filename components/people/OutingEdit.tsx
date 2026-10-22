@@ -20,6 +20,7 @@ export default function OutingEdit({ outing, onClose, onSaved }: { outing: Outin
     const toast = useToast();
     const [mood, setMood] = useState(outing.mood);
     const [sound, setSound] = useState(outing.sound);
+    const [song, setSong] = useState(outing.song);
     const [company, setCompany] = useState(outing.company);
     const [price, setPrice] = useState(outing.pricePaid ? formatNumber(outing.pricePaid, locale) : "");
     const [body, setBody] = useState(outing.body ?? "");
@@ -37,12 +38,13 @@ export default function OutingEdit({ outing, onClose, onSaved }: { outing: Outin
             body,
             mood,
             sound,
+            song: song?.id ?? null,
             company,
             pricePaid: Number(price.replace(/\D/g, "")) || null,
         });
         setBusy(false);
         if (answer.ok !== true) return setTrouble(t.people.common.failed);
-        onSaved(answer.outing ?? { ...outing, mood, sound, company, body: body.trim() || null, status: answer.status });
+        onSaved(answer.outing ?? { ...outing, mood, sound, song, company, body: body.trim() || null, status: answer.status });
         toast(answer.status === "PENDING" && outing.status === "PUBLISHED" ? t.people.post.rereading : t.people.post.saved);
         onClose();
     };
@@ -58,7 +60,15 @@ export default function OutingEdit({ outing, onClose, onSaved }: { outing: Outin
                 ))}
             </div>
             <p className="mt-5 mb-1 text-[0.875rem] font-semibold">🎵 {t.people.post.music}</p>
-            <SoundPicker value={sound} onChange={setSound} video={video} />
+            <SoundPicker
+                sound={sound}
+                song={song}
+                onChange={(music) => {
+                    setSound(music.sound);
+                    setSong(music.song);
+                }}
+                video={video}
+            />
             <p className="mt-5 mb-2 text-[0.875rem] font-semibold">{words.with}</p>
             <div className="flex flex-wrap gap-2">
                 {COMPANIES.map((key) => (

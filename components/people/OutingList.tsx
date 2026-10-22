@@ -62,15 +62,18 @@ export default function OutingList({ source, empty, grid = false }: { source: So
                                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-2.5 pt-10 pb-2 text-white">
                                     <span className="block truncate text-[0.875rem] font-semibold">{outing.place.name}</span>
                                     {outing.mood && <span className="block truncate text-[0.75rem] text-white/85">{t.people.outing.moods[outing.mood as keyof typeof t.people.outing.moods]}</span>}
+                                    {(outing.song || outing.sound) && outing.media[0].kind === "photo" && (
+                                        <span className="block truncate text-[0.75rem] text-white/85">🎵 {outing.song ? outing.song.title : t.people.post.sounds[outing.sound as keyof typeof t.people.post.sounds]}</span>
+                                    )}
                                 </span>
                                 {outing.media.length > 1 && (
-                                    <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[0.7rem] font-semibold text-white">
+                                    <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[0.75rem] font-semibold text-white">
                                         <Images size={12} />
                                         {outing.media.length}
                                     </span>
                                 )}
                                 {outing.media[0].kind === "video" && <Play size={16} fill="currentColor" className="absolute top-2.5 right-2.5 text-white drop-shadow" />}
-                                {outing.status === "PENDING" && <span className="absolute top-2 left-2 rounded-full bg-[#f2c230] px-2 py-0.5 text-[0.7rem] font-bold text-[#15110e]">{t.people.outing.pending}</span>}
+                                {outing.status === "PENDING" && <span className="absolute top-2 left-2 rounded-full bg-[#f2c230] px-2 py-0.5 text-[0.75rem] font-bold text-[#15110e]">{t.people.outing.pending}</span>}
                             </span>
                             <span className="flex items-center gap-3 px-1.5 pt-2 pb-1 text-[0.75rem] text-muted">
                                 <span className="inline-flex items-center gap-1">

@@ -26,7 +26,8 @@ export default function OutingDownload({ outing, shown, story, link }: { outing:
     const audio = useRef<AudioContext | null>(null);
     const percent = useRef(-1);
     const isVideo = outing.media[0]?.kind === "video";
-    const sound = isSound(outing.sound) ? outing.sound : null;
+    const song = outing.song;
+    const sound = !song && isSound(outing.sound) ? outing.sound : null;
     // The photo shown, or a video's first image.
     const current = outing.media[Math.min(shown, outing.media.length - 1)];
     const still = current?.kind === "video" ? (current.poster ?? "") : (current?.url ?? "");
@@ -42,7 +43,7 @@ export default function OutingDownload({ outing, shown, story, link }: { outing:
                 kind === "photo"
                     ? await photoKeepsake(still, story)
                     : await videoKeepsake(
-                          isVideo ? { video: outing.media[0].url } : { photos: outing.media.map((item) => item.url), sound },
+                          isVideo ? { video: outing.media[0].url } : { photos: outing.media.map((item) => item.url), sound, song: song ? { url: song.url, start: song.start } : null },
                           story,
                           audio.current,
                           (share) => {
@@ -103,7 +104,7 @@ export default function OutingDownload({ outing, shown, story, link }: { outing:
                     <div className="grid gap-3 pt-1">
                         {isVideo && canMakeVideo() && <Choice Icon={Clapperboard} title={words.video} lead={words.videoLead} onPick={() => pick("video")} />}
                         {still && <Choice Icon={ImageDown} title={words.photo} lead={words.photoLead} onPick={() => pick("photo")} />}
-                        {!isVideo && canMakeVideo() && (outing.media.length > 1 || sound) && <Choice Icon={Clapperboard} title={sound ? words.slideshow : words.video} lead={words.slideshowLead} onPick={() => pick("video")} />}
+                        {!isVideo && canMakeVideo() && (outing.media.length > 1 || sound || song) && <Choice Icon={Clapperboard} title={sound || song ? words.slideshow : words.video} lead={words.slideshowLead} onPick={() => pick("video")} />}
                     </div>
                 )}
 

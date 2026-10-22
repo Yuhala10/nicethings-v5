@@ -124,6 +124,8 @@ export const paths = {
     person: (locale: Locale, handle: string) => `/${locale}/u/${handle}`,
     kwat: (locale: Locale) => `/${locale}/kwat`,
     outing: (locale: Locale, id: string) => `/${locale}/sortie/${id}`,
+    // "Ton son sur NiceThings": artists send their songs.
+    artists: (locale: Locale) => `/${locale}/artistes`,
     messages: (locale: Locale) => `/${locale}/messages`,
     chat: (locale: Locale, handle: string) => `/${locale}/messages/${handle}`,
 };

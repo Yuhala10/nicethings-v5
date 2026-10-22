@@ -241,3 +241,43 @@ export function playTrack(sound: Sound, level = 0.5, into?: Into): Playing | nul
     }
     return playing;
 }
+
+// A real song of the library (lib/songs.ts): an ordinary sound file, which an
+// iPhone plays even on silent. From its best part (`start`), `length`
+// seconds, again and again, until stopped; one sound at a time on the page,
+// like the soundtracks.
+export function playSong(url: string, start = 0, length = 75): Playing | null {
+    if (typeof Audio === "undefined") return null;
+    current?.stop();
+    const audio = new Audio();
+    audio.preload = "auto";
+    audio.setAttribute("playsinline", "");
+    audio.src = start > 0 ? `${url}#t=${start}` : url;
+    const back = () => {
+        try {
+            audio.currentTime = start;
+        } catch {}
+    };
+    audio.addEventListener("timeupdate", () => {
+        if (audio.currentTime >= start + length) back();
+    });
+    audio.addEventListener("ended", () => {
+        back();
+        audio.play().catch(() => {});
+    });
+    const playing: Playing = {
+        stop() {
+            audio.pause();
+            audio.removeAttribute("src");
+            audio.load();
+            if (current === playing) {
+                current = null;
+                announce();
+            }
+        },
+    };
+    current = playing;
+    announce();
+    audio.play().catch(() => playing.stop());
+    return playing;
+}

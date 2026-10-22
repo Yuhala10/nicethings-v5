@@ -1,6 +1,7 @@
 "use client";
 
 import { apple } from "@/lib/share";
+import { SONG_CLIP_SECONDS } from "@/lib/song-rules";
 import { playTrack, type Playing, type Sound } from "@/lib/soundtracks";
 
 // Downloads of an outing, marked NiceThings the way TikTok marks its videos.
@@ -10,9 +11,10 @@ import { playTrack, type Playing, type Sound } from "@/lib/soundtracks";
 // NiceThings' card with a short chime: the pin, the name, @name, the place.
 // It is all made on the phone: nothing leaves it until it is shared.
 
-export type Story = { handle: string; place: string; detail: string };
+// `music`: the song's credit, said on the closing card ("Title — Artist · CC BY 3.0").
+export type Story = { handle: string; place: string; detail: string; music?: string };
 export type Keepsake = { file: File; url: string; kind: "photo" | "video" };
-export type Making = { video: string } | { photos: string[]; sound: Sound | null };
+export type Making = { video: string } | { photos: string[]; sound: Sound | null; song?: { url: string; start: number } | null };
 
 const ORANGE = "#f97316";
 const SITE = "nicethings.site";
@@ -253,6 +255,12 @@ function endCard(ctx: CanvasRenderingContext2D, story: Story, elapsed: number) {
     setFont(ctx, 500, 28);
     ctx.fillStyle = "rgba(255,255,255,0.72)";
     ctx.fillText(fit(ctx, story.place, W - 140), W / 2, middle + 284 + lift);
+    if (story.music) {
+        lift = rise(0.95);
+        setFont(ctx, 500, 24);
+        ctx.fillStyle = "rgba(255,255,255,0.6)";
+        ctx.fillText(fit(ctx, `♪ ${story.music}`, W - 120), W / 2, middle + 330 + lift);
+    }
 
     lift = rise(1);
     setFont(ctx, 700, 30);
@@ -308,8 +316,10 @@ export async function videoKeepsake(making: Making, story: Story, audio: AudioCo
     let voice: AudioBuffer | null = null;
     const photos: HTMLImageElement[] = [];
     let length: number;
+    let tune: AudioBuffer | null = null;
     const before = "video" in making ? 0.25 : 0.12;
     const backing = "video" in making ? null : making.sound;
+    const songOf = "video" in making ? null : (making.song ?? null);
 
     try {
         if ("video" in making) {
@@ -333,6 +343,8 @@ export async function videoKeepsake(making: Making, story: Story, audio: AudioCo
         } else {
             for (const [index, src] of making.photos.entries()) photos.push(await imageOf(await fetchBlob(src, signal, (share) => onShare(((index + share) / making.photos.length) * before))));
             length = Math.max(6, photos.length * SLIDE);
+            // A real song: its sound, from its best part.
+            if (songOf && audio) tune = await audio.decodeAudioData(await (await fetchBlob(songOf.url, signal)).arrayBuffer()).catch(() => null);
         }
         if (signal.aborted) throw aborted();
 
@@ -382,6 +394,7 @@ export async function videoKeepsake(making: Making, story: Story, audio: AudioCo
 
         let music: Playing | null = null;
         let sound: AudioBufferSourceNode | null = null;
+        let fadeTune: (() => void) | null = null;
         let startedAt = 0;
         let endedAt = 0;
         let frame = 0;
@@ -399,6 +412,7 @@ export async function videoKeepsake(making: Making, story: Story, audio: AudioCo
             if (!endedAt && (video ? video.ended || time >= length - 0.04 : time >= length)) {
                 endedAt = now;
                 music?.stop();
+                fadeTune?.();
                 if (audio && into) chime(audio, into);
             }
             if (endedAt) {
@@ -440,7 +454,25 @@ export async function videoKeepsake(making: Making, story: Story, audio: AudioCo
                 }
             } else {
                 startedAt = performance.now();
-                if (backing && audio && into) music = playTrack(backing, 0.7, { ctx: audio, node: into });
+                if (tune && songOf && audio && into) {
+                    sound = audio.createBufferSource();
+                    sound.buffer = tune;
+                    const from = Math.min(songOf.start, Math.max(0, tune.duration - 5));
+                    sound.loop = true;
+                    sound.loopStart = from;
+                    sound.loopEnd = Math.min(tune.duration, from + SONG_CLIP_SECONDS);
+                    const level = audio.createGain();
+                    level.gain.setValueAtTime(0.0001, audio.currentTime);
+                    level.gain.exponentialRampToValueAtTime(0.9, audio.currentTime + 0.4);
+                    sound.connect(level).connect(into);
+                    sound.start(audio.currentTime, from);
+                    // Under the closing card, the song bows out while the chime rings.
+                    fadeTune = () => {
+                        level.gain.cancelScheduledValues(audio.currentTime);
+                        level.gain.setValueAtTime(level.gain.value, audio.currentTime);
+                        level.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 1.2);
+                    };
+                } else if (backing && audio && into) music = playTrack(backing, 0.7, { ctx: audio, node: into });
             }
             frame = requestAnimationFrame(draw);
             await drawn;

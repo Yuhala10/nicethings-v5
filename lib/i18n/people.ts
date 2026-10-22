@@ -2,7 +2,7 @@
 // are many, but part of the dictionary like any other (`t.people`). The
 // English must keep the French shape (enforced by its type).
 
-import { chatEn, chatFr, postEn, postFr, seriesEn, seriesFr } from "./chat";
+import { chatEn, chatFr, postEn, postFr, seriesEn, seriesFr, songsEn, songsFr } from "./chat";
 
 export const peopleFr = {
     island: "Moi",
@@ -307,6 +307,7 @@ export const peopleFr = {
     chat: chatFr,
     series: seriesFr,
     post: postFr,
+    songs: songsFr,
     ratings: ["C'est le ndem", "Bof", "Ça peut aller", "C'est propre", "C'est validé !"],
     ratingFaces: ["😩", "😕", "🙂", "😋", "🔥"],
     tags: {
@@ -742,6 +743,7 @@ export const peopleEn: PeopleWords = {
     chat: chatEn,
     series: seriesEn,
     post: postEn,
+    songs: songsEn,
     ratings: ["A flop", "Meh", "It's alright", "Solid", "Validated!"],
     ratingFaces: ["😩", "😕", "🙂", "😋", "🔥"],
     tags: {

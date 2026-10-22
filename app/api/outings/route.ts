@@ -6,6 +6,7 @@ import { getPlace } from "@/lib/places/server";
 import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, POST_BUCKET, POST_TYPES, UUID } from "@/lib/posts";
 import { checkLevel } from "@/lib/people/notices";
 import { followingOf, hasOutingSound, loadOutings } from "@/lib/people/outings";
+import { countUse, hasOutingSong, liveSong } from "@/lib/songs";
 import { isSound } from "@/lib/sounds";
 import { refreshPerson } from "@/lib/people/pages";
 import { COMPANIES, MAX_OUTING_BODY, MAX_OUTING_PHOTOS, MAX_PRICE, MOODS, OUTINGS_PER_DAY, needsReading, normalizeHandle, postsAtOnce } from "@/lib/people/rules";
@@ -85,6 +86,8 @@ export async function POST(request: Request) {
 
         const price = Math.round(Number(body.pricePaid));
         const text = typeof body.body === "string" ? body.body.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, MAX_OUTING_BODY) : "";
+        // A real song (script 016) or one of NiceThings' soundtracks, with photos.
+        const song = !videos.length && body.song && (await hasOutingSong()) ? await liveSong(body.song) : null;
         const outing = await db
             .from("nt_outings")
             .insert({
@@ -95,11 +98,12 @@ export async function POST(request: Request) {
                 company: (COMPANIES as readonly string[]).includes(body.company as string) ? body.company : null,
                 body: text || null,
                 // A soundtrack goes with photos (a video keeps its own sound).
-                ...(isSound(body.sound) && !videos.length && (await hasOutingSound()) && { sound: body.sound }),
+                ...(song ? { song_id: song.id } : isSound(body.sound) && !videos.length && (await hasOutingSound()) && { sound: body.sound }),
             })
             .select("id")
             .single();
         if (outing.error) throw outing.error;
+        if (song) await countUse(song.id);
 
         const storage = db.storage.from(POST_BUCKET);
         const uploads = [];
@@ -133,7 +137,7 @@ export async function POST(request: Request) {
 }
 
 // The files are there: online now, or waiting for the team.
-// { id, action: "edit", body, mood, sound, company, pricePaid }: its author
+// { id, action: "edit", body, mood, sound, song, company, pricePaid }: its author
 // changes what was said about it (the photos and the place stay).
 export async function PATCH(request: Request) {
     const { profile, denied } = await requireProfile(request);
@@ -143,12 +147,14 @@ export async function PATCH(request: Request) {
     if (!id) return deny("invalid", 400);
     const db = getSupabaseAdminClient();
     if (body.action === "edit") {
-        const found = await db.from("nt_outings").select("id,status,body").eq("id", id).eq("profile_id", profile.id).maybeSingle();
+        const found = await db.from("nt_outings").select((await hasOutingSong()) ? "id,status,body,song_id" : "id,status,body").eq("id", id).eq("profile_id", profile.id).maybeSingle<{ id: string; status: string; body: string | null; song_id?: string | null }>();
         if (found.error) return deny("failed", 502);
         if (!found.data || found.data.status === "DRAFT" || found.data.status === "HIDDEN") return deny("invalid", 404);
         const text = typeof body.body === "string" ? body.body.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, MAX_OUTING_BODY) : ((found.data.body as string | null) ?? "");
         const price = Math.round(Number(body.pricePaid));
         const hasVideo = await db.from("nt_outing_media").select("outing_id", { count: "exact", head: true }).eq("outing_id", id).eq("kind", "video");
+        const withSong = await hasOutingSong();
+        const song = withSong && !hasVideo.count && body.song ? await liveSong(body.song) : null;
         // New words with a link or a number go past the team first.
         const reread = needsReading(text) && text !== found.data.body && !(profile.role === "team" || profile.role === "founder");
         const change: Record<string, unknown> = {
@@ -157,10 +163,12 @@ export async function PATCH(request: Request) {
             company: (COMPANIES as readonly string[]).includes(body.company as string) ? body.company : null,
             price_paid: Number.isFinite(price) && price > 0 && price <= MAX_PRICE ? price : null,
             ...(reread && { status: "PENDING" }),
-            ...((await hasOutingSound()) && { sound: isSound(body.sound) && !hasVideo.count ? body.sound : null }),
+            ...((await hasOutingSound()) && { sound: !song && isSound(body.sound) && !hasVideo.count ? body.sound : null }),
+            ...(withSong && { song_id: song?.id ?? null }),
         };
         const saved = await db.from("nt_outings").update(change).eq("id", id);
         if (saved.error) return deny("failed", 502);
+        if (song && song.id !== found.data.song_id) await countUse(song.id);
         revalidateTag("kwat", NOW);
         refreshPerson(profile.handle);
         const [outing] = await loadOutings({ ids: [id], viewer: profile.id, withPending: true });
