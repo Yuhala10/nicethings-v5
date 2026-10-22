@@ -1,8 +1,9 @@
-// Going from one page to another. A template is made anew for each page, so
-// this wrapper is new each time: the page arriving fades in (site.css,
-// "From one page to another"). Together with the page being left stepping
-// back the moment a link is tapped (components/site/NavProgress.tsx), that
-// is the whole change.
+import PageFade from "@/components/site/PageFade";
+
+// Going from one page to another. The page arriving fades in (PageFade,
+// site.css "From one page to another"), from where the page being left had
+// dimmed to when the link was tapped (components/site/NavProgress.tsx): one
+// continuous movement, with no blink in between.
 //
 // Opacity and nothing else, on purpose. The browser's own page transitions
 // were tried here: they photograph the whole page being left, and on a long
@@ -10,5 +11,5 @@
 // wrapper that moved or scaled would carry along what the pages pin to the
 // screen (the map, the guidance).
 export default function Template({ children }: { children: React.ReactNode }) {
-    return <div className="nt-page">{children}</div>;
+    return <PageFade>{children}</PageFade>;
 }

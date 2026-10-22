@@ -326,7 +326,7 @@ export default function Film() {
                     <ol className="absolute inset-x-3 top-3 z-20 flex gap-1" aria-hidden>
                         {FILM_CHAPTERS.map((name, index) => (
                             <li key={name.fr} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/25">
-                                <span className={`block h-full rounded-full bg-white ${index < chapter ? "w-full" : index === chapter ? "nt-film-bar" : "w-0"}`} key={index === chapter ? `on-${Math.floor(step / FILM.length)}` : "off"} style={index === chapter ? { animationDuration: `${FILM.filter((item) => item.chapter === chapter).reduce((sum, item) => sum + item.beats, 0) * BEAT}s` } : undefined} />
+                                <span className={`block h-full rounded-full bg-white ${index < chapter ? "w-full" : index === chapter ? "nt-film-bar w-full" : "w-0"}`} key={index === chapter ? `on-${Math.floor(step / FILM.length)}` : "off"} style={index === chapter ? { animationDuration: `${FILM.filter((item) => item.chapter === chapter).reduce((sum, item) => sum + item.beats, 0) * BEAT}s` } : undefined} />
                             </li>
                         ))}
                     </ol>

@@ -576,15 +576,15 @@
 }
 
 /* The pulse is a separate layer animated with transform/opacity only, so
-   the browser never has to repaint the page for it. */
+   the browser never has to repaint the page for it; four times, then it
+   rests (a page can show dozens of these). */
 .nt-open-dot::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     background: var(--color-open);
-    animation: nt-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-    will-change: transform, opacity;
+    animation: nt-ping 2s cubic-bezier(0, 0, 0.2, 1) 4 both;
 }
 
 @keyframes nt-ping {
@@ -1037,6 +1037,7 @@
 }
 
 .nt-film-bar {
+    transform-origin: left center;
     animation: nt-film-bar linear both;
 }
 
@@ -1154,12 +1155,14 @@
     }
 }
 
+/* Grown by a transform, not its width: a width change lays the whole page
+   out again (its text too) on every frame, and kept a phone busy. */
 @keyframes nt-film-bar {
     from {
-        width: 0;
+        transform: scaleX(0);
     }
     to {
-        width: 100%;
+        transform: none;
     }
 }
 
@@ -1217,24 +1220,25 @@
 }
 
 /* ---- From one page to another (app/[lang]/template.tsx) -------------------
-   The tap is answered at once: the page being left steps back and waits like
-   that while the next one is fetched (components/site/NavProgress.tsx). Then
-   the page arriving fades in. Opacity only, both times: it costs a phone
-   nothing, and it moves nothing that a page pins to the screen. The fade
-   leaves no trace once it is over, so what a page lays over the menu still
-   goes over it. */
+   The tap is answered at once: the page being left eases back to 60 % and
+   waits like that while the next one is fetched (NavProgress.tsx). The page
+   arriving starts from that same 60 % and brightens: one movement, no blink
+   (it used to go back to nothing first). Opacity only, both times: it costs
+   a phone nothing, and it moves nothing that a page pins to the screen. The
+   fade leaves no trace once it is over, so what a page lays over the menu
+   still goes over it. */
 html[data-nt-leaving] #main {
-    opacity: 0.42;
-    transition: opacity 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    opacity: 0.6;
+    transition: opacity 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .nt-page {
-    animation: nt-page-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+    animation: nt-page-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
 }
 
 @keyframes nt-page-in {
     from {
-        opacity: 0;
+        opacity: 0.6;
     }
 }
 
@@ -1395,13 +1399,13 @@ html[data-nt-welcome] .nt-welcome-hint > .nt-welcome-rise {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: nt-foil-shine 7s ease-in-out infinite alternate;
+    animation: nt-foil-shine 7s ease-in-out 3 alternate both;
 }
 
 .nt-foil-bg {
     background: linear-gradient(120deg, #b4862a 0%, #f6dd86 32%, #c99a35 52%, #fff1b5 72%, #b4862a 100%);
     background-size: 240% 240%;
-    animation: nt-foil-shine 7s ease-in-out infinite alternate;
+    animation: nt-foil-shine 7s ease-in-out 3 alternate both;
 }
 
 @keyframes nt-foil-shine {

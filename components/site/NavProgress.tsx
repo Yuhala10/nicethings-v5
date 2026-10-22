@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 // Every tap on an internal link gets an immediate answer: a sunset bar
@@ -14,12 +14,17 @@ export default function NavProgress() {
     const timer = useRef<number | undefined>(undefined);
     const leaving = useRef<number | undefined>(undefined);
 
-    // Page changed: finish and fade out, and the page is itself again.
-    useEffect(() => {
-        window.clearInterval(timer.current);
+    // Page changed: the dim is lifted before the new page's first frame is
+    // drawn (it starts at the same 60 % itself, site.css), so it is never
+    // dimmed twice.
+    useLayoutEffect(() => {
         window.clearTimeout(leaving.current);
         document.documentElement.removeAttribute("data-nt-leaving");
-         
+    }, [pathname]);
+
+    // And the bar finishes and fades out.
+    useEffect(() => {
+        window.clearInterval(timer.current);
         setProgress((current) => (current === null ? null : 100));
         const hide = window.setTimeout(() => setProgress(null), 260);
         return () => window.clearTimeout(hide);
