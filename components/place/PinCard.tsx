@@ -36,12 +36,17 @@ export default function PinCard({
     distance = null,
     priority = false,
     shape = "auto",
+    preload = false,
 }: {
     place: PlaceSummary;
     distance?: number | null;
     priority?: boolean;
     // "wide" is for a tile that spans two columns of a mosaic.
     shape?: "auto" | "portrait" | "wide";
+    // Fetch its page as soon as it is on screen: for short lists one is
+    // likely to follow (a place's neighbours). Long lists fetch only the
+    // card the finger touches (NavProgress), or a phone fetches dozens.
+    preload?: boolean;
 }) {
     const { locale } = useLocale();
     const [broken, setBroken] = useState(false);
@@ -58,7 +63,7 @@ export default function PinCard({
     const long = place.name.length > 30 ? "text-[1.125rem]" : place.name.length > 16 ? "text-[1.5rem]" : "text-[1.75rem]";
 
     return (
-        <Link href={paths.place(locale, place.slug)} prefetch={false} className="group nt-pressable block">
+        <Link href={paths.place(locale, place.slug)} prefetch={preload ? null : false} className="group nt-pressable block">
             <div className={`relative overflow-hidden rounded-[1.1rem] bg-surface-2 ${aspect}`}>
                 {photo ? (
                     <>

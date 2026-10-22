@@ -717,7 +717,7 @@ export default async function PlacePage({ params }: Props) {
                     <ul className="nt-rail">
                         {next.map(({ place: item, distance }) => (
                             <li key={item.id}>
-                                <PinCard place={item} distance={distance} shape="portrait" />
+                                <PinCard place={item} distance={distance} shape="portrait" preload />
                             </li>
                         ))}
                     </ul>
@@ -730,7 +730,7 @@ export default async function PlacePage({ params }: Props) {
                     <ul className="nt-rail">
                         {nearby.map(({ place: item, distance }) => (
                             <li key={item.id}>
-                                <PinCard place={item} distance={distance} shape="portrait" />
+                                <PinCard place={item} distance={distance} shape="portrait" preload />
                             </li>
                         ))}
                     </ul>
@@ -743,7 +743,7 @@ export default async function PlacePage({ params }: Props) {
                     <ul className="nt-rail">
                         {similar.map(({ place: item }) => (
                             <li key={item.id}>
-                                <PinCard place={item} shape="portrait" />
+                                <PinCard place={item} shape="portrait" preload />
                             </li>
                         ))}
                     </ul>
