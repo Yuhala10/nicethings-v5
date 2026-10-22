@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LocateFixed, Search } from "lucide-react";
@@ -17,33 +17,36 @@ export default function HeroSearch() {
     const router = useRouter();
     const [value, setValue] = useState("");
     const [hint, setHint] = useState("");
+    const box = useRef<HTMLInputElement>(null);
 
+    // Examples of searches, one after the other, whole, while the box is on
+    // screen. (They used to be typed letter by letter, 20 to 40 changes a
+    // second, forever: each made the phone lay out the page's text again,
+    // and a tap on the home page waited seconds for it.)
     useEffect(() => {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            setHint(t.landing.searchExamples[0]);
-            return;
-        }
+        const examples = t.landing.searchExamples;
         let example = 0;
-        let length = 0;
-        let deleting = false;
-        let timer: number;
-        const tick = () => {
-            const text = t.landing.searchExamples[example];
-            length += deleting ? -1 : 1;
-            setHint(text.slice(0, length));
-            let delay = deleting ? 22 : 55;
-            if (!deleting && length === text.length) {
-                deleting = true;
-                delay = 1800;
-            } else if (deleting && length === 0) {
-                deleting = false;
-                example = (example + 1) % t.landing.searchExamples.length;
-                delay = 350;
-            }
-            timer = window.setTimeout(tick, delay);
+        let timer = 0;
+        let onScreen = false;
+        const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const next = () => {
+            setHint(examples[example]);
+            if (still) return;
+            example = (example + 1) % examples.length;
+            timer = window.setTimeout(next, 2600);
         };
-        timer = window.setTimeout(tick, 600);
-        return () => window.clearTimeout(timer);
+        const watch = new IntersectionObserver(([entry]) => {
+            const now = Boolean(entry?.isIntersecting);
+            if (now === onScreen) return;
+            onScreen = now;
+            window.clearTimeout(timer);
+            if (now) next();
+        });
+        if (box.current) watch.observe(box.current);
+        return () => {
+            watch.disconnect();
+            window.clearTimeout(timer);
+        };
     }, [t]);
 
     const searchHref = (params: string) => `${paths.searchEntry(locale)}${params ? `?${params}` : ""}`;
@@ -62,6 +65,7 @@ export default function HeroSearch() {
                 <div className="flex items-center rounded-[1.15rem] border border-line-strong bg-surface p-1.5 pl-4 shadow-card transition-[border-color,box-shadow] duration-200 focus-within:border-text-2 focus-within:shadow-float">
                     <Search size={19} className="shrink-0 text-muted" />
                     <input
+                        ref={box}
                         type="search"
                         value={value}
                         onChange={(event) => setValue(event.target.value)}

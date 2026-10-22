@@ -576,15 +576,15 @@
 }
 
 /* The pulse is a separate layer animated with transform/opacity only, so
-   the browser never has to repaint the page for it; four times, then it
-   rests (a page can show dozens of these). */
+   the browser never has to repaint the page for it; twice, then it rests
+   (a page can show dozens of these). */
 .nt-open-dot::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     background: var(--color-open);
-    animation: nt-ping 2s cubic-bezier(0, 0, 0.2, 1) 4 both;
+    animation: nt-ping 2s cubic-bezier(0, 0, 0.2, 1) 2 both;
 }
 
 @keyframes nt-ping {
