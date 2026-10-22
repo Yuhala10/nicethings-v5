@@ -184,7 +184,8 @@ export default function Film() {
     const { locale } = useLocale();
     const label = LABELS[locale];
     const root = useRef<HTMLElement>(null);
-    const clock = useRef({ elapsed: 0, last: 0 });
+    // Seconds into the film, and when that was last brought up to date while running.
+    const clock = useRef({ elapsed: 0, since: 0 });
     const sound = useRef<FilmSound | null>(null);
     // `step` counts scenes without ever going back, so a scene coming round
     // again is drawn afresh; -1 is the still poster shown before the film runs.
@@ -226,32 +227,40 @@ export default function Film() {
         };
     }, []);
 
-    // The clock: real time while running, and the scene it has reached.
+    // The clock: real time while running, and the scene it has reached. It
+    // wakes only when a scene changes: in between, the pictures move by
+    // themselves (CSS, on the phone's graphics chip). It used to tick on
+    // every frame, which made the browser work on every frame for nothing,
+    // and a tap on the home page wait. Time never runs backwards.
     useEffect(() => {
         if (!running) return;
-        let frame = 0;
-        // Time is counted from the first frame drawn, and never backwards: a
-        // frame's own timestamp can be a hair earlier than the moment this
-        // started, and a clock below zero would stop the film on its poster.
-        clock.current.last = 0;
-        const tick = (now: number) => {
-            const time = clock.current;
-            if (time.last > 0) time.elapsed += Math.max(0, now - time.last) / 1000;
-            time.last = now;
+        const time = clock.current;
+        time.since = performance.now();
+        let timer = 0;
+        const tick = () => {
+            const now = performance.now();
+            time.elapsed += Math.max(0, now - time.since) / 1000;
+            time.since = now;
             const at = (time.elapsed % TOTAL) / BEAT;
             let scene = 0;
             while (scene + 1 < FILM.length && FILM_STARTS[scene + 1] <= at) scene++;
             setStep(Math.floor(time.elapsed / TOTAL) * FILM.length + scene);
-            frame = requestAnimationFrame(tick);
+            const next = scene + 1 < FILM.length ? FILM_STARTS[scene + 1] : FILM_BEATS;
+            timer = window.setTimeout(tick, Math.max(20, (next - at) * BEAT * 1000 + 8));
         };
-        frame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frame);
+        timer = window.setTimeout(tick, 0);
+        return () => {
+            window.clearTimeout(timer);
+            time.elapsed += Math.max(0, performance.now() - time.since) / 1000;
+            time.since = 0;
+        };
     }, [running]);
 
     // The sound follows the film: it plays from where the picture is.
     useEffect(() => {
         if (!loud || !running) return;
-        sound.current?.start(clock.current.elapsed);
+        const time = clock.current;
+        sound.current?.start(time.elapsed + (time.since ? Math.max(0, performance.now() - time.since) / 1000 : 0));
         return () => sound.current?.stop();
     }, [loud, running]);
 
