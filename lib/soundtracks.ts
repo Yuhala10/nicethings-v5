@@ -7,9 +7,9 @@
 // A browser only lets a page make sound after a tap: `playTrack` must be
 // called from one.
 
-export const SOUNDS = ["makossa", "bikutsi", "afro", "chill", "soiree"] as const;
-export type Sound = (typeof SOUNDS)[number];
-export const isSound = (value: unknown): value is Sound => typeof value === "string" && (SOUNDS as readonly string[]).includes(value);
+import type { Sound } from "./sounds";
+
+export { SOUNDS, isSound, type Sound } from "./sounds";
 
 type Voice = "guitar" | "balafon" | "bell" | "stab";
 type Track = {

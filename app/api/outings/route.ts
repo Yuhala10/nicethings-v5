@@ -6,7 +6,7 @@ import { getPlace } from "@/lib/places/server";
 import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, POST_BUCKET, POST_TYPES, UUID } from "@/lib/posts";
 import { checkLevel } from "@/lib/people/notices";
 import { followingOf, hasOutingSound, loadOutings } from "@/lib/people/outings";
-import { isSound } from "@/lib/soundtracks";
+import { isSound } from "@/lib/sounds";
 import { refreshPerson } from "@/lib/people/pages";
 import { COMPANIES, MAX_OUTING_BODY, MAX_OUTING_PHOTOS, MAX_PRICE, MOODS, OUTINGS_PER_DAY, needsReading, normalizeHandle, postsAtOnce } from "@/lib/people/rules";
 import { currentProfile, deny, readBody, requireProfile, toPerson, statsOf } from "@/lib/people/server";
